@@ -1,0 +1,110 @@
+     1                                 %line 1+1 fact.asm
+     2                                 
+     3                                 
+     4                                 [global progr]
+     5                                 [extern exit]
+     6                                 
+     7                                 [global FACT]
+     8                                 
+     9                                 
+    10                                 
+    11                                 [section .data]
+    12                                 STP:
+    13 00000000 00000000                dd 0
+    14                                 STK:
+    15 00000004 00000000<rept>          times 13 dd 0
+    16                                 
+    17                                 R:
+    18 00000038 00000000                times 1 dd 0
+    19                                 T:
+    20 0000003C 00000000                times 1 dd 0
+    21                                 
+    22                                 
+    23                                 [section .text]
+    24                                 
+    25                                 FACT:
+    26 00000000 55                      push EBP
+    27 00000001 89E5                    mov EBP,ESP
+    28                                 
+    29                                 
+    30                                 
+    31                                 
+    32                                 
+    33                                 
+    34                                 
+    35 00000003 8B5D08                  mov EBX,[EBP+8]
+    36 00000006 8B03                    mov EAX,[EBX]
+    37 00000008 48                      dec EAX
+    38                                 
+    39 00000009 7F09                    jg LJ1
+    40                                 
+    41 0000000B B801000000              mov EAX,1
+    42                                 
+    43 00000010 89EC                    mov ESP,EBP
+    44 00000012 5D                      pop EBP
+    45 00000013 C3                      ret
+    46                                 
+    47 00000014 EB74                    jmp LJ2
+    48                                 LJ1:
+    49                                 
+    50                                 
+    51 00000016 A1[00000000]            mov EAX,[STP]
+    52 0000001B 40                      inc EAX
+    53 0000001C A3[00000000]            mov [STP],EAX
+    54                                 
+    55                                 
+    56 00000021 A1[00000000]            mov EAX,[STP]
+    57 00000026 C1E002                  sal EAX,2
+    58 00000029 05[00000000]            add EAX, STK
+    59 0000002E A3[00000000]            mov [T1Z],EAX
+    60                                 
+    61 00000033 8B5D08                  mov EBX,[EBP+8]
+    62 00000036 8B03                    mov EAX,[EBX]
+    63 00000038 89C2                    mov EDX,EAX
+    64 0000003A A1[00000000]            mov EAX,[T1Z]
+    65 0000003F 8910                    mov [EAX],EDX
+    66                                 
+    67                                 
+    68                                 
+    69 00000041 8B5D08                  mov EBX,[EBP+8]
+    70 00000044 8B03                    mov EAX,[EBX]
+    71 00000046 48                      dec EAX
+    72 00000047 A3[00000000]            mov [ T],EAX
+    73                                 
+    74                                 
+    75                                 
+    76 0000004C 68[00000000]            push T
+    77 00000051 E8A5FFFFFF              call FACT
+    78 00000056 83C404                  add ESP,4*1
+    79 00000059 A3[00000000]            mov [T1Z1],EAX
+    80 0000005E A1[00000000]            mov EAX,[STP]
+    81 00000063 C1E002                  sal EAX,2
+    82 00000066 05[00000000]            add EAX,STK
+    83 0000006B 8B00                    mov EAX,[EAX]
+    84 0000006D F72D[00000000]          imul dword [T1Z1]
+    85 00000073 A3[00000000]            mov [ R],EAX
+    86                                 
+    87                                 
+    88 00000078 A1[00000000]            mov EAX,[STP]
+    89 0000007D 48                      dec EAX
+    90 0000007E A3[00000000]            mov [ STP],EAX
+    91                                 
+    92                                 
+    93 00000083 A1[00000000]            mov EAX,[R]
+    94                                 
+    95 00000088 89EC                    mov ESP,EBP
+    96 0000008A 5D                      pop EBP
+    97 0000008B C3                      ret
+    98                                 
+    99                                 LJ2:
+   100                                 
+   101                                 [section .data]
+   102                                 T1Z:
+   103 00000040 00000000<rept>          times 2 dd 0
+   104                                 [section .text]
+   105                                 [section .data]
+   106                                 T1Z1:
+   107 00000048 00000000                times 1 dd 0
+   108                                 [section .text]
+   109                                 
+   110                                  end

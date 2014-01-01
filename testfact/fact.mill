@@ -1,0 +1,92 @@
+** FACT -- Example Recursive Function
+*  BEGIN FACT;
+ BEGIN
+*  ENTRY FACT;
+ ENT  FACT
+*
+** DCL RECURSIVE RETURN(8);   * return address stack
+*  DCL STP=0,STK(12);         * local parameter stack
+ SECT DATA
+ LABEL STP
+ CONST  0
+ LABEL STK
+ SPACE  13
+*  DCL R,T;                   * local variables
+ SECT DATA
+ LABEL R
+ SPACE  1
+ LABEL T
+ SPACE  1
+**---------------  FACTORIAL EXAMPLE
+*  RECURSIVE PROCEDURE FACT(N);
+ SECT CODE
+ SUBR P FACT
+ RECUR P FACT
+ NPARS  1
+ PAR  N
+ PEND
+*    IF N LE 1;
+*.GEN N,=1,.BN-,
+ L D N
+ -  =1
+*      THEN RETURN 1;         * terminate the recursion
+ JGT  LJ1
+*.GEN =1,
+ L  =1
+ RRETN  FACT,1
+*      ELSE 
+ J  LJ2
+ LABEL LJ1
+*        STP=STP+1;
+*.GEN =STP,STP,=1,.BC+,.BNST,
+ L  STP
+ +  =1
+ ST  STP
+*	STK(STP)=N;          * stack the parameter
+*.GEN =	STK,STP,=2,.BNSHL,.BC+,N,.BNST,
+ L  STP
+ SHL  =2
+ +  =	STK
+ ST  T1Z
+ L D N
+ ST  *T1Z
+*	T=N-1;               * compute next parameter
+*.GEN =	T,N,=1,.BN-,.BNST,
+ L D N
+ -  =1
+ ST  	T
+*	R=FACT(T)*STK(STP);  * recursive call
+*.GEN =	R,(T),.UFFACT,=STK,STP,=2,.BNSHL,.BC+,.UA,.BC*,.BNST,
+ SCALL P FACT
+ NARGS  1
+ ARG  T
+ CEND
+ ST  T1Z1
+ L  STP
+ SHL  =2
+ +  =STK
+ L  *.AC
+ *  T1Z1
+ ST  	R
+*	STP=STP-1;
+*.GEN =	STP,STP,=1,.BN-,.BNST,
+ L  STP
+ -  =1
+ ST  	STP
+*	RETURN R;            * return result
+*.GEN R,
+ L  R
+ RRETN  FACT,1
+*      ENDIF
+ LABEL LJ2
+*    ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+ SECT DATA
+ LABEL T1Z1
+ SPACE  1
+ SECT CODE
+*  END
+ END

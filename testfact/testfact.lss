@@ -1,0 +1,32 @@
+1       * TESTFACT.S1 -- Test Numeric I/O, CRB, Dec 30, 2013                    
+2                                                                               
+3         ENTRY TESTFACT;                                                       
+4         BEGIN TESTFACT;                                                       
+5         START TESTFACT;                                                       
+6                                                                               
+7         EXT PROC READ,WRITE;                                                  
+8         EXT PROC IREAD,IFORM;                                                 
+9         EXT PROC FACT;                                                        
+10                                                                              
+11        DCL INCH=1;                                                           
+12        DCL OUTCH=3;                                                          
+13        MSG GREET='Enter a positive number less than 12';                     
+14        MSG ANSWER='The factorial is:';                                       
+15        DCL BUFFER(20);                                                       
+16        DCL RESULT(20);                                                       
+17        DCL I=1,NUMBER;                                                       
+18        DCL F;                                                                
+19                                                                              
+20      LABEL TESTFACT;                                                         
+21      *  BUFFER=1;                    * initialize input buffer               
+22        RESULT=20;                   * initialize result buffer size          
+23        CALL WRITE(OUTCH,GREET);                                              
+24        CALL READ(INCH,BUFFER);                                               
+25        NUMBER=IREAD(I,BUFFER);                                               
+26        F=FACT(NUMBER);                                                       
+27        CALL WRITE(OUTCH,ANSWER);                                             
+28        CALL IFORM(F,RESULT);                                                 
+29        CALL WRITE(OUTCH,RESULT);                                             
+30        RETURN                                                                
+31      END                                                                     
+ NO ERRORS DETECTED

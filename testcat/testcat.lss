@@ -1,0 +1,21 @@
+1       * TESTCAT.S1 -- Test CAT2 in Small, CRB, Dec 18, 2013                   
+2                                                                               
+3         ENTRY TESTCAT;                                                        
+4         BEGIN TESTCAT;                                                        
+5         START TESTCAT;                                                        
+6                                                                               
+7         EXT PROC CAT2,WRITE;                                                  
+8                                                                               
+9         DCL OUTCH=3;                                                          
+10        MSG HELLO='Hello';                                                    
+11        DCL PAD=(15*' ');                                                     
+12        MSG SMALLW=' Small World.';                                           
+13                                                                              
+14      LABEL TESTCAT;                                                          
+15        CALL WRITE(OUTCH,HELLO);                                              
+16        CALL WRITE(OUTCH,SMALLW);                                             
+17        CALL CAT2(HELLO,SMALLW);                                              
+18        CALL WRITE(OUTCH,HELLO);                                              
+19        RETURN                                                                
+20      END                                                                     
+ NO ERRORS DETECTED

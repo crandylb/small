@@ -1,0 +1,22 @@
+1       * FACT -- Example Recursive Function                                    
+2         BEGIN FACT;                                                           
+3         ENTRY FACT;                                                           
+4                                                                               
+5       * DCL RECURSIVE RETURN(8);   * return address stack                     
+6         DCL STP=0,STK(12);         * local parameter stack                    
+7         DCL R,T;                   * local variables                          
+8       *---------------  FACTORIAL EXAMPLE                                     
+9         RECURSIVE PROCEDURE FACT(N);                                          
+10   1      IF N LE 1;                                                          
+11   2        THEN RETURN 1;         * terminate the recursion                  
+12   2        ELSE                                                              
+13   2          STP=STP+1;                                                      
+14   2  	STK(STP)=N;          * stack the parameter                             
+15   2  	T=N-1;               * compute next parameter                          
+16   2  	R=FACT(T)*STK(STP);  * recursive call                                  
+17   2  	STP=STP-1;                                                             
+18   2  	RETURN R;            * return result                                   
+19   2        ENDIF                                                             
+20   1      ENDPROC                                                             
+21   0    END                                                                   
+ NO ERRORS DETECTED

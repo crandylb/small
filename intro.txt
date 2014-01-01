@@ -1,0 +1,57 @@
+intro.txt -- Small Introduction, CRB, Jan 1, 2014
+
+   I created Small, a simple, mobil, algorithmic language, in the mid-
+seventies and made it the centerpiece of my master's degree program at the
+University of Washington. At the time I had a considerable amount of
+experience with programming and programming languages on 16-bit minicomputers
+as well as scientific mainframes such as the CDC 6000 series and IBM 7090s and
+360s as well as others.
+   The name says everything about my intentions and goals for the language. 
+Small has just enough features to make it usable for basic systems and
+application programming: integer arithmetic, conditionals, repetition loops,
+functions that support parameters and recursion, and simple data structures
+based on integer arrays and characters string messages to provide human
+readable input and output. The language interface to a host system is also
+simple requiring only a program loader and I/O for streams of characters
+through a simple file system.
+   Simplicity keeps the language small in its size and complexity making its
+implementation easy enough to get it going in a reasonable amount of time. At
+the same time its feature set makes it not only Turing Complete but adequate
+to support structured programming, the programming paradigm of that era.
+Turing Complete means any algorithm that can be implemented on any general
+purpose computer (i.e. Universal Turing Machine or equivalent) can be
+implemented in Small, subject to the limitations of a given implementation of
+the language. But the mobility of Small means that if a given implementation
+is not adequate another one can be created with a minimum of effort.
+   The mobility of Small is based on the general purpose
+Stage 2 macro processor created by Professor William Waite at the University
+of Colorado in the late sixties. Stage 2 is highly portable and is the heart
+of his Mobile Programming System. Stage 2 is implemented by a bootstrap
+process that begins with a simple program called simcmp that can be
+implemented by hand, that is, by translating it into assembly language or an
+available langage such as C or Fortran. Then simcmp is used to translate the
+Stage 2 source code to assembly language (or C or Fortran, etc.) to get a
+first working version of Stage 2.  And finally, the first version of Stage 2
+is used to translate its source to a more efficient version using the feature
+set of Stage 2 to perform various optimizations.
+   All these steps may sound complicated but they become more straightforward
+once you understand the simplicity of the abstract machine model used to
+express Stage 2 and how easily it maps to an assembly language (or the
+features of C, etc). Also note that Stage 2 considered as an interpreter is
+itself Turing Complete as it provides integer arithmetic, condititionals,
+repetitions, and recursive functions with parameters in the form of
+macros. Thus we are assured that Stage 2 has the computational power to
+implement any features needed.  The portability of Small is also facilitated
+by a simple abstract machine model. Small source code is translated to Mill, a
+machine independent low level language, that closely corresponds to most, if
+not all, modern digital computers designed on the von Neumann model.
+   The Stage 2 macro file, small.s2m, performs the translation of Small to
+Mill. All that is needed to complete the translation to a host system is a set
+of Stage 2 macros to translate Mill to the host system assembly language (or
+other language if desired). This is usually a straightforward task depending
+on the programmer's facility with the host system. Thus implementing Small
+requires two parts: porting Stage 2, and writing macros to translate Mill to
+assembly language (or other language of choice). An implementation of Stage 2
+for x86 running Linux is provided in the stage2-2 repository. My 1982 thesis
+serves as a reference manual for Small and Mill.
+

@@ -1,0 +1,287 @@
+\`\`0 (+-*/)   mill2yasm.s2m -- Small macros for x86 m32 YASM, CRB, Dec 31, 2013
+*`\				comments
+;`10`F13\
+\
+ L  `\				load operand into accumulator
+ mov EAX,[`10]\
+\
+ +  `\				add operand to accumulator
+ add EAX,[`10]\
+\
+ -  =0\				set ALU flags
+ or EAX,EAX\
+\
+ -  `\				subtract operand from accumulator
+; -  `10\
+ sub EAX,[`10]\
+\
+ *  `\				multiply accumulator by operand
+ imul dword [`10]\
+\
+ /  `\				divide accumulator by operand
+ cdq\
+ idiv dword [`10]\
+\
+ MOD  `\			remainder of .AC divided by operand
+ cwd\
+ idiv dword [`10]\
+ mov EAX,EDX\
+\
+ AND  `\			AND operand with accumulator
+ and EAX,[`10]\
+\
+ OR  `\				OR operand with accumulator
+ or EAX,[`10]\
+\
+ XOR  `\			XOR operand with accumulator
+ xor EAX,[`10]\
+\
+ SHL  `\			shift accumulator left by opnd
+ mov ECX,[`10]\
+ sal EAX,CL\
+\
+ SHR  `\			shift accumulator right by opnd
+ mov ECX,[`10]\
+ sar EAX,CL\
+\
+ L  =`\				load operand into accumulator
+ mov EAX,`10\
+\
+ +  =1\				increment accumlator
+ inc EAX\
+\
+ +  =`\				add operand to accumulator
+ add EAX,`10\
+\
+ -  =1\				decrement accumulator
+ dec EAX\
+\
+ -  =`\				subtract operand from accumulator
+ sub EAX,`10\
+\
+ *  =`\				multiply operand by accumulator
+ imul EAX,`10\
+\
+ /  =`\				divide accumulator by operand
+ cdq\
+ mov  ECX,`10\
+ idiv dword ECX\
+\
+ MOD  =`\			remainder of .AC divided by operand
+ cdq\
+ mov  ECX,`10\
+ idiv dword ECX\
+ mov  EAX,EDX\
+\
+ AND  =`\			AND operand with accumulator
+ and EAX,`10\
+\
+ OR  =`\			OR operand with accumulator
+ or EAX,`10\
+\
+ XOR  =`\			XOR operand with accumulator
+ xor EAX,`10\
+\
+ SHL  =`\			shift accumulator left immediate
+ sal EAX,`10\
+\
+ SHR  =`\			shift accumulator right immediate
+ sar EAX,`10\
+\
+ -\				negate accumulator
+ neg EAX\
+\
+ NOT\				copmlement accumulator
+ not EAX\
+\
+ ST  `\				store accumulator in operand
+ mov [`10],EAX\			or store address
+\
+ L  *.AC\			load indirect through accumulator
+ mov EAX,[EAX]\
+\
+ ST  *`\			store indirect through operand
+ mov EDX,EAX\
+ mov EAX,[`10]\
+ mov [EAX],EDX\
+\ 
+ J  `\				jump to label
+ jmp `10\
+\
+ JEQ  `\			jump if equal
+ jz `10\
+\
+ JNE  `\			jump if not equal
+ jne `10\
+\
+ JLE  `\			jump if less than or equal
+ jle `10\
+\
+ JGE  `\			jump if greater than or equal
+ jge `10\
+\
+ JLT  `\			jump if less than
+ jl `10\
+\
+ JGT  `\			jump if greater than
+ jg `10\
+\
+ STRT  `\			jump to start location
+ section .text\
+progr:\
+ push EBP\
+ mov  EBP,ESP\
+ jmp `10\
+\
+ LABEL `\			memory location label
+`10:\
+\
+ SPACE  `\			amount of space to reserve
+ times `10 dd 0\
+\
+ CONST `\			data constant
+ dd `10\
+\
+ ENT `\				global entry points
+ global `10\
+\
+ EXT `\				external access points
+ extern `10\
+\
+ EXT P `\			external procedure reference
+ extern `10\
+\
+ ARG  `\			argument to procedure call
+ push `10\
+\
+ SCALL P `\			procedure call
+.LET *CALL=`10\
+\
+ SCALL  `\			procedure call
+.LET *CALL=`10\
+\
+ CEND\				call sequence end
+*CALL`96  call `91\
+*CARGS`86\
+.IF `81 EQ 0 SKIP 1\
+ add  ESP,4*`81\
+\
+ NARGS  `\
+; NARGS  `10\
+.LET *CARGS=`10\
+\
+ SUBR ` `\			subroutine entry
+; SUBR  `20\
+.LET *SUBR=`20\
+`20:\
+ push EBP\
+ mov  EBP,ESP\
+\
+ RECUR `\			recursive subroutine
+; RECUR `10\
+\
+ NPARS `\			number of parameters
+; NPARS `10\
+.LET *NPAR=1\
+\
+ PAR  `\			parameter
+; PAR  `10\
+*NPAR`96\
+.LET *PAR.`10=`91\
+.SET *NPAR=`91+1\
+\
+ PEND\				parameter list end
+; PEND\
+\
+ RETN  `,`\			return from subroutine
+; RETN  `10,`20\
+ mov ESP,EBP\
+ pop EBP\
+ ret\
+\
+ RRETN  `,`\			return from recursive subroutine
+; RRETN  `10,`20\
+ mov ESP,EBP\
+ pop EBP\
+ ret\
+\
+ L D `\				load parameter
+; L D `10\
+.GETP `10\
+ mov EAX,[EBX]\
+\
+ + D =`\			add array parameter
+; + D =`10\
+.GETP `10\
+ add EAX,EBX\
+\
+ + D `\				add parameter
+; + D `10\
+.GETP `10\
+ add EAX,[EBX]\
+\
+ - D `\				subtract parameter
+; - D `10\
+.GETP `10\
+ sub EAX,[EBX]\
+\
+ ST D `\			store parameter
+; ST D `10\
+.GETP `10\
+ mov [EBX],EAX\
+\
+.GETP `\			get parameter CRB 07/13/2013
+*OFF`76\
+*NPAR`86\
+*PAR.`10`96\
+.SET *OFF=4*(1+`81-`91)\
+ mov EBX,[EBP+`71] ; `10\
+\
+ CALL EXIT\
+ push 0\
+ call exit\
+\
+ BEGIN\
+ global progr\		        moved from mill2nasm CRB 08/22/2007
+ extern exit\
+\
+ SECT CODE\			added CRB 08/23/2007
+*SECT`96\
+.IF `91=CODE SKIP 2\
+ section .text\
+.LET *SECT=CODE\
+\
+ SECT DATA\			added CRB 08/23/2007
+*SECT`96\
+.IF `91=DATA SKIP 2\
+ section .data\
+.LET *SECT=DATA\
+\
+ SECT BSS\			added CRB 08/23/2007
+*SECT`96\
+.IF `91=BSS SKIP 2\
+ section .bss\
+.LET *SECT=BSS\
+\
+.LET `=`\
+`F3\
+\
+.SET `=`\
+`24`26 `F3\
+\
+.IF `=` SKIP `\			string compare
+`F50\
+\
+.IF `-=` SKIP `\
+`F51\
+\
+.IF ` EQ ` SKIP `\		arithmetic compare
+`F60\
+\
+.SKIP `\
+`F4\
+\
+ END\				end of module
+ end`F1\
+`F0\
+\\

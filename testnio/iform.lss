@@ -1,0 +1,36 @@
+1       * IFORM -- CONVERT INTEGER TO DECIMAL CHARACTER STRING AS IN I FORMAT   
+2       BEGIN IFORM;                  * CRB OCT 31, 1981                        
+3            ENT IFORM;                                                         
+4            DCL N,Q;                                                           
+5            DCL PTR;                 * TEMPORARY STORAGE FOR CONVERSION        
+6            DCL STAR=('*');                                                    
+7            DCL MINUS=('-');                                                   
+8       *---------------                                                        
+9       PROC IFORM(NUM,BUFF);                                                   
+10   1       N=NUM;                   * GET NUMBER TO BE CONVERTED              
+11   1       PTR=BUFF;                * POINTER INTO USERS BUFFER               
+12   1       IF N LT 0; THEN N=-N; ENDIF                                        
+13   1       REPEAT                   * REPEAT UNTIL N IS CONVERTED             
+14   2         IF PTR LE 0; THEN GO TO TOOBIG ENDIF                             
+15   2         Q=N/10;                * GET NEXT QUOTIENT                       
+16   2         BUFF(PTR)=N-10*Q+'0';  * CONVERT REMAINDER TO CHAR               
+17   2         N=Q;                                                             
+18   2         PTR=PTR-1;                                                       
+19   2         UNTIL N EQ 0;                                                    
+20   1       IF NUM LT 0; THEN                                                  
+21   2         IF PTR LE 0; THEN GO TO TOOBIG;                                  
+22   3         ELSE BUFF(PTR)=MINUS;  * INSERT MINUS SIGN IF IT FITS            
+23   3           PTR=PTR-1;                                                     
+24   3           ENDIF                                                          
+25   2         ENDIF                                                            
+26   1       DO WHILE PTR GT 0;       * BLANK OUT ANY UNUSED PART OF BUFF       
+27   2         BUFF(PTR)=' ';                                                   
+28   2         PTR=PTR-1;                                                       
+29   2         ENDDO                                                            
+30   1       RETURN                                                             
+31   1  LABEL TOOBIG                  * CONVERTED NUMBER TOO BIG FOR BUFF       
+32   1       BUFF(1)=STAR;            * SET FIRST CHAR = * TO NOTE ERROR        
+33   1       RETURN                                                             
+34   1     ENDPROC                                                              
+35   0   END IFORM                                                              
+ NO ERRORS DETECTED

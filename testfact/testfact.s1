@@ -1,0 +1,33 @@
+* TESTFACT.S1 -- Test Numeric I/O, CRB, Dec 30, 2013
+
+  ENTRY TESTFACT;
+  BEGIN TESTFACT;
+  START TESTFACT;
+
+  EXT PROC READ,WRITE;
+  EXT PROC IREAD,IFORM;
+  EXT PROC FACT;
+
+  DCL INCH=1;
+  DCL OUTCH=3;
+  MSG GREET='Enter a positive number less than 12';
+  MSG ANSWER='The factorial is:';
+  DCL BUFFER(20);
+  DCL RESULT(20);
+  DCL I=1,NUMBER;
+  DCL F;
+
+LABEL TESTFACT;
+*  BUFFER=1;                    * initialize input buffer
+  RESULT=20;                   * initialize result buffer size
+  CALL WRITE(OUTCH,GREET);
+  CALL READ(INCH,BUFFER);
+  NUMBER=IREAD(I,BUFFER);
+  F=FACT(NUMBER);
+  CALL WRITE(OUTCH,ANSWER);
+  CALL IFORM(F,RESULT);
+  CALL WRITE(OUTCH,RESULT);
+  RETURN
+END
+
+  

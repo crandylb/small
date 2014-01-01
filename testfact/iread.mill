@@ -1,0 +1,232 @@
+** IREAD -- FUNCTION TO SCAN FOR AN INTEGER AND RETURN ITS VALUE
+** CRB OCT 31, 1981
+*     BEGIN IREAD;  ENTRY IREAD;
+ BEGIN
+ ENT  IREAD
+*     DCL I;                   * LOCAL COPY OF IPTR
+ SECT DATA
+ LABEL I
+ SPACE  1
+*     DCL L;                   * LENGTH OF LINE
+ SECT DATA
+ LABEL L
+ SPACE  1
+*     DCL N;                   * VALUE OF NUMBER BEING CONVERTED
+ SECT DATA
+ LABEL N
+ SPACE  1
+*     DCL PLUS=('+'),MINUS=('-'),SIGN;
+ SECT DATA
+ LABEL PLUS
+ CONST  43
+ LABEL MINUS
+ CONST  45
+ LABEL SIGN
+ SPACE  1
+**---------------
+*PROC IREAD(IPTR,LINE);
+ SECT CODE
+ SUBR P IREAD
+ NPARS  2
+ PAR  IPTR
+ PAR  LINE
+ PEND
+*     SIGN=0;                  * SET SIGN FOR POSITIVE NUMBER
+*.GEN =SIGN,=0,.BNST,
+ L  =0
+ ST  SIGN
+*     N=0;
+*.GEN =N,=0,.BNST,
+ L  =0
+ ST  N
+*     I=IPTR;                  * LOCAL COPY
+*.GEN =I,IPTR,.BNST,
+ L D IPTR
+ ST  I
+*     L=LINE;                  * ASSUME LINE(0) CONTAINS LENGTH
+*.GEN =L,LINE,.BNST,
+ L D LINE
+ ST  L
+*     DO WHILE LINE(I) EQ ' '; * TRIM LEADING BLANKS
+ LABEL LJ1
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=32,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =32
+ JNE  LJ2
+*       IF I GE L; THEN IPTR=I; RETURN 0; ENDIF
+*.GEN I,L,.BN-,
+ L  I
+ -  L
+ JLT  LJ3
+*.GEN =IPTR,I,.BNST,
+ L  I
+ ST D IPTR
+*.GEN =0,
+ L  =0
+ RETN  IREAD,2
+ LABEL LJ3
+*       I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*       ENDDO
+ J  LJ1
+ LABEL LJ2
+*     IF LINE(I) EQ PLUS; THEN GO TO IR1  ENDIF
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,PLUS,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  PLUS
+ JNE  LJ4
+ J  IR1
+ LABEL LJ4
+*     IF LINE(I) EQ MINUS; THEN 
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,MINUS,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  MINUS
+ JNE  LJ5
+*       SIGN=-1;               * SET SIGN FOR NEGATIVE NUMBER
+*.GEN =SIGN,=1,.U-,.BNST,
+ L  =1
+ -
+ ST  SIGN
+*LABEL IR1;
+ SECT CODE
+ LABEL IR1
+*       I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*       DO WHILE LINE(I) EQ ' '; * ALLOW BLANKS AFTER + OR -
+ LABEL LJ6
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=32,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =32
+ JNE  LJ7
+*         IF I GE L; THEN RETURN 0; ENDIF
+*.GEN I,L,.BN-,
+ L  I
+ -  L
+ JLT  LJ8
+*.GEN =0,
+ L  =0
+ RETN  IREAD,2
+ LABEL LJ8
+*         I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*         ENDDO
+ J  LJ6
+ LABEL LJ7
+*       ENDIF
+ LABEL LJ5
+*     IF LINE(I) LT '0'; THEN RETURN 0; ENDIF
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=48,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =48
+ JGE  LJ9
+*.GEN =0,
+ L  =0
+ RETN  IREAD,2
+ LABEL LJ9
+*     IF LINE(I) GT '9'; THEN RETURN 0; ENDIF
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=57,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =57
+ JLE  LJ10
+*.GEN =0,
+ L  =0
+ RETN  IREAD,2
+ LABEL LJ10
+*     DO WHILE I LE L;
+ LABEL LJ11
+*.GEN I,L,.BN-,
+ L  I
+ -  L
+ JGT  LJ12
+*       IF LINE(I) LT '0'; THEN EXIT ENDIF
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=48,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =48
+ JGE  LJ13
+ J  LJ12
+ LABEL LJ13
+*       IF LINE(I) GT '9'; THEN EXIT ENDIF
+*.GEN =LINE,I,=2,.BNSHL,.BC+,.UA,=57,.BN-,
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ -  =57
+ JLE  LJ14
+ J  LJ12
+ LABEL LJ14
+*       N=10*N-'0'+LINE(I);
+*.GEN =N,=10,N,.BC*,=48,.BN-,=LINE,I,=2,.BNSHL,.BC+,.UA,.BC+,.BNST,
+ L  =10
+ *  N
+ -  =48
+ ST  T1Z1
+ L  I
+ SHL  =2
+ + D =LINE
+ L  *.AC
+ +  T1Z1
+ ST  N
+*       I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*       ENDDO
+ J  LJ11
+ LABEL LJ12
+*     IF SIGN; THEN N=-N; ENDIF
+*.GEN SIGN,=0,.BN-,
+ L  SIGN
+ -  =0
+ JEQ  LJ15
+*.GEN =N,N,.U-,.BNST,
+ L  N
+ -
+ ST  N
+ LABEL LJ15
+*     IPTR=I;                  * MOVE INPUT POINTER TO TERMINATING CHAR
+*.GEN =IPTR,I,.BNST,
+ L  I
+ ST D IPTR
+*     RETURN N;                * RETURN ACCUMULATED NUMBER AS VALUE
+*.GEN N,
+ L  N
+ RETN  IREAD,2
+*   ENDPROC
+ SECT DATA
+ LABEL T1Z1
+ SPACE  1
+ SECT CODE
+* END
+ END
