@@ -1,4 +1,5 @@
 README.txt -- small directory contains language Small, CRB, Jan 6, 2014
+01/27/2014 CRB Add SmallPocketGuide
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -17,6 +18,9 @@ Test Programs:	 Directories containing test programs written in Small
   testcat	 testing the CAT2 program in Small
   testfact	 testing the recursive factorial program FACT in Small
   testnio	 testing integer I/O, IREAD and IFORM in Small
+SmallPocketGuide.odt A brief summary of Small and Mill for handy
+		 reference
+SmallPocketGuide.pdf This version may be easier to print in landscape
 
 README.txt
 Describes the contents of this directory.
@@ -47,13 +51,13 @@ This C program interfaces I/O in Small to the conventions used in the grandios
 module, the I/O system used in the implementation of Stage 2.
 
 thesis.pdf
-This is a faithful reporoduction of my masters thesis that was originally
-written on and early personal computer and formatted by Small Runoff, and text
-formatter written in Small, and printed from the computer on an electronically
+This is a reporoduction of my masters thesis that was originally written on
+an early personal computer and formatted by Small Runoff, a text formatter
+written in Small, and printed from the computer on an electronically
 controlled IBM Selectric typewriter.
 
 testcat
-This directory illustrated compiling and testing the Small CAT2 program on
+This directory illustrates compiling and testing the Small CAT2 program on
 page 103 of the thesis reproduction.
 
 testfact
@@ -66,3 +70,11 @@ thesis.
 testnio
 This directory illustrates compiling and testing the Small programs IFORM and
 IREAD from pages 104 and 105 of thesis.
+
+SmallPocketGuide.odt and .pdf
+This quick reference guide contains a summary of Small and Mill, including
+character set, statements and declarations, procedures and functions,
+expressions and operators, and directives. Also Mill instructions and
+pseudo-operations.  The .pdf form may be easier to print in landscape mode.
+
+to be continued...
