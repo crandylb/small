@@ -1,0 +1,65 @@
+1       * LEX.S1 -- Lexical Scanner for Small, CRB, Oct 11,2007                 
+2       * Testing, CRB, Oct 24, 2012                                            
+3       * Restoring State matrix to original, CRB, Oct 30, 2012                 
+4       * Fix end of line detection, CRB, Jan 13, 2014                          
+5                                                                               
+6           BEGIN LEX;                                                          
+7           ENTRY LEX;                                                          
+8           EXTERN BUFF;                                                        
+9                                                                               
+10      * character type codes                                                  
+11      * T array is indexed by 7-bit ASCII character code using zero indexing  
+12            DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 spac
+13            DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alph
+14            DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digi
+15            DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quot
+16            DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 othe
+17            DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);         
+18            DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2);         
+19            DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);         
+20                                                                              
+21          DCL S=30;                   * S(0) contains size                    
+22            DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces                  
+23            DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name                    
+24            DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer                 
+25            DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string           
+26            DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other                   
+27            DCL S6=(-4,-4,-4,-4,-4);  * offset 25                             
+28          DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector                
+29                                                                              
+30          DCL CTYPE;     * type of character                                  
+31          DCL STATE;     * state variable                                     
+32          DCL KIND;      * kind of token 1: name, 2: int, 3: string, 4, spc   
+33          DCL I;         * local character index in BUFF                      
+34          DCL CHAR;      * current local character                            
+35          DCL J;         * index output character in LEXEME                   
+36      *---------------                                                        
+37          PROC LEX(INEXT,LEXEME);                                             
+38   1        STATE=1;     * initialize current state                           
+39   1        I=INEXT;                                                          
+40   1        J=1;                                                              
+41   1        REPEAT                                                            
+42   2          CHAR=BUFF(I);                                                   
+43   2          IF CHAR EQ -1; THEN     * end of line                           
+44   3            LEXEME=J-1;                                                   
+45   3            EXIT                                                          
+46   3          ENDIF                                                           
+47   2          CTYPE=T(CHAR);  * get character type                            
+48   2          STATE=S(SROW(STATE)+CTYPE);                                     
+49   2          IF STATE LT 0; THEN                                             
+50   3            LEXEME=J-1;   * set length of lexeme string                   
+51   3            EXIT                                                          
+52   3          ELSE                                                            
+53   3            IF STATE NE 1; THEN   * skip white space                      
+54   4              LEXEME(J)=CHAR;                                             
+55   4              J=J+1;                                                      
+56   4            ENDIF                                                         
+57   3          ENDIF                                                           
+58   2          I=I+1;                                                          
+59   2        UNTIL STATE LT 0;                                                 
+60   1        INEXT=I;                                                          
+61   1        KIND=-STATE;                                                      
+62   1        RETURN KIND;                                                      
+63   1      ENDPROC                                                             
+64   0    END                                                                   
+ NO ERRORS DETECTED

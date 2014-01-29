@@ -1,5 +1,6 @@
 README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 01/27/2014 CRB Add SmallPocketGuide
+01/29/2014 CRB Add testlex
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -18,6 +19,7 @@ Test Programs:	 Directories containing test programs written in Small
   testcat	 testing the CAT2 program in Small
   testfact	 testing the recursive factorial program FACT in Small
   testnio	 testing integer I/O, IREAD and IFORM in Small
+  testlex        testing LEX lexical scanner
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
 SmallPocketGuide.pdf This version may be easier to print in landscape
@@ -70,6 +72,14 @@ thesis.
 testnio
 This directory illustrates compiling and testing the Small programs IFORM and
 IREAD from pages 104 and 105 of thesis.
+
+testlex
+This directory tests a version of the LEX lexical scanner described in Chapter
+6 of my thesis. The scanner is implemented as a finite state automaton using a
+two-dimensional array. Since Small only supports one-dimensional arrays the 2D
+array is represented by concatenated 1D arrays. Each call to LEX returns a
+KIND code, 1 for a name (identifier), 2 for an integer, 3 for a quoted string
+of characters, and 5 for any other individual special character.
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including

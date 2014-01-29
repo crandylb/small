@@ -1,0 +1,39 @@
+1       * testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014                          
+2                                                                               
+3         ENTRY TESTLEX;                                                        
+4         BEGIN TESTLEX;                                                        
+5         START TESTLEX;                                                        
+6         ENTRY BUFF;                   * make BUFF buffer global for LEX       
+7                                                                               
+8         EXTERNAL PROC READ,WRITE;                                             
+9         EXTERNAL PROC LEX,CAT2;                                               
+10                                                                              
+11        DCL BUFF(128),SCRATCH(128);                                           
+12        DCL INCH=1,OUTCH=3,STATUS;                                            
+13        DCL EOF=0;                                                            
+14        DCL LEXEME(120);                                                      
+15        MSG GREET='Begin Small LEX Test'                                      
+16        DCL KIND,KINDN;                                                       
+17        DCL ICHAR;                                                            
+18                                                                              
+19      LABEL TESTLEX;                                                          
+20        CALL WRITE(OUTCH,GREET);                                              
+21        REPEAT                                                                
+22   1      STATUS=READ(INCH,BUFF);                                             
+23   1      CALL WRITE(OUTCH,BUFF);                                             
+24   1      ICHAR=1;                                                            
+25   1      DO WHILE ICHAR LE BUFF;       * until end of line                   
+26   2        KIND=LEX(ICHAR,LEXEME);                                           
+27   2        SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit        
+28   2        SCRATCH(2)=' ';             * follow with space                   
+29   2        SCRATCH(3)=' ';             * terminate line                      
+30   2        SCRATCH=2;                  * number of characters                
+31   2        CALL CAT2(SCRATCH,LEXEME);  * concatenate                         
+32   2        CALL WRITE(OUTCH,SCRATCH);                                        
+33   2  *      CALL WRITE(OUTCH,LEXEME);                                        
+34   2        ENDDO                                                             
+35   1      UNTIL STATUS EQ EOF;                                                
+36   0    RETURN                                                                
+37   0                                                                          
+38   0  END                                                                     
+ NO ERRORS DETECTED

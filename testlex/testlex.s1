@@ -1,0 +1,37 @@
+* testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014
+
+  ENTRY TESTLEX;
+  BEGIN TESTLEX;
+  START TESTLEX;
+  ENTRY BUFF;                   * make BUFF buffer global for LEX
+
+  EXTERNAL PROC READ,WRITE;
+  EXTERNAL PROC LEX,CAT2;
+
+  DCL BUFF(128),SCRATCH(128);
+  DCL INCH=1,OUTCH=3,STATUS;
+  DCL EOF=0;
+  DCL LEXEME(120);
+  MSG GREET='Begin Small LEX Test'
+  DCL KIND,KINDN;
+  DCL ICHAR;
+
+LABEL TESTLEX;
+  CALL WRITE(OUTCH,GREET);
+  REPEAT 
+    STATUS=READ(INCH,BUFF);
+    CALL WRITE(OUTCH,BUFF);
+    ICHAR=1;
+    DO WHILE ICHAR LE BUFF;       * until end of line
+      KIND=LEX(ICHAR,LEXEME);
+      SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit
+      SCRATCH(2)=' ';             * follow with space
+      SCRATCH(3)=' ';             * terminate line
+      SCRATCH=2;                  * number of characters
+      CALL CAT2(SCRATCH,LEXEME);  * concatenate
+      CALL WRITE(OUTCH,SCRATCH);
+      ENDDO
+    UNTIL STATUS EQ EOF;
+  RETURN
+
+END
