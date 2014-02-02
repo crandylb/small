@@ -1,0 +1,130 @@
+     1                                 %line 1+1 testcase.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 [global TESTCASE]
+     6                                 
+     7                                 [global progr]
+     8                                 [extern exit]
+     9                                 
+    10                                 [global TESTCASE]
+    11                                 [section .text]
+    12                                 progr:
+    13 00000000 55                      push EBP
+    14 00000001 89E5                    mov EBP,ESP
+    15 00000003 EBFE                    jmp TESTCASE
+    16                                 
+    17                                 
+    18                                 [extern WRITE]
+    19                                 
+    20                                 
+    21                                 [section .data]
+    22                                 OUTCH:
+    23 00000000 03000000                dd 3
+    24                                 
+    25                                 I:
+    26 00000004 00000000                dd 0
+    27                                 
+    28                                 CASETXT:
+    29 00000008 08000000                dd 8
+    30 0000000C 43000000                dd 67
+    31 00000010 61000000                dd 97
+    32 00000014 73000000                dd 115
+    33 00000018 65000000                dd 101
+    34 0000001C 20000000                dd 32
+    35 00000020 30000000                dd 48
+    36 00000024 20000000                dd 32
+    37 00000028 20000000                dd 32
+    38                                 
+    39                                 
+    40                                 [section .text]
+    41                                 TESTCASE:
+    42                                 
+    43                                 LJ1:
+    44                                 
+    45 00000005 A1[00000000]            mov EAX,[I]
+    46 0000000A 83E803                  sub EAX,3
+    47 0000000D 0F8D9E000000            jge LJ2
+    48                                 
+    49                                 
+    50 00000013 A1[00000000]            mov EAX,[I]
+    51 00000018 09C0                    or EAX,EAX
+    52 0000001A C1E002                  sal EAX,2
+    53 0000001D 05[00000000]            add EAX,LC1
+    54 00000022 8B00                    mov EAX,[EAX]
+    55 00000024 FFE0                    jmp EAX
+    56                                 [section .data]
+    57                                 LC1:
+    58 0000002C [00000000]              dd CASE1
+    59 00000030 [00000000]              dd CASE2
+    60 00000034 [00000000]              dd CASE3
+    61                                 
+    62                                 [section .text]
+    63 00000026 EB6B                    jmp LJ3
+    64                                 CASE1:
+    65                                 
+    66                                 
+    67 00000028 B806000000              mov EAX,6
+    68 0000002D C1E002                  sal EAX,2
+    69 00000030 05[00000000]            add EAX,CASETXT
+    70 00000035 A3[00000000]            mov [TZ1],EAX
+    71 0000003A A1[00000000]            mov EAX,[I]
+    72 0000003F 83C031                  add EAX,49
+    73 00000042 89C2                    mov EDX,EAX
+    74 00000044 A1[00000000]            mov EAX,[TZ1]
+    75 00000049 8910                    mov [EAX],EDX
+    76                                 
+    77 0000004B EB46                    jmp LJ3
+    78                                 CASE2:
+    79                                 
+    80                                 
+    81 0000004D B807000000              mov EAX,7
+    82 00000052 C1E002                  sal EAX,2
+    83 00000055 05[00000000]            add EAX,CASETXT
+    84 0000005A A3[00000000]            mov [TZ1],EAX
+    85 0000005F A1[00000000]            mov EAX,[I]
+    86 00000064 83C031                  add EAX,49
+    87 00000067 89C2                    mov EDX,EAX
+    88 00000069 A1[00000000]            mov EAX,[TZ1]
+    89 0000006E 8910                    mov [EAX],EDX
+    90                                 
+    91 00000070 EB21                    jmp LJ3
+    92                                 CASE3:
+    93                                 
+    94                                 
+    95 00000072 B808000000              mov EAX,8
+    96 00000077 C1E002                  sal EAX,2
+    97 0000007A 05[00000000]            add EAX,CASETXT
+    98 0000007F A3[00000000]            mov [TZ1],EAX
+    99 00000084 A1[00000000]            mov EAX,[I]
+   100 00000089 83C031                  add EAX,49
+   101 0000008C 89C2                    mov EDX,EAX
+   102 0000008E A1[00000000]            mov EAX,[TZ1]
+   103 00000093 8910                    mov [EAX],EDX
+   104                                 
+   105                                 LJ3:
+   106                                 
+   107                                 
+   108 00000095 68[00000000]            push OUTCH
+   109 0000009A 68[00000000]            push CASETXT
+   110 0000009F E8(F6FFFFFF)            call WRITE
+   111 000000A4 83C408                  add ESP,4*2
+   112                                 
+   113                                 
+   114 000000A7 A1[00000000]            mov EAX,[I]
+   115 000000AC 40                      inc EAX
+   116 000000AD A3[00000000]            mov [I],EAX
+   117                                 
+   118 000000B2 E949FFFFFF              jmp LJ1
+   119                                 LJ2:
+   120                                 
+   121                                 
+   122 000000B7 89EC                    mov ESP,EBP
+   123 000000B9 5D                      pop EBP
+   124 000000BA C3                      ret
+   125                                 
+   126                                 [section .data]
+   127                                 TZ1:
+   128 00000038 00000000                times 1 dd 0
+   129                                 [section .text]
+   130                                  end

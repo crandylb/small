@@ -1,0 +1,114 @@
+** TESTCASE.S1 -- Test CASE statement, CRB, Feb 1, 2014
+*
+*  ENTRY TESTCASE;
+ ENT  TESTCASE
+*  BEGIN TESTCASE;
+ BEGIN
+*  START TESTCASE;
+ ENT  TESTCASE
+ STRT  TESTCASE
+*
+*  EXT PROC WRITE;
+ EXT P WRITE
+*
+*  DCL OUTCH=3;
+ SECT DATA
+ LABEL OUTCH
+ CONST  3
+*  DCL I=0;
+ SECT DATA
+ LABEL I
+ CONST  0
+*  MSG CASETXT='Case 0  ';		* space to plug in case number
+ SECT DATA
+ LABEL CASETXT
+ CONST  8
+ CONST  67
+ CONST  97
+ CONST  115
+ CONST  101
+ CONST  32
+ CONST  48
+ CONST  32
+ CONST  32
+*
+*LABEL TESTCASE;
+ SECT CODE
+ LABEL TESTCASE
+*  DO WHILE I LT 3;
+ LABEL LJ1
+*.GEN I,=3,.BN-,
+ L  I
+ -  =3
+ JGE  LJ2
+*    CASE I; OF CASE1,CASE2,CASE3;	* case list is zero indexed
+*.GEN I,=0,.BN-,
+ L  I
+ -  =0
+ JX  3
+ JC  CASE1
+ JC  CASE2
+ JC  CASE3
+*      LABEL CASE1;
+ SECT CODE
+ J  LJ3
+ LABEL CASE1
+*        CASETXT(6)=I+'1';		* convert I to char + 1
+*.GEN =CASETXT,=6,=2,.BNSHL,.BC+,I,=49,.BC+,.BNST,
+ L  =6
+ SHL  =2
+ +  =CASETXT
+ ST  TZ1
+ L  I
+ +  =49
+ ST  *TZ1
+*      LABEL CASE2;
+ SECT CODE
+ J  LJ3
+ LABEL CASE2
+*        CASETXT(7)=I+'1';
+*.GEN =CASETXT,=7,=2,.BNSHL,.BC+,I,=49,.BC+,.BNST,
+ L  =7
+ SHL  =2
+ +  =CASETXT
+ ST  TZ1
+ L  I
+ +  =49
+ ST  *TZ1
+*      LABEL CASE3;
+ SECT CODE
+ J  LJ3
+ LABEL CASE3
+*        CASETXT(8)=I+'1';
+*.GEN =CASETXT,=8,=2,.BNSHL,.BC+,I,=49,.BC+,.BNST,
+ L  =8
+ SHL  =2
+ +  =CASETXT
+ ST  TZ1
+ L  I
+ +  =49
+ ST  *TZ1
+*      ENDCASE 
+ LABEL LJ3
+*      CALL WRITE(OUTCH,CASETXT);
+ SCALL P WRITE
+ NARGS  2
+ ARG  OUTCH
+ ARG  CASETXT
+ CEND
+*      I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*    ENDDO
+ J  LJ1
+ LABEL LJ2
+*  RETURN
+ RETN  ,
+*  END
+ SECT DATA
+ LABEL TZ1
+ SPACE  1
+ SECT CODE
+ END

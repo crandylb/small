@@ -1,6 +1,7 @@
 README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 01/27/2014 CRB Add SmallPocketGuide
 01/29/2014 CRB Add testlex
+02/01/2014 CRB Add testcase
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -20,6 +21,7 @@ Test Programs:	 Directories containing test programs written in Small
   testfact	 testing the recursive factorial program FACT in Small
   testnio	 testing integer I/O, IREAD and IFORM in Small
   testlex        testing LEX lexical scanner
+  testcase	 testing CASE statement
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
 SmallPocketGuide.pdf This version may be easier to print in landscape
@@ -80,6 +82,11 @@ two-dimensional array. Since Small only supports one-dimensional arrays the 2D
 array is represented by concatenated 1D arrays. Each call to LEX returns a
 KIND code, 1 for a name (identifier), 2 for an integer, 3 for a quoted string
 of characters, and 5 for any other individual special character.
+
+testcase
+This directory tests the CASE statement. The case label list is zero indexed
+by the value of the case expression. Each case skips to the end of the case
+statement on completion.
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including

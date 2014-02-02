@@ -126,6 +126,17 @@
  JGT  `\			jump if greater than
  jg `10\
 \
+ JX  `\				case stmt CRB 2/01/2014
+ sal  EAX,2\
+ add  EAX,LC`01\
+ mov  EAX,[EAX]\
+ jmp  EAX\
+ SECT DATA\
+LC`01:\
+\
+ JC  `\				case label CRB 1/31/2014
+ CONST `10\
+\
  STRT  `\			jump to start location
  section .text\
 progr:\

@@ -1,0 +1,28 @@
+1       * TESTCASE.S1 -- Test CASE statement, CRB, Feb 1, 2014                  
+2                                                                               
+3         ENTRY TESTCASE;                                                       
+4         BEGIN TESTCASE;                                                       
+5         START TESTCASE;                                                       
+6                                                                               
+7         EXT PROC WRITE;                                                       
+8                                                                               
+9         DCL OUTCH=3;                                                          
+10        DCL I=0;                                                              
+11        MSG CASETXT='Case 0  ';		* space to plug in case number               
+12                                                                              
+13      LABEL TESTCASE;                                                         
+14        DO WHILE I LT 3;                                                      
+15   1      CASE I; OF CASE1,CASE2,CASE3;	* case list is zero indexed           
+16   2        LABEL CASE1;                                                      
+17   2          CASETXT(6)=I+'1';		* convert I to char + 1                      
+18   2        LABEL CASE2;                                                      
+19   2          CASETXT(7)=I+'1';                                               
+20   2        LABEL CASE3;                                                      
+21   2          CASETXT(8)=I+'1';                                               
+22   2        ENDCASE                                                           
+23   1        CALL WRITE(OUTCH,CASETXT);                                        
+24   1        I=I+1;                                                            
+25   1      ENDDO                                                               
+26   0    RETURN                                                                
+27   0    END                                                                   
+ NO ERRORS DETECTED

@@ -1,0 +1,27 @@
+* TESTCASE.S1 -- Test CASE statement, CRB, Feb 1, 2014
+
+  ENTRY TESTCASE;
+  BEGIN TESTCASE;
+  START TESTCASE;
+
+  EXT PROC WRITE;
+
+  DCL OUTCH=3;
+  DCL I=0;
+  MSG CASETXT='Case 0  ';		* space to plug in case number
+
+LABEL TESTCASE;
+  DO WHILE I LT 3;
+    CASE I; OF CASE1,CASE2,CASE3;	* case list is zero indexed
+      LABEL CASE1;
+        CASETXT(6)=I+'1';		* convert I to char + 1
+      LABEL CASE2;
+        CASETXT(7)=I+'1';
+      LABEL CASE3;
+        CASETXT(8)=I+'1';
+      ENDCASE 
+      CALL WRITE(OUTCH,CASETXT);
+      I=I+1;
+    ENDDO
+  RETURN
+  END
