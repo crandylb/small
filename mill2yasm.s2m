@@ -1,277 +1,283 @@
-\`\`0 (+-*/)   mill2yasm.s2m -- Small macros for x86 m32 YASM, CRB, Dec 31, 2013
+\`\`0 (+-*/)   mill2yasm.s2m -- Small macros for x86 m32 YASM, CRB, Feb 14, 2014
 *`\				comments
 ;`10`F13\
 \
- L  `\				load operand into accumulator
- mov EAX,[`10]\
+ ` `\                           capture all mill instructions
+. `10 `20\
 \
- +  `\				add operand to accumulator
- add EAX,[`10]\
+ `\                             capture mill with no operand
+. `10\
 \
- -  =0\				set ALU flags
- or EAX,EAX\
+_`\                             capture all asm code for output
+`10`F13\
 \
- -  `\				subtract operand from accumulator
-; -  `10\
- sub EAX,[`10]\
+. `  `\                         capture direct addressing instruction
+_ `11 EAX,[`20]\
 \
- *  `\				multiply accumulator by operand
- imul dword [`10]\
+. ` ` `\                        capture operands defined by SET stmt
+_ `11 EAX,`20   ; `30\
 \
- /  `\				divide accumulator by operand
- cdq\
- idiv dword [`10]\
+. -  =0\			set ALU flags
+_ or EAX,EAX\
 \
- MOD  `\			remainder of .AC divided by operand
- cwd\
- idiv dword [`10]\
- mov EAX,EDX\
+. *  `\				multiply accumulator by operand
+_ imul dword [`10]\
 \
- AND  `\			AND operand with accumulator
- and EAX,[`10]\
+. /  `\				divide accumulator by operand
+_ cdq\
+_ idiv dword [`10]\
 \
- OR  `\				OR operand with accumulator
- or EAX,[`10]\
+. MOD  `\			remainder of .AC divided by operand
+_ cdq\
+_ idiv dword [`10]\
+_ mov EAX,EDX\
 \
- XOR  `\			XOR operand with accumulator
- xor EAX,[`10]\
+. SHL  `\			shift accumulator left by opnd
+_ mov ECX,[`10]\
+_ sal EAX,CL\
 \
- SHL  `\			shift accumulator left by opnd
- mov ECX,[`10]\
- sal EAX,CL\
+. SHR  `\			shift accumulator right by opnd
+_ mov ECX,[`10]\
+_ sar EAX,CL\
 \
- SHR  `\			shift accumulator right by opnd
- mov ECX,[`10]\
- sar EAX,CL\
+. `  =`\                        capture immediate addressing instructions
+_ `11 EAX,`20\
 \
- L  =`\				load operand into accumulator
- mov EAX,`10\
+. +  =1\			increment accumlator
+_ inc EAX\
 \
- +  =1\				increment accumlator
- inc EAX\
+. -  =1\			decrement accumulator
+_ dec EAX\
 \
- +  =`\				add operand to accumulator
- add EAX,`10\
+. *  =`\			multiply operand by accumulator
+_ imul EAX,`10\
 \
- -  =1\				decrement accumulator
- dec EAX\
+. * ` `\                        multiply operand defined by SET
+_ imul EAX,`10\
 \
- -  =`\				subtract operand from accumulator
- sub EAX,`10\
+. /  =`\			divide accumulator by operand
+_ cdq\
+_ mov  ECX,`10\
+_ idiv dword ECX\
 \
- *  =`\				multiply operand by accumulator
- imul EAX,`10\
+. / ` `\                        divide by operand defined by SET
+; / `10 `20\
+. /  =`10\
 \
- /  =`\				divide accumulator by operand
- cdq\
- mov  ECX,`10\
- idiv dword ECX\
+. MOD  =`\			remainder of .AC divided by operand
+_ cdq\
+_ mov  ECX,`10\
+_ idiv dword ECX\
+_ mov  EAX,EDX\
 \
- MOD  =`\			remainder of .AC divided by operand
- cdq\
- mov  ECX,`10\
- idiv dword ECX\
- mov  EAX,EDX\
+. MOD ` `\                      remainder operand defined by SET
+; MOD `10 `20\
+. MOD  =`10\
 \
- AND  =`\			AND operand with accumulator
- and EAX,`10\
+. SHL  =`\			shift accumulator left immediate
+_ sal EAX,`10\
 \
- OR  =`\			OR operand with accumulator
- or EAX,`10\
+. SHR  =`\			shift accumulator right immediate
+_ sar EAX,`10\
 \
- XOR  =`\			XOR operand with accumulator
- xor EAX,`10\
+. -\				negate accumulator
+_ neg EAX\
 \
- SHL  =`\			shift accumulator left immediate
- sal EAX,`10\
+. NOT\				copmlement accumulator
+_ not EAX\
 \
- SHR  =`\			shift accumulator right immediate
- sar EAX,`10\
+. ST  `\			store accumulator in operand
+_ mov [`10],EAX\			or store address
 \
- -\				negate accumulator
- neg EAX\
+. L  *.AC\			load indirect through accumulator
+_ mov EAX,[EAX]\
 \
- NOT\				copmlement accumulator
- not EAX\
-\
- ST  `\				store accumulator in operand
- mov [`10],EAX\			or store address
-\
- L  *.AC\			load indirect through accumulator
- mov EAX,[EAX]\
-\
- ST  *`\			store indirect through operand
- mov EDX,EAX\
- mov EAX,[`10]\
- mov [EAX],EDX\
+. ST  *`\			store indirect through operand
+_ mov EDX,EAX\
+_ mov EAX,[`10]\
+_ mov [EAX],EDX\
 \ 
- J  `\				jump to label
- jmp `10\
+. J  `\				jump to label
+_ jmp `10\
 \
- JEQ  `\			jump if equal
- jz `10\
+. JEQ  `\			jump if equal
+_ jz `10\
 \
- JNE  `\			jump if not equal
- jne `10\
+. JNE  `\			jump if not equal
+_ jne `10\
 \
- JLE  `\			jump if less than or equal
- jle `10\
+. JLE  `\			jump if less than or equal
+_ jle `10\
 \
- JGE  `\			jump if greater than or equal
- jge `10\
+. JGE  `\			jump if greater than or equal
+_ jge `10\
 \
- JLT  `\			jump if less than
- jl `10\
+. JLT  `\			jump if less than
+_ jl `10\
 \
- JGT  `\			jump if greater than
- jg `10\
+. JGT  `\			jump if greater than
+_ jg `10\
 \
- JX  `\				case stmt CRB 2/01/2014
- sal  EAX,2\
- add  EAX,LC`01\
- mov  EAX,[EAX]\
- jmp  EAX\
- SECT DATA\
-LC`01:\
+. JX  `\			case stmt CRB 2/01/2014
+_ sal  EAX,2\
+_ add  EAX,LC`01\
+_ mov  EAX,[EAX]\
+_ jmp  EAX\
+_ SECT DATA\
+_LC`01:\
 \
- JC  `\				case label CRB 1/31/2014
- CONST `10\
+. JC  `\			case label CRB 1/31/2014
+. CONST `10\
 \
- STRT  `\			jump to start location
- section .text\
-progr:\
- push EBP\
- mov  EBP,ESP\
- jmp `10\
+. STRT  `\			jump to start location
+_ section .text\
+_progr:\
+_ push EBP\
+_ mov  EBP,ESP\
+_ jmp `10\
 \
- LABEL `\			memory location label
-`10:\
+. LABEL `\			memory location label
+_`10:\
 \
- SPACE  `\			amount of space to reserve
- times `10 dd 0\
+. SPACE  `\			amount of space to reserve
+_ times `10 dd 0\
 \
- CONST `\			data constant
- dd `10\
+. CONST `\			data constant
+_ dd `10\
 \
- ENT `\				global entry points
- global `10\
+. ENT `\				global entry points
+_ global `10\
 \
- EXT `\				external access points
- extern `10\
+. EXT `\				external access points
+_ extern `10\
 \
- EXT P `\			external procedure reference
- extern `10\
+. EXT P `\			external procedure reference
+_ extern `10\
 \
- ARG  `\			argument to procedure call
- push `10\
+. ARG  `\			argument to procedure call
+_ push `10\
 \
- SCALL P `\			procedure call
+. SCALL P `\			procedure call
 .LET *CALL=`10\
 \
- SCALL  `\			procedure call
+. SCALL  `\			procedure call
 .LET *CALL=`10\
 \
- CEND\				call sequence end
-*CALL`96  call `91\
+. CEND\				call sequence end
+*CALL`96 _ call `91\
 *CARGS`86\
 .IF `81 EQ 0 SKIP 1\
- add  ESP,4*`81\
+_ add  ESP,4*`81\
 \
- NARGS  `\
+. NARGS  `\
 ; NARGS  `10\
 .LET *CARGS=`10\
 \
- SUBR ` `\			subroutine entry
+. SUBR ` `\			subroutine entry
 ; SUBR  `20\
 .LET *SUBR=`20\
-`20:\
- push EBP\
- mov  EBP,ESP\
+_`20:\
+_ push EBP\
+_ mov  EBP,ESP\
 \
- RECUR `\			recursive subroutine
+. RECUR `\			recursive subroutine
 ; RECUR `10\
 \
- NPARS `\			number of parameters
+. NPARS `\			number of parameters
 ; NPARS `10\
 .LET *NPAR=1\
 \
- PAR  `\			parameter
+. PAR  `\			parameter
 ; PAR  `10\
 *NPAR`96\
 .LET *PAR.`10=`91\
 .SET *NPAR=`91+1\
 \
- PEND\				parameter list end
+. PEND\				parameter list end
 ; PEND\
 \
- RETN  `,`\			return from subroutine
+. RETN  `,`\			return from subroutine
 ; RETN  `10,`20\
- mov ESP,EBP\
- pop EBP\
- ret\
+_ mov ESP,EBP\
+_ pop EBP\
+_ ret\
 \
- RRETN  `,`\			return from recursive subroutine
+. RRETN  `,`\			return from recursive subroutine
 ; RRETN  `10,`20\
- mov ESP,EBP\
- pop EBP\
- ret\
+_ mov ESP,EBP\
+_ pop EBP\
+_ ret\
 \
- L D `\				load parameter
-; L D `10\
+. ` D `\                        capture parameter access instruction
+; `10 D `20\
+.GETP `20\
+_ `11 EAX,[EBX]\
+\
+. ` D =`\                       capture immediate parameter instruction
+; `10 D =`20\
+.GETP `20\
+_ `11 EAX,EBX\
+\
+. * D `\                         multiply parameter CRB 2/9/14
+; * D `10\
 .GETP `10\
- mov EAX,[EBX]\
+_ imul dword [EBX]\
 \
- + D =`\			add array parameter
-; + D =`10\
+. / D `\                         divide by parameter CRB 2/9/14
+; / D `10\
+_ cdq\
 .GETP `10\
- add EAX,EBX\
+_ idiv dword [EBX]\
 \
- + D `\				add parameter
-; + D `10\
+. MOD D `\                       remainder on divide by parameter CRB 2/9/14
+; MOD D `10\
+_ cdq\
 .GETP `10\
- add EAX,[EBX]\
+_ idiv dword [EBX]\
+_ mov EAX,EDX\
 \
- - D `\				subtract parameter
-; - D `10\
-.GETP `10\
- sub EAX,[EBX]\
-\
- ST D `\			store parameter
+. ST D `\			store parameter
 ; ST D `10\
 .GETP `10\
- mov [EBX],EAX\
+_ mov [EBX],EAX\
 \
 .GETP `\			get parameter CRB 07/13/2013
 *OFF`76\
 *NPAR`86\
 *PAR.`10`96\
 .SET *OFF=4*(1+`81-`91)\
- mov EBX,[EBP+`71] ; `10\
+_ mov EBX,[EBP+`71] ; `10\
 \
- CALL EXIT\
- push 0\
- call exit\
+. CALL EXIT\
+_ push 0\
+_ call exit\
 \
- BEGIN\
- global progr\		        moved from mill2nasm CRB 08/22/2007
- extern exit\
+. BEGIN\                        initialize module
+_ global progr\
+_ extern exit\
+.LET L=mov\                     initialize operator values
+.LET +=add\
+.LET -=sub\
+.LET AND=and\
+.LET OR=or\
+.LET XOR=xor\
 \
- SECT CODE\			added CRB 08/23/2007
+. SECT CODE\			added CRB 08/23/2007
 *SECT`96\
 .IF `91=CODE SKIP 2\
- section .text\
+_ section .text\
 .LET *SECT=CODE\
 \
- SECT DATA\			added CRB 08/23/2007
+. SECT DATA\			added CRB 08/23/2007
 *SECT`96\
 .IF `91=DATA SKIP 2\
- section .data\
+_ section .data\
 .LET *SECT=DATA\
 \
- SECT BSS\			added CRB 08/23/2007
+. SECT BSS\			added CRB 08/23/2007
 *SECT`96\
 .IF `91=BSS SKIP 2\
- section .bss\
+_ section .bss\
 .LET *SECT=BSS\
 \
 .LET `=`\
@@ -292,7 +298,7 @@ progr:\
 .SKIP `\
 `F4\
 \
- END\				end of module
- end`F1\
+. END\				end of module
+_ end\
 `F0\
 \\
