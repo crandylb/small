@@ -2,6 +2,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 01/27/2014 CRB Add SmallPocketGuide
 01/29/2014 CRB Add testlex
 02/01/2014 CRB Add testcase
+02/26/2014 CRB Add lib
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -22,6 +23,7 @@ Test Programs:	 Directories containing test programs written in Small
   testnio	 testing integer I/O, IREAD and IFORM in Small
   testlex        testing LEX lexical scanner
   testcase	 testing CASE statement
+lib		 a library for Small programs
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
 SmallPocketGuide.pdf This version may be easier to print in landscape
@@ -87,6 +89,14 @@ testcase
 This directory tests the CASE statement. The case label list is zero indexed
 by the value of the case expression. Each case skips to the end of the case
 statement on completion.
+
+lib
+This directory contains libs1.a, a library for Small programs. The library
+contains the grandios.o, smallio.o, cat2.o, iform.o, and iread.o object
+modules. The makefile shows how the library is made using ar. The library is
+used by gcc with -L defining the path to the library, and -ls1 to link any
+needed modules. Note that only "s1" is given to the -l option, and "lib" and
+".a" will be assumed automatically.
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including
