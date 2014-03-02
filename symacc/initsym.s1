@@ -1,0 +1,91 @@
+* initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
+
+BEGIN INITSYM;
+ENT INITSYM;
+ENT DMPLIST;
+ENT BUFF;
+START INIT;
+
+EXT PROC READ,WRITE;
+EXT PROC LEX;
+EXT PROC A2B40,B402A;
+EXT PROC LOOKS,GETS,GETWRD;
+EXT PROC IREAD,IFORM,CAT2;
+
+DCL I,J,EOF=0,STATUS;
+DCL BUFF(127);
+DCL INCH=1,SCRCH=2,OUTCH=3;
+DCL LEXEME(127);
+DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL;
+DCL COUNT=0,LIST(60);
+DCL STAR=('*');
+DCL DOT=('.');
+DCL QUOTE=39;                   * ASCII single qoute mark
+MSG BLANKS='          ';
+MSG SCRATCH='          ';
+
+LABEL INIT;
+  CALL INITSYM;
+  CALL DMPLIST;
+RETURN
+
+PROC INITSYM;
+  STATUS=READ(SCRCH,BUFF);      * read first line from chan 2
+  DO WHILE STATUS NE EOF;
+    IF BUFF(1) NE STAR;         * skip comment line
+      THEN 
+      I=1;
+      KIND=LEX(I,LEXEME);       * get a symbol
+      IF LEXEME(1) EQ QUOTE; THEN 
+          WORDS=LEXEME(2);      * use ASCII code for single character
+          TAGS=1;               * bit for single ASCII character
+        ELSE 
+          WORDS=A2B40(LEXEME);  * convert to B40
+          TAGS=0;               * bit for normal base 40 coding
+        ENDIF
+      KIND=LEX(I,LEXEME);       * get the TTYPE code
+      J=1;
+      TTYPE=IREAD(J,LEXEME);    * convert to binary
+      TAG=((TAGS SHL 4) OR TTYPE) SHL 8; * set TTYPE and TAGS bits
+      KIND=LEX(I,LEXEME);       * get VAL for this keyword
+      J=1;
+      VAL=IREAD(J,LEXEME);      * convert to binary
+      INDEX=LOOKS(WORDS,VAL,TAG);
+      COUNT=COUNT+1;
+      LIST(COUNT)=INDEX;        * save INDEX of this keyword
+      ENDIF
+    STATUS=READ(SCRCH,BUFF);    * read next line
+    ENDDO
+  RETURN
+ENDPROC
+
+PROC DMPLIST;
+  I=1;
+  DO WHILE I LE COUNT;
+    INDEX=LIST(I);
+    CALL GETWRD(INDEX,WORDS);   * get coded symbol from table
+    CALL GETS(INDEX,VAL,TAG);   * also get VAL and TAG
+    TTYPE=TAG SHR 8;            * get the type and TAGS field
+    TAGS=TTYPE SHR 4;           * extract the TAGS bits
+    TTYPE=TTYPE AND 15;         * isolate the type number
+    BUFF=0;
+    CALL CAT2(BUFF,BLANKS);     * clear BUFF
+    BUFF=0;
+    IF TAGS AND 1; THEN 
+        BUFF(1)=WORDS;          * if single character use ASCII
+      ELSE 
+        CALL B402A(WORDS,BUFF); * decode symbol into BUFF
+      ENDIF
+    BUFF=8;
+    CALL IFORM(VAL,SCRATCH);    * insert VAL in BUFF
+    CALL CAT2(BUFF,SCRATCH);
+    SCRATCH=0;
+    CALL CAT2(SCRATCH,BLANKS);
+    CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF
+    CALL CAT2(BUFF,SCRATCH);
+    CALL WRITE(OUTCH,BUFF);
+    I=I+1;
+    ENDDO
+  RETURN
+  ENDPROC
+END

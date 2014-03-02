@@ -4,28 +4,30 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 02/01/2014 CRB Add testcase
 02/26/2014 CRB Add lib
 03/01/2014 CRB Add scan
+03/02/2014 CRB Add symacc
 
 The purpose of this directory is to contain files presenting my language
 Small.
 
 Contents of this directory:
-README.txt  	 this file
-README.md	 the README required by GitHub
-intro.txt	 introduction to Small, what this project is about
-LICENSE		 GPLv2 license for original material in this directory
-small.s2m	 Stage 2 macros that translate Small to Mill
-mill2yasm.s2m	 Stage 2 macros that translate Mill to yasm assembler
-smallio.c	 a C program to interface Small I/O to grandios
-makefile	 a make file to compile smallio.c to smallio.o for Small
-thesis.pdf	 a reproduction of my 1982 masters thesis on Small
-Test Programs:	 Directories containing test programs written in Small
-  testcat	 testing the CAT2 program in Small
-  testfact	 testing the recursive factorial program FACT in Small
-  testnio	 testing integer I/O, IREAD and IFORM in Small
+README.txt       this file
+README.md        the README required by GitHub
+intro.txt        introduction to Small, what this project is about
+LICENSE	         GPLv2 license for original material in this directory
+small.s2m        Stage 2 macros that translate Small to Mill
+mill2yasm.s2m    Stage 2 macros that translate Mill to yasm assembler
+smallio.c        a C program to interface Small I/O to grandios
+makefile         a make file to compile smallio.c to smallio.o for Small
+thesis.pdf       a reproduction of my 1982 masters thesis on Small
+Test Programs:   Directories containing test programs written in Small
+  testcat        testing the CAT2 program in Small
+  testfact       testing the recursive factorial program FACT in Small
+  testnio        testing integer I/O, IREAD and IFORM in Small
   testlex        testing LEX lexical scanner
-  testcase	 testing CASE statement
+  testcase       testing CASE statement
   scan           testing prescan with libs1 and lex
-lib		 a library for Small programs
+lib              a library for Small programs
+symacc           symbol table access module
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
 SmallPocketGuide.pdf This version may be easier to print in landscape
@@ -105,6 +107,27 @@ modules. The makefile shows how the library is made using ar. The library is
 used by gcc with -L defining the path to the library, and -ls1 to link any
 needed modules. Note that only "s1" is given to the -l option, and "lib" and
 ".a" will be assumed automatically.
+
+symacc
+This directory contains an implementation of the symbol table access module,
+SYMACC, as outlined in pages 60-66 of thesis. Some changes have been made to
+accomodate the 32-bit implementation. A symbol is stored in two 32-bit words,
+with six characters packed into the first (even indexed) word using base 40
+compression, and the VAL and TAG fields packed into the next (odd indexed)
+word. The table is addressed by a hash derived from the packed base 40
+name. The table size, 8191, is a Mersenne prime number that provides space for
+4,000 symbols in 64k bytes of memory. Collisions are resolved on insertion by
+sequential search for the next empty slot, with wraparound until the table is
+full. The result is a single namespace with a unique index for every
+symbol. The table is initialized with keywords and operators by the initsym
+module, where single character operators use their ASCII codes instead of a
+base 40 encoding. The n bit (bit 4) of the TAGS field (previously unused) is
+set to 1 for these character entries in the table. Use:
+    make test
+to run the initsym test, where the initable.dat file is read on channel 2, and
+the output initsym.out on channel 3 shows each initialized keyword and
+operator with its VAL (a unique number for each keyword and operator) and TAG
+field (packed TAGS and TYPE).
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including
