@@ -1,0 +1,208 @@
+     1                                 %line 1+1 scan.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 [global progr]
+     6                                 [extern exit]
+     7                                 
+     8                                 [global SCAN]
+     9                                 
+    10                                 [global BUFF]
+    11                                 
+    12                                 
+    13                                 [extern READ]
+    14                                 [extern WRITE]
+    15                                 
+    16                                 [extern LEX]
+    17                                 [extern CAT2]
+    18                                 
+    19                                 [global OUTCH]
+    20                                 
+    21                                 
+    22                                 [section .data]
+    23                                 BUFF:
+    24 00000000 00000000<rept>          times 129 dd 0
+    25                                 SCRATCH:
+    26 00000204 00000000<rept>          times 129 dd 0
+    27                                 
+    28                                 INCH:
+    29 00000408 01000000                dd 1
+    30                                 OUTCH:
+    31 0000040C 03000000                dd 3
+    32                                 STATUS:
+    33 00000410 00000000                times 1 dd 0
+    34                                 
+    35                                 EOF:
+    36 00000414 00000000                dd 0
+    37                                 
+    38                                 LEXEME:
+    39 00000418 00000000<rept>          times 121 dd 0
+    40                                 
+    41                                 KIND:
+    42 000005FC 00000000                times 1 dd 0
+    43                                 
+    44                                 ICHAR:
+    45 00000600 00000000                times 1 dd 0
+    46                                 MODE:
+    47 00000604 00000000                times 1 dd 0
+    48                                 
+    49                                 STAR:
+    50 00000608 2A000000                dd 42
+    51                                 
+    52                                 SEMICO:
+    53 0000060C 3B000000                dd 59
+    54                                 
+    55                                 
+    56                                 [section .text]
+    57                                 
+    58                                 SCAN:
+    59 00000000 55                      push EBP
+    60 00000001 89E5                    mov EBP,ESP
+    61                                 
+    62                                 
+    63                                 
+    64                                 LJ1:
+    65                                 
+    66                                 CONTIN:
+    67                                 
+    68                                 
+    69 00000003 B801000000              mov EAX,1
+    70 00000008 A3[00000000]            mov [MODE],EAX
+    71                                 
+    72                                 
+    73                                 
+    74 0000000D 68[00000000]            push INCH
+    75 00000012 68[00000000]            push BUFF
+    76 00000017 E8(F6FFFFFF)            call READ
+    77 0000001C 83C408                  add ESP,4*2
+    78 0000001F A3[00000000]            mov [STATUS],EAX
+    79                                 
+    80                                 
+    81 00000024 68[00000000]            push OUTCH
+    82 00000029 68[00000000]            push BUFF
+    83 0000002E E8(F6FFFFFF)            call WRITE
+    84 00000033 83C408                  add ESP,4*2
+    85                                 
+    86                                 
+    87 00000036 B801000000              mov EAX,1
+    88 0000003B A3[00000000]            mov [ICHAR],EAX
+    89                                 
+    90                                 LJ5:
+    91                                 
+    92 00000040 A1[00000000]            mov EAX,[ICHAR]
+    93 00000045 2B05[00000000]          sub EAX,[BUFF]
+    94 0000004B 0F8FE2000000            jg LJ6
+    95                                 
+    96                                 
+    97                                 
+    98 00000051 68[00000000]            push ICHAR
+    99 00000056 68[00000000]            push LEXEME
+   100 0000005B E8(F6FFFFFF)            call LEX
+   101 00000060 83C408                  add ESP,4*2
+   102 00000063 A3[00000000]            mov [KIND],EAX
+   103                                 
+   104                                 
+   105 00000068 A1[00000000]            mov EAX,[MODE]
+   106 0000006D 09C0                    or EAX,EAX
+   107 0000006F 7426                    jz LJ8
+   108                                 
+   109                                 
+   110 00000071 B801000000              mov EAX,1
+   111 00000076 C1E002                  sal EAX,2
+   112 00000079 05[00000000]            add EAX,LEXEME
+   113 0000007E 8B00                    mov EAX,[EAX]
+   114 00000080 2B05[00000000]          sub EAX,[STAR]
+   115                                 
+   116 00000086 7505                    jne LJ9
+   117 00000088 E971FFFFFF              jmp CONTIN
+   118                                 
+   119 0000008D EB08                    jmp LJ10
+   120                                 LJ9:
+   121                                 
+   122 0000008F B800000000              mov EAX,0
+   123 00000094 A3[00000000]            mov [MODE],EAX
+   124                                 
+   125                                 LJ10:
+   126                                 LJ8:
+   127                                 
+   128                                 
+   129 00000099 B801000000              mov EAX,1
+   130 0000009E C1E002                  sal EAX,2
+   131 000000A1 05[00000000]            add EAX,SCRATCH
+   132 000000A6 A3[00000000]            mov [T1Z1],EAX
+   133 000000AB A1[00000000]            mov EAX,[KIND]
+   134 000000B0 83C030                  add EAX,48
+   135 000000B3 89C2                    mov EDX,EAX
+   136 000000B5 A1[00000000]            mov EAX,[T1Z1]
+   137 000000BA 8910                    mov [EAX],EDX
+   138                                 
+   139                                 
+   140 000000BC B802000000              mov EAX,2
+   141 000000C1 C1E002                  sal EAX,2
+   142 000000C4 05[00000000]            add EAX,SCRATCH
+   143 000000C9 A3[00000000]            mov [T1Z],EAX
+   144 000000CE B820000000              mov EAX,32
+   145 000000D3 89C2                    mov EDX,EAX
+   146 000000D5 A1[00000000]            mov EAX,[T1Z]
+   147 000000DA 8910                    mov [EAX],EDX
+   148                                 
+   149                                 
+   150 000000DC B802000000              mov EAX,2
+   151 000000E1 A3[00000000]            mov [SCRATCH],EAX
+   152                                 
+   153                                 
+   154 000000E6 68[00000000]            push SCRATCH
+   155 000000EB 68[00000000]            push LEXEME
+   156 000000F0 E8(F6FFFFFF)            call CAT2
+   157 000000F5 83C408                  add ESP,4*2
+   158                                 
+   159                                 
+   160 000000F8 68[00000000]            push OUTCH
+   161 000000FD 68[00000000]            push SCRATCH
+   162 00000102 E8(F6FFFFFF)            call WRITE
+   163 00000107 83C408                  add ESP,4*2
+   164                                 
+   165                                 
+   166 0000010A A1[00000000]            mov EAX,[MODE]
+   167 0000010F 09C0                    or EAX,EAX
+   168 00000111 751F                    jne LJ13
+   169                                 
+   170                                 
+   171 00000113 B801000000              mov EAX,1
+   172 00000118 C1E002                  sal EAX,2
+   173 0000011B 05[00000000]            add EAX,LEXEME
+   174 00000120 8B00                    mov EAX,[EAX]
+   175 00000122 2B05[00000000]          sub EAX,[SEMICO]
+   176                                 
+   177 00000128 7508                    jne LJ14
+   178                                 
+   179 0000012A B801000000              mov EAX,1
+   180 0000012F A3[00000000]            mov [MODE],EAX
+   181                                 
+   182                                 LJ14:
+   183                                 LJ13:
+   184                                 
+   185 00000134 E902FFFFFF              jmp LJ5
+   186                                 LJ6:
+   187                                 
+   188                                 
+   189 00000139 A1[00000000]            mov EAX,[STATUS]
+   190 0000013E 2B05[00000000]          sub EAX,[EOF]
+   191 00000144 0F85B3FEFFFF            jne LJ1
+   192                                 LJ2:
+   193                                 
+   194                                 
+   195 0000014A 89EC                    mov ESP,EBP
+   196 0000014C 5D                      pop EBP
+   197 0000014D C3                      ret
+   198                                 
+   199                                 [section .data]
+   200                                 T1Z:
+   201 00000610 00000000<rept>          times 2 dd 0
+   202                                 [section .text]
+   203                                 [section .data]
+   204                                 T1Z1:
+   205 00000618 00000000                times 1 dd 0
+   206                                 [section .text]
+   207                                 
+   208                                  end

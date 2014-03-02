@@ -1,0 +1,48 @@
+1       * SCAN.S1 -- Frontend scan for Small, CRB, Feb 19, 2014                 
+2                                                                               
+3         BEGIN SCAN;                                                           
+4         ENTRY SCAN;                                                           
+5         ENTRY BUFF;                   * make BUFF buffer global for LEX       
+6                                                                               
+7         EXTERNAL PROC READ,WRITE;                                             
+8         EXTERNAL PROC LEX,CAT2;                                               
+9         ENT OUTCH;                                                            
+10                                                                              
+11        DCL BUFF(128),SCRATCH(128);                                           
+12        DCL INCH=1,OUTCH=3,STATUS;                                            
+13        DCL EOF=0;                                                            
+14        DCL LEXEME(120);                                                      
+15        DCL KIND;                                                             
+16        DCL ICHAR,MODE;                                                       
+17        DCL STAR=('*');                 * asterisk                            
+18        DCL SEMICO=(';');               * semicolon                           
+19                                                                              
+20      PROC SCAN;                        * frontend scanner for Small          
+21   1    REPEAT                                                                
+22   2  LABEL CONTIN;                                                           
+23   2      MODE=1;                       * MODE 1 allows comments              
+24   2      STATUS=READ(INCH,BUFF);                                             
+25   2      CALL WRITE(OUTCH,BUFF);                                             
+26   2      ICHAR=1;                                                            
+27   2      DO WHILE ICHAR LE BUFF;       * until end of line                   
+28   3        KIND=LEX(ICHAR,LEXEME);     * call LEX, get KIND and LEXEME       
+29   3        IF MODE; THEN                                                     
+30   4          IF LEXEME(1) EQ STAR;     * if MODE 1 and * skip to next        
+31   5            THEN GO TO CONTIN;      * input line to ignore comment        
+32   5            ELSE MODE=0;            * comments not allowed in MODE 0      
+33   5          ENDIF ENDIF                                                     
+34   3        SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit        
+35   3        SCRATCH(2)=' ';             * follow with space                   
+36   3        SCRATCH=2;                  * number of characters                
+37   3        CALL CAT2(SCRATCH,LEXEME);  * concatenate                         
+38   3        CALL WRITE(OUTCH,SCRATCH);                                        
+39   3        IF MODE EQ 0; THEN                                                
+40   4          IF LEXEME(1) EQ SEMICO;                                         
+41   5             THEN MODE=1;                                                 
+42   5          ENDIF ENDIF                                                     
+43   3        ENDDO                                                             
+44   2      UNTIL STATUS EQ EOF;                                                
+45   1    RETURN                                                                
+46   1  ENDPROC                                                                 
+47   0  END                                                                     
+ NO ERRORS DETECTED

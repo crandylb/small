@@ -1,0 +1,47 @@
+* SCAN.S1 -- Frontend scan for Small, CRB, Feb 19, 2014
+
+  BEGIN SCAN;
+  ENTRY SCAN;
+  ENTRY BUFF;                   * make BUFF buffer global for LEX
+
+  EXTERNAL PROC READ,WRITE;
+  EXTERNAL PROC LEX,CAT2;
+  ENT OUTCH;
+
+  DCL BUFF(128),SCRATCH(128);
+  DCL INCH=1,OUTCH=3,STATUS;
+  DCL EOF=0;
+  DCL LEXEME(120);
+  DCL KIND;
+  DCL ICHAR,MODE;
+  DCL STAR=('*');                 * asterisk
+  DCL SEMICO=(';');               * semicolon
+
+PROC SCAN;                        * frontend scanner for Small
+  REPEAT 
+LABEL CONTIN;
+    MODE=1;                       * MODE 1 allows comments
+    STATUS=READ(INCH,BUFF);
+    CALL WRITE(OUTCH,BUFF);
+    ICHAR=1;
+    DO WHILE ICHAR LE BUFF;       * until end of line
+      KIND=LEX(ICHAR,LEXEME);     * call LEX, get KIND and LEXEME
+      IF MODE; THEN 
+        IF LEXEME(1) EQ STAR;     * if MODE 1 and * skip to next
+          THEN GO TO CONTIN;      * input line to ignore comment
+          ELSE MODE=0;            * comments not allowed in MODE 0
+        ENDIF ENDIF
+      SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit
+      SCRATCH(2)=' ';             * follow with space
+      SCRATCH=2;                  * number of characters
+      CALL CAT2(SCRATCH,LEXEME);  * concatenate
+      CALL WRITE(OUTCH,SCRATCH);
+      IF MODE EQ 0; THEN 
+        IF LEXEME(1) EQ SEMICO;
+           THEN MODE=1;
+        ENDIF ENDIF
+      ENDDO
+    UNTIL STATUS EQ EOF;
+  RETURN
+ENDPROC
+END

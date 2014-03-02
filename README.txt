@@ -3,6 +3,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 01/29/2014 CRB Add testlex
 02/01/2014 CRB Add testcase
 02/26/2014 CRB Add lib
+03/01/2014 CRB Add scan
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -23,6 +24,7 @@ Test Programs:	 Directories containing test programs written in Small
   testnio	 testing integer I/O, IREAD and IFORM in Small
   testlex        testing LEX lexical scanner
   testcase	 testing CASE statement
+  scan           testing prescan with libs1 and lex
 lib		 a library for Small programs
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
@@ -83,12 +85,18 @@ This directory tests a version of the LEX lexical scanner described in Chapter
 two-dimensional array. Since Small only supports one-dimensional arrays the 2D
 array is represented by concatenated 1D arrays. Each call to LEX returns a
 KIND code, 1 for a name (identifier), 2 for an integer, 3 for a quoted string
-of characters, and 5 for any other individual special character.
+of characters, and 4 for any other individual special character.
 
 testcase
 This directory tests the CASE statement. The case label list is zero indexed
 by the value of the case expression. Each case skips to the end of the case
 statement on completion.
+
+scan
+This directory tests a form of scan that skips commentc and process all other
+input through lex, the lexical scanner (see testlex). The output file scan.out
+shows the result of processing the scan.s1 source file. See the makefile for
+an example of using the libs1.a library.
 
 lib
 This directory contains libs1.a, a library for Small programs. The library

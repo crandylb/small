@@ -1,0 +1,386 @@
+** LEX.S1 -- Lexical Scanner for Small, CRB, Oct 11,2007
+** Testing, CRB, Oct 24, 2012
+** Restoring State matrix to original, CRB, Oct 30, 2012
+** Fix end of line detection, CRB, Jan 13, 2014
+*
+*    BEGIN LEX;
+ BEGIN
+*    ENTRY LEX;
+ ENT  LEX
+*    EXTERN BUFF;
+ EXT  BUFF
+*
+** character type codes
+** T array is indexed by 7-bit ASCII character code using zero indexing
+*      DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 space
+ SECT DATA
+ LABEL T
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+*      DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alphabetic
+ SECT DATA
+ LABEL T2
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+ CONST  1
+*      DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digit
+ SECT DATA
+ LABEL T3
+ CONST  1
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  4
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+*      DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quote mark
+ SECT DATA
+ LABEL T4
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  3
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+*      DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 other
+ SECT DATA
+ LABEL T5
+ CONST  5
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+*      DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5); 
+ SECT DATA
+ LABEL T6
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+*      DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); 
+ SECT DATA
+ LABEL T7
+ CONST  5
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+*      DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);
+ SECT DATA
+ LABEL T8
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  2
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+ CONST  5
+*
+*    DCL S=30;                   * S(0) contains size
+ SECT DATA
+ LABEL S
+ CONST  30
+*      DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces
+ SECT DATA
+ LABEL S1
+ CONST  1
+ CONST  2
+ CONST  3
+ CONST  4
+ CONST  6
+*      DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name
+ SECT DATA
+ LABEL S2
+ CONST  -1
+ CONST  2
+ CONST  2
+ CONST  -1
+ CONST  -1
+*      DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer
+ SECT DATA
+ LABEL S3
+ CONST  -2
+ CONST  -2
+ CONST  3
+ CONST  -2
+ CONST  -2
+*      DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string
+ SECT DATA
+ LABEL S4
+ CONST  4
+ CONST  4
+ CONST  4
+ CONST  5
+ CONST  4
+*      DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other
+ SECT DATA
+ LABEL S5
+ CONST  -3
+ CONST  -3
+ CONST  -3
+ CONST  4
+ CONST  -3
+*      DCL S6=(-4,-4,-4,-4,-4);  * offset 25
+ SECT DATA
+ LABEL S6
+ CONST  -4
+ CONST  -4
+ CONST  -4
+ CONST  -4
+ CONST  -4
+*    DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector
+ SECT DATA
+ LABEL SROW
+ CONST  6
+ CONST  0
+ CONST  5
+ CONST  10
+ CONST  15
+ CONST  20
+ CONST  25
+*
+*    DCL CTYPE;     * type of character
+ SECT DATA
+ LABEL CTYPE
+ SPACE  1
+*    DCL STATE;     * state variable
+ SECT DATA
+ LABEL STATE
+ SPACE  1
+*    DCL KIND;      * kind of token 1: name, 2: int, 3: string, 4, spc
+ SECT DATA
+ LABEL KIND
+ SPACE  1
+*    DCL I;         * local character index in BUFF
+ SECT DATA
+ LABEL I
+ SPACE  1
+*    DCL CHAR;      * current local character
+ SECT DATA
+ LABEL CHAR
+ SPACE  1
+*    DCL J;         * index output character in LEXEME
+ SECT DATA
+ LABEL J
+ SPACE  1
+**---------------
+*    PROC LEX(INEXT,LEXEME);
+ SECT CODE
+ SUBR P LEX
+ NPARS  2
+ PAR  INEXT
+ PAR  LEXEME
+ PEND
+*      STATE=1;     * initialize current state
+*.GEN =STATE,=1,.BNST,
+ L  =1
+ ST  STATE
+*      I=INEXT;
+*.GEN =I,INEXT,.BNST,
+ L D INEXT
+ ST  I
+*      J=1;
+*.GEN =J,=1,.BNST,
+ L  =1
+ ST  J
+*      REPEAT 
+ LABEL LJ1
+*        CHAR=BUFF(I);
+*.GEN =CHAR,=BUFF,I,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  I
+ SHL  =2
+ +  =BUFF
+ L  *.AC
+ ST  CHAR
+*        IF CHAR EQ -1; THEN     * end of line
+*.GEN CHAR,=1,.U-,.BN-,
+ L  =1
+ -
+ ST  T1Z
+ L  CHAR
+ -  T1Z
+ JNE  LJ3
+*          LEXEME=J-1;
+*.GEN =LEXEME,J,=1,.BN-,.BNST,
+ L  J
+ -  =1
+ ST D LEXEME
+*          EXIT
+ J  LJ2
+*        ENDIF
+ LABEL LJ3
+*        CTYPE=T(CHAR);  * get character type
+*.GEN =CTYPE,=T,CHAR,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  CHAR
+ SHL  =2
+ +  =T
+ L  *.AC
+ ST  CTYPE
+*        STATE=S(SROW(STATE)+CTYPE);
+*.GEN =STATE,=S,=SROW,STATE,=2,.BNSHL,.BC+,.UA,CTYPE,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  STATE
+ SHL  =2
+ +  =SROW
+ L  *.AC
+ +  CTYPE
+ SHL  =2
+ +  =S
+ L  *.AC
+ ST  STATE
+*        IF STATE LT 0; THEN 
+*.GEN STATE,=0,.BN-,
+ L  STATE
+ -  =0
+ JGE  LJ4
+*          LEXEME=J-1;   * set length of lexeme string
+*.GEN =LEXEME,J,=1,.BN-,.BNST,
+ L  J
+ -  =1
+ ST D LEXEME
+*          EXIT 
+ J  LJ2
+*        ELSE 
+ J  LJ5
+ LABEL LJ4
+*          IF STATE NE 1; THEN   * skip white space
+*.GEN STATE,=1,.BN-,
+ L  STATE
+ -  =1
+ JEQ  LJ6
+*            LEXEME(J)=CHAR;
+*.GEN =LEXEME,J,=2,.BNSHL,.BC+,CHAR,.BNST,
+ L  J
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  CHAR
+ ST  *T1Z
+*            J=J+1;
+*.GEN =J,J,=1,.BC+,.BNST,
+ L  J
+ +  =1
+ ST  J
+*          ENDIF
+ LABEL LJ6
+*        ENDIF
+ LABEL LJ5
+*        I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*      UNTIL STATE LT 0;
+*.GEN STATE,=0,.BN-,
+ L  STATE
+ -  =0
+ JGE  LJ1
+ LABEL LJ2
+*      INEXT=I;
+*.GEN =INEXT,I,.BNST,
+ L  I
+ ST D INEXT
+*      KIND=-STATE;
+*.GEN =KIND,STATE,.U-,.BNST,
+ L  STATE
+ -
+ ST  KIND
+*      RETURN KIND;
+*.GEN KIND,
+ L  KIND
+ RETN  LEX,2
+*    ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+*  END
+ END

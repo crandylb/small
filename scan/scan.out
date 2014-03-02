@@ -1,0 +1,271 @@
+Begin Small SCAN Test
+* SCAN.S1 -- Frontend scan for Small, CRB, Feb 19, 2014
+ 
+1 SCAN
+  BEGIN SCAN;
+1 BEGIN
+1 SCAN
+4 ;
+  ENTRY SCAN;
+1 ENTRY
+1 SCAN
+4 ;
+  ENTRY BUFF;                   * make BUFF buffer global for LEX
+1 ENTRY
+1 BUFF
+4 ;
+ 
+1 ENTRY
+  EXTERNAL PROC READ,WRITE;
+1 EXTERNAL
+1 PROC
+1 READ
+4 ,
+1 WRITE
+4 ;
+  EXTERNAL PROC LEX,CAT2;
+1 EXTERNAL
+1 PROC
+1 LEX
+4 ,
+1 CAT2
+4 ;
+  ENT OUTCH;
+1 ENT
+1 OUTCH
+4 ;
+ 
+1 ENT
+  DCL BUFF(128),SCRATCH(128);
+1 DCL
+1 BUFF
+4 (
+2 128
+4 )
+4 ,
+1 SCRATCH
+4 (
+2 128
+4 )
+4 ;
+  DCL INCH=1,OUTCH=3,STATUS;
+1 DCL
+1 INCH
+4 =
+2 1
+4 ,
+1 OUTCH
+4 =
+2 3
+4 ,
+1 STATUS
+4 ;
+  DCL EOF=0;
+1 DCL
+1 EOF
+4 =
+2 0
+4 ;
+  DCL LEXEME(120);
+1 DCL
+1 LEXEME
+4 (
+2 120
+4 )
+4 ;
+  DCL KIND;
+1 DCL
+1 KIND
+4 ;
+  DCL ICHAR,MODE;
+1 DCL
+1 ICHAR
+4 ,
+1 MODE
+4 ;
+  DCL STAR=('*');                 * asterisk
+1 DCL
+1 STAR
+4 =
+4 (
+3 '*'
+4 )
+4 ;
+  DCL SEMICO=(';');               * semicolon
+1 DCL
+1 SEMICO
+4 =
+4 (
+3 ';'
+4 )
+4 ;
+ 
+1 DCL
+PROC SCAN;                        * frontend scanner for Small
+1 PROC
+1 SCAN
+4 ;
+  REPEAT 
+1 REPEAT
+4 *
+LABEL CONTIN;
+1 LABEL
+1 CONTIN
+4 ;
+    MODE=1;                       * MODE 1 allows comments
+1 MODE
+4 =
+2 1
+4 ;
+    STATUS=READ(INCH,BUFF);
+1 STATUS
+4 =
+1 READ
+4 (
+1 INCH
+4 ,
+1 BUFF
+4 )
+4 ;
+    CALL WRITE(OUTCH,BUFF);
+1 CALL
+1 WRITE
+4 (
+1 OUTCH
+4 ,
+1 BUFF
+4 )
+4 ;
+    ICHAR=1;
+1 ICHAR
+4 =
+2 1
+4 ;
+    DO WHILE ICHAR LE BUFF;       * until end of line
+1 DO
+1 WHILE
+1 ICHAR
+1 LE
+1 BUFF
+4 ;
+      KIND=LEX(ICHAR,LEXEME);     * call LEX, get KIND and LEXEME
+1 KIND
+4 =
+1 LEX
+4 (
+1 ICHAR
+4 ,
+1 LEXEME
+4 )
+4 ;
+      IF MODE; THEN 
+1 IF
+1 MODE
+4 ;
+1 THEN
+1 LEXEME
+        IF LEXEME(1) EQ STAR;     * if MODE 1 and * skip to next
+1 IF
+1 LEXEME
+4 (
+2 1
+4 )
+1 EQ
+1 STAR
+4 ;
+          THEN GO TO CONTIN;      * input line to ignore comment
+1 THEN
+1 GO
+1 TO
+1 CONTIN
+4 ;
+          ELSE MODE=0;            * comments not allowed in MODE 0
+1 ELSE
+1 MODE
+4 =
+2 0
+4 ;
+        ENDIF ENDIF
+1 ENDIF
+1 ENDIF
+      SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit
+1 SCRATCH
+4 (
+2 1
+4 )
+4 =
+1 KIND
+4 +
+3 '0'
+4 ;
+      SCRATCH(2)=' ';             * follow with space
+1 SCRATCH
+4 (
+2 2
+4 )
+4 =
+3 ' '
+4 ;
+      SCRATCH=2;                  * number of characters
+1 SCRATCH
+4 =
+2 2
+4 ;
+      CALL CAT2(SCRATCH,LEXEME);  * concatenate
+1 CALL
+1 CAT2
+4 (
+1 SCRATCH
+4 ,
+1 LEXEME
+4 )
+4 ;
+      CALL WRITE(OUTCH,SCRATCH);
+1 CALL
+1 WRITE
+4 (
+1 OUTCH
+4 ,
+1 SCRATCH
+4 )
+4 ;
+      IF MODE EQ 0; THEN 
+1 IF
+1 MODE
+1 EQ
+2 0
+4 ;
+1 THEN
+1 ATCH
+        IF LEXEME(1) EQ SEMICO;
+1 IF
+1 LEXEME
+4 (
+2 1
+4 )
+1 EQ
+1 SEMICO
+4 ;
+           THEN MODE=1;
+1 THEN
+1 MODE
+4 =
+2 1
+4 ;
+        ENDIF ENDIF
+1 ENDIF
+1 ENDIF
+      ENDDO
+1 ENDDO
+    UNTIL STATUS EQ EOF;
+1 UNTIL
+1 STATUS
+1 EQ
+1 EOF
+4 ;
+  RETURN
+1 RETURN
+ENDPROC
+1 ENDPROC
+END
+1 END

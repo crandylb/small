@@ -1,0 +1,20 @@
+* testscan.s1 -- Test Small scanner using LEX, CRB, Feb 21, 2014
+
+  ENTRY TESTSCAN;
+  BEGIN TESTSCAN;
+  START TESTSCAN;
+  ENTRY BUFF;                   * make BUFF buffer global for LEX
+
+  EXTERNAL PROC READ,WRITE;
+  EXTERNAL PROC LEX,CAT2;
+  EXT PROC SCAN;
+  EXT OUTCH;
+
+  MSG GREET='Begin Small SCAN Test'
+
+LABEL TESTSCAN;
+  CALL WRITE(OUTCH,GREET);
+  CALL SCAN;
+  RETURN
+
+END

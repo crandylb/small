@@ -1,0 +1,204 @@
+** SCAN.S1 -- Frontend scan for Small, CRB, Feb 19, 2014
+*
+*  BEGIN SCAN;
+ BEGIN
+*  ENTRY SCAN;
+ ENT  SCAN
+*  ENTRY BUFF;                   * make BUFF buffer global for LEX
+ ENT  BUFF
+*
+*  EXTERNAL PROC READ,WRITE;
+ EXT P READ
+ EXT  WRITE
+*  EXTERNAL PROC LEX,CAT2;
+ EXT P LEX
+ EXT  CAT2
+*  ENT OUTCH;
+ ENT  OUTCH
+*
+*  DCL BUFF(128),SCRATCH(128);
+ SECT DATA
+ LABEL BUFF
+ SPACE  129
+ LABEL SCRATCH
+ SPACE  129
+*  DCL INCH=1,OUTCH=3,STATUS;
+ SECT DATA
+ LABEL INCH
+ CONST  1
+ LABEL OUTCH
+ CONST  3
+ LABEL STATUS
+ SPACE  1
+*  DCL EOF=0;
+ SECT DATA
+ LABEL EOF
+ CONST  0
+*  DCL LEXEME(120);
+ SECT DATA
+ LABEL LEXEME
+ SPACE  121
+*  DCL KIND;
+ SECT DATA
+ LABEL KIND
+ SPACE  1
+*  DCL ICHAR,MODE;
+ SECT DATA
+ LABEL ICHAR
+ SPACE  1
+ LABEL MODE
+ SPACE  1
+*  DCL STAR=('*');                 * asterisk
+ SECT DATA
+ LABEL STAR
+ CONST  42
+*  DCL SEMICO=(';');               * semicolon
+ SECT DATA
+ LABEL SEMICO
+ CONST  59
+*
+*PROC SCAN;                        * frontend scanner for Small
+ SECT CODE
+ SUBR P SCAN
+ NPARS  0
+ PEND
+*  REPEAT 
+ LABEL LJ1
+*LABEL CONTIN;
+ SECT CODE
+ LABEL CONTIN
+*    MODE=1;                       * MODE 1 allows comments
+*.GEN =MODE,=1,.BNST,
+ L  =1
+ ST  MODE
+*    STATUS=READ(INCH,BUFF);
+*.GEN =STATUS,(INCH,BUFF),.UFREAD,.BNST,
+ SCALL P READ
+ NARGS  2
+ ARG  INCH
+ ARG  BUFF
+ CEND
+ ST  STATUS
+*    CALL WRITE(OUTCH,BUFF);
+ SCALL  WRITE
+ NARGS  2
+ ARG  OUTCH
+ ARG  BUFF
+ CEND
+*    ICHAR=1;
+*.GEN =ICHAR,=1,.BNST,
+ L  =1
+ ST  ICHAR
+*    DO WHILE ICHAR LE BUFF;       * until end of line
+ LABEL LJ5
+*.GEN ICHAR,BUFF,.BN-,
+ L  ICHAR
+ -  BUFF
+ JGT  LJ6
+*      KIND=LEX(ICHAR,LEXEME);     * call LEX, get KIND and LEXEME
+*.GEN =KIND,(ICHAR,LEXEME),.UFLEX,.BNST,
+ SCALL P LEX
+ NARGS  2
+ ARG  ICHAR
+ ARG  LEXEME
+ CEND
+ ST  KIND
+*      IF MODE; THEN 
+*.GEN MODE,=0,.BN-,
+ L  MODE
+ -  =0
+ JEQ  LJ8
+*        IF LEXEME(1) EQ STAR;     * if MODE 1 and * skip to next
+*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,.UA,STAR,.BN-,
+ L  =1
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
+ -  STAR
+*          THEN GO TO CONTIN;      * input line to ignore comment
+ JNE  LJ9
+ J  CONTIN
+*          ELSE MODE=0;            * comments not allowed in MODE 0
+ J  LJ10
+ LABEL LJ9
+*.GEN =MODE,=0,.BNST,
+ L  =0
+ ST  MODE
+*        ENDIF ENDIF
+ LABEL LJ10
+ LABEL LJ8
+*      SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit
+*.GEN =SCRATCH,=1,=2,.BNSHL,.BC+,KIND,=48,.BC+,.BNST,
+ L  =1
+ SHL  =2
+ +  =SCRATCH
+ ST  T1Z1
+ L  KIND
+ +  =48
+ ST  *T1Z1
+*      SCRATCH(2)=' ';             * follow with space
+*.GEN =SCRATCH,=2,=2,.BNSHL,.BC+,=32,.BNST,
+ L  =2
+ SHL  =2
+ +  =SCRATCH
+ ST  T1Z
+ L  =32
+ ST  *T1Z
+*      SCRATCH=2;                  * number of characters
+*.GEN =SCRATCH,=2,.BNST,
+ L  =2
+ ST  SCRATCH
+*      CALL CAT2(SCRATCH,LEXEME);  * concatenate
+ SCALL  CAT2
+ NARGS  2
+ ARG  SCRATCH
+ ARG  LEXEME
+ CEND
+*      CALL WRITE(OUTCH,SCRATCH);
+ SCALL  WRITE
+ NARGS  2
+ ARG  OUTCH
+ ARG  SCRATCH
+ CEND
+*      IF MODE EQ 0; THEN 
+*.GEN MODE,=0,.BN-,
+ L  MODE
+ -  =0
+ JNE  LJ13
+*        IF LEXEME(1) EQ SEMICO;
+*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,.UA,SEMICO,.BN-,
+ L  =1
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
+ -  SEMICO
+*           THEN MODE=1;
+ JNE  LJ14
+*.GEN =MODE,=1,.BNST,
+ L  =1
+ ST  MODE
+*        ENDIF ENDIF
+ LABEL LJ14
+ LABEL LJ13
+*      ENDDO
+ J  LJ5
+ LABEL LJ6
+*    UNTIL STATUS EQ EOF;
+*.GEN STATUS,EOF,.BN-,
+ L  STATUS
+ -  EOF
+ JNE  LJ1
+ LABEL LJ2
+*  RETURN
+ RETN  SCAN,0
+*ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+ SECT DATA
+ LABEL T1Z1
+ SPACE  1
+ SECT CODE
+*END
+ END
