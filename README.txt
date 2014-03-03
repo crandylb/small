@@ -51,9 +51,9 @@ thesis for information on Mill, and the test directories for makefile to
 comiple and run Small programs.
 
 mill2yasm.s2m
-This set of macros translate Mill to yasm, an x86 assembler used here to
+This set of macros translates Mill to yasm, an x86 assembler used here to
 create a 32-bit implementation of Small for x86, i.e. Intel and AMD processors
-using the 32-bit 386/486 and beyond instruction sets. For mor details see the
+using the 32-bit 386/486 and beyond instruction sets. For more details see the
 implementation notes.
 
 smallio.c
@@ -95,7 +95,7 @@ by the value of the case expression. Each case skips to the end of the case
 statement on completion.
 
 scan
-This directory tests a form of scan that skips commentc and process all other
+This directory tests a form of scan that skips comments and process all other
 input through lex, the lexical scanner (see testlex). The output file scan.out
 shows the result of processing the scan.s1 source file. See the makefile for
 an example of using the libs1.a library.
@@ -116,7 +116,7 @@ with six characters packed into the first (even indexed) word using base 40
 compression, and the VAL and TAG fields packed into the next (odd indexed)
 word. The table is addressed by a hash derived from the packed base 40
 name. The table size, 8191, is a Mersenne prime number that provides space for
-4,000 symbols in 64k bytes of memory. Collisions are resolved on insertion by
+4,000 symbols in 32k bytes of memory. Collisions are resolved on insertion by
 sequential search for the next empty slot, with wraparound until the table is
 full. The result is a single namespace with a unique index for every
 symbol. The table is initialized with keywords and operators by the initsym
