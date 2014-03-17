@@ -5,6 +5,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 02/26/2014 CRB Add lib
 03/01/2014 CRB Add scan
 03/02/2014 CRB Add symacc
+03/16/2014 CRB Update symacc, initsym, and initable.dat
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -128,6 +129,11 @@ to run the initsym test, where the initable.dat file is read on channel 2, and
 the output initsym.out on channel 3 shows each initialized keyword and
 operator with its VAL (a unique number for each keyword and operator) and TAG
 field (packed TAGS and TYPE).
+
+Update (03/16/14) adds a collision counter to symacc.s1, and token KIND codes
+to distinguish keywords, operators, and punctuation characters. Also ATTR
+attribute bits for operators. This is intended to aid parsing of tokens. Some
+of this may be overkill and more documentation is needed to clarify details.
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including

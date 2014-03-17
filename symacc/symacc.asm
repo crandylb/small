@@ -1,4 +1,5 @@
 ;* SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
+;* 03/14/2014 CRB Add COLLS collision counter
 ;
 ;BEGIN SYMACC;
  global progr
@@ -17,6 +18,8 @@
 ;  ENTRY A2B40,B402A;            * ASCII, B40 conversion
  global  A2B40
  global  B402A
+;  ENTRY COLLS;                  * Collision counter
+ global  COLLS
 ;
 ;  SET TABSIZ=8191;              * prime < 2^13
 ;  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -45,6 +48,11 @@ MASKE:
 ;  DCL MASKV=65535;              * mask for low 16 bits
 MASKV:
  dd  -1
+;  DCL COLFLG,COLLS=0;           * collision counter on instertion only
+COLFLG:
+ times 1 dd 0
+COLLS:
+ dd  0
 ;
 ;* Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 ;* Only upper case letters and decimal digits are allowed
@@ -290,6 +298,10 @@ LOOKS:
  sal EAX,1
  or EAX,1
  mov [MASKV],EAX
+;  COLFLG=0;                     * reset collision flag
+;.GEN =COLFLG,=0,.BNST,
+ mov EAX,0
+ mov [COLFLG],EAX
 ;  I=WORDS MOD TABSIZ;
 ;.GEN =I,WORDS,TABSIZ,.BNMOD,.BNST,
 ; L D WORDS
@@ -319,7 +331,7 @@ LJ14:
  add EAX,TABLE
  mov EAX,[EAX]
  or EAX,EAX
-;      THEN TABLE(I)=WORDS;
+;      THEN TABLE(I)=WORDS;      * insert symbol
  jne LJ16
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  mov EAX,[I]
@@ -349,6 +361,18 @@ LJ14:
  mov EDX,EAX
  mov EAX,[T5Z1]
  mov [EAX],EDX
+;        IF COLFLG; THEN         * if collision flag on then
+;.GEN COLFLG,=0,.BN-,
+ mov EAX,[COLFLG]
+ or EAX,EAX
+ jz LJ17
+;          COLLS=COLLS+1;        * count collisions on insertion
+;.GEN =COLLS,COLLS,=1,.BC+,.BNST,
+ mov EAX,[COLLS]
+ inc EAX
+ mov [COLLS],EAX
+;          ENDIF
+LJ17:
 ;        RETURN I;
 ;.GEN I,
  mov EAX,[I]
@@ -357,7 +381,7 @@ LJ14:
  pop EBP
  ret
 ;      ELSE IF TABLE(I) EQ WORDS; * found match
- jmp LJ17
+ jmp LJ18
 LJ16:
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  mov EAX,[I]
@@ -367,8 +391,8 @@ LJ16:
 ; - D WORDS
  mov EBX,[EBP+16] ; WORDS
  sub EAX,[EBX]
-;      THEN B=TABLE(I+1);
- jne LJ18
+;      THEN B=TABLE(I+1);        * retrieve VAL and TAG
+ jne LJ19
 ;.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
  inc EAX
@@ -399,25 +423,29 @@ LJ16:
  pop EBP
  ret
 ;      ENDIF ENDIF
+LJ19:
 LJ18:
-LJ17:
 ;    I=I+2;                      * try next slot
 ;.GEN =I,I,=2,.BC+,.BNST,
  mov EAX,[I]
  add EAX,2
  mov [I],EAX
+;    COLFLG=1;                   * set collision flag
+;.GEN =COLFLG,=1,.BNST,
+ mov EAX,1
+ mov [COLFLG],EAX
 ;    IF I GT TABSIZ;
 ;.GEN I,TABSIZ,.BN-,
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
 ;      THEN I=I-TABSIZ;
- jle LJ19
+ jle LJ20
 ;.GEN =I,I,TABSIZ,.BN-,.BNST,
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
  mov [I],EAX
 ;      ENDIF
-LJ19:
+LJ20:
 ;    UNTIL I EQ J;               * check for wrap to starting position
 ;.GEN I,J,.BN-,
  mov EAX,[I]

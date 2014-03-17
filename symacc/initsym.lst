@@ -2,459 +2,561 @@
      2                                 
      3                                 
      4                                 
-     5                                 [global progr]
-     6                                 [extern exit]
-     7                                 
-     8                                 [global INITSYM]
-     9                                 
-    10                                 [global DMPLIST]
-    11                                 
-    12                                 [global BUFF]
-    13                                 
-    14                                 [global INIT]
-    15                                 [section .text]
-    16                                 progr:
-    17 00000000 55                      push EBP
-    18 00000001 89E5                    mov EBP,ESP
-    19 00000003 EBFE                    jmp INIT
-    20                                 
+     5                                 
+     6                                 [global progr]
+     7                                 [extern exit]
+     8                                 
+     9                                 [global INITSYM]
+    10                                 
+    11                                 [global DMPLIST]
+    12                                 
+    13                                 [global BUFF]
+    14                                 
+    15                                 [global INIT]
+    16                                 [section .text]
+    17                                 progr:
+    18 00000000 55                      push EBP
+    19 00000001 89E5                    mov EBP,ESP
+    20 00000003 EBFE                    jmp INIT
     21                                 
-    22                                 [extern READ]
-    23                                 [extern WRITE]
-    24                                 
-    25                                 [extern LEX]
-    26                                 
-    27                                 [extern A2B40]
-    28                                 [extern B402A]
-    29                                 
-    30                                 [extern LOOKS]
-    31                                 [extern GETS]
-    32                                 [extern GETWRD]
-    33                                 
-    34                                 [extern IREAD]
-    35                                 [extern IFORM]
-    36                                 [extern CAT2]
-    37                                 
+    22                                 
+    23                                 [extern READ]
+    24                                 [extern WRITE]
+    25                                 
+    26                                 [extern LEX]
+    27                                 
+    28                                 [extern A2B40]
+    29                                 [extern B402A]
+    30                                 
+    31                                 [extern LOOKS]
+    32                                 [extern GETS]
+    33                                 [extern GETWRD]
+    34                                 
+    35                                 [extern IREAD]
+    36                                 [extern IFORM]
+    37                                 [extern CAT2]
     38                                 
-    39                                 [section .data]
-    40                                 I:
-    41 00000000 00000000                times 1 dd 0
-    42                                 J:
-    43 00000004 00000000                times 1 dd 0
-    44                                 EOF:
-    45 00000008 00000000                dd 0
-    46                                 STATUS:
-    47 0000000C 00000000                times 1 dd 0
-    48                                 
-    49                                 BUFF:
-    50 00000010 00000000<rept>          times 128 dd 0
+    39                                 [extern COLLS]
+    40                                 
+    41                                 
+    42                                 [section .data]
+    43                                 I:
+    44 00000000 00000000                times 1 dd 0
+    45                                 J:
+    46 00000004 00000000                times 1 dd 0
+    47                                 EOF:
+    48 00000008 00000000                dd 0
+    49                                 STATUS:
+    50 0000000C 00000000                times 1 dd 0
     51                                 
-    52                                 INCH:
-    53 00000210 01000000                dd 1
-    54                                 SCRCH:
-    55 00000214 02000000                dd 2
-    56                                 OUTCH:
-    57 00000218 03000000                dd 3
-    58                                 
-    59                                 LEXEME:
-    60 0000021C 00000000<rept>          times 128 dd 0
+    52                                 BUFF:
+    53 00000010 00000000<rept>          times 128 dd 0
+    54                                 
+    55                                 INCH:
+    56 00000210 01000000                dd 1
+    57                                 SCRCH:
+    58 00000214 02000000                dd 2
+    59                                 OUTCH:
+    60 00000218 03000000                dd 3
     61                                 
-    62                                 INDEX:
-    63 0000041C 00000000                times 1 dd 0
-    64                                 WORDS:
-    65 00000420 00000000                times 1 dd 0
-    66                                 KIND:
-    67 00000424 00000000                times 1 dd 0
-    68                                 TTYPE:
-    69 00000428 00000000                times 1 dd 0
-    70                                 TAG:
-    71 0000042C 00000000                times 1 dd 0
-    72                                 TAGS:
-    73 00000430 00000000                times 1 dd 0
-    74                                 VAL:
-    75 00000434 00000000                times 1 dd 0
-    76                                 
-    77                                 COUNT:
-    78 00000438 00000000                dd 0
-    79                                 LIST:
-    80 0000043C 00000000<rept>          times 61 dd 0
+    62                                 LEXEME:
+    63 0000021C 00000000<rept>          times 128 dd 0
+    64                                 
+    65                                 INDEX:
+    66 0000041C 00000000                times 1 dd 0
+    67                                 WORDS:
+    68 00000420 00000000                times 1 dd 0
+    69                                 KIND:
+    70 00000424 00000000                times 1 dd 0
+    71                                 TTYPE:
+    72 00000428 00000000                times 1 dd 0
+    73                                 TAG:
+    74 0000042C 00000000                times 1 dd 0
+    75                                 TAGS:
+    76 00000430 00000000                times 1 dd 0
+    77                                 VAL:
+    78 00000434 00000000                times 1 dd 0
+    79                                 ATTR:
+    80 00000438 00000000                times 1 dd 0
     81                                 
-    82                                 STAR:
-    83 00000530 2A000000                dd 42
-    84                                 
-    85                                 DOT:
-    86 00000534 2E000000                dd 46
-    87                                 
-    88                                 QUOTE:
-    89 00000538 27000000                dd 39
-    90                                 
-    91                                 BLANKS:
-    92 0000053C 0A000000                dd 10
-    93 00000540 20000000                dd 32
-    94 00000544 20000000                dd 32
-    95 00000548 20000000                dd 32
-    96 0000054C 20000000                dd 32
-    97 00000550 20000000                dd 32
-    98 00000554 20000000                dd 32
-    99 00000558 20000000                dd 32
-   100 0000055C 20000000                dd 32
-   101 00000560 20000000                dd 32
-   102 00000564 20000000                dd 32
-   103                                 
-   104                                 SCRATCH:
-   105 00000568 0A000000                dd 10
-   106 0000056C 20000000                dd 32
-   107 00000570 20000000                dd 32
-   108 00000574 20000000                dd 32
-   109 00000578 20000000                dd 32
-   110 0000057C 20000000                dd 32
-   111 00000580 20000000                dd 32
-   112 00000584 20000000                dd 32
-   113 00000588 20000000                dd 32
-   114 0000058C 20000000                dd 32
-   115 00000590 20000000                dd 32
-   116                                 
-   117                                 
-   118                                 [section .text]
-   119                                 INIT:
-   120                                 
+    82                                 COUNT:
+    83 0000043C 00000000                dd 0
+    84                                 LIST:
+    85 00000440 00000000<rept>          times 61 dd 0
+    86                                 
+    87                                 STAR:
+    88 00000534 2A000000                dd 42
+    89                                 
+    90                                 DOT:
+    91 00000538 2E000000                dd 46
+    92                                 
+    93                                 QUOTE:
+    94 0000053C 27000000                dd 39
+    95                                 
+    96                                 BLANKS:
+    97 00000540 0A000000                dd 10
+    98 00000544 20000000                dd 32
+    99 00000548 20000000                dd 32
+   100 0000054C 20000000                dd 32
+   101 00000550 20000000                dd 32
+   102 00000554 20000000                dd 32
+   103 00000558 20000000                dd 32
+   104 0000055C 20000000                dd 32
+   105 00000560 20000000                dd 32
+   106 00000564 20000000                dd 32
+   107 00000568 20000000                dd 32
+   108                                 
+   109                                 SCRATCH:
+   110 0000056C 0A000000                dd 10
+   111 00000570 20000000                dd 32
+   112 00000574 20000000                dd 32
+   113 00000578 20000000                dd 32
+   114 0000057C 20000000                dd 32
+   115 00000580 20000000                dd 32
+   116 00000584 20000000                dd 32
+   117 00000588 20000000                dd 32
+   118 0000058C 20000000                dd 32
+   119 00000590 20000000                dd 32
+   120 00000594 20000000                dd 32
    121                                 
-   122 00000005 E804000000              call INITSYM
-   123                                 
-   124                                 
-   125 0000000A E8A6010000              call DMPLIST
-   126                                 
-   127                                 
-   128 0000000F 89EC                    mov ESP,EBP
-   129 00000011 5D                      pop EBP
-   130 00000012 C3                      ret
-   131                                 
-   132                                 
-   133                                 
-   134                                 INITSYM:
-   135 00000013 55                      push EBP
-   136 00000014 89E5                    mov EBP,ESP
+   122                                 COLLISIONS:
+   123 00000598 0C000000                dd 12
+   124 0000059C 43000000                dd 67
+   125 000005A0 6F000000                dd 111
+   126 000005A4 6C000000                dd 108
+   127 000005A8 6C000000                dd 108
+   128 000005AC 69000000                dd 105
+   129 000005B0 73000000                dd 115
+   130 000005B4 69000000                dd 105
+   131 000005B8 6F000000                dd 111
+   132 000005BC 6E000000                dd 110
+   133 000005C0 73000000                dd 115
+   134 000005C4 3A000000                dd 58
+   135 000005C8 20000000                dd 32
+   136                                 
    137                                 
-   138                                 
-   139                                 
+   138                                 [section .text]
+   139                                 INIT:
    140                                 
    141                                 
-   142 00000016 68[00000000]            push SCRCH
-   143 0000001B 68[00000000]            push BUFF
-   144 00000020 E8(F6FFFFFF)            call READ
-   145 00000025 83C408                  add ESP,4*2
-   146 00000028 A3[00000000]            mov [STATUS],EAX
+   142 00000005 E804000000              call INITSYM
+   143                                 
+   144                                 
+   145 0000000A E82F020000              call DMPLIST
+   146                                 
    147                                 
-   148                                 LJ2:
-   149                                 
-   150 0000002D A1[00000000]            mov EAX,[STATUS]
-   151 00000032 2B05[00000000]          sub EAX,[EOF]
-   152 00000038 0F8472010000            jz LJ3
+   148 0000000F 89EC                    mov ESP,EBP
+   149 00000011 5D                      pop EBP
+   150 00000012 C3                      ret
+   151                                 
+   152                                 
    153                                 
-   154                                 
-   155 0000003E B801000000              mov EAX,1
-   156 00000043 C1E002                  sal EAX,2
-   157 00000046 05[00000000]            add EAX,BUFF
-   158 0000004B 8B00                    mov EAX,[EAX]
-   159 0000004D 2B05[00000000]          sub EAX,[STAR]
+   154                                 INITSYM:
+   155 00000013 55                      push EBP
+   156 00000014 89E5                    mov EBP,ESP
+   157                                 
+   158                                 
+   159                                 
    160                                 
-   161 00000053 0F843B010000            jz LJ4
-   162                                 
-   163                                 
-   164 00000059 B801000000              mov EAX,1
-   165 0000005E A3[00000000]            mov [I],EAX
-   166                                 
+   161                                 
+   162 00000016 68[00000000]            push SCRCH
+   163 0000001B 68[00000000]            push BUFF
+   164 00000020 E8(F6FFFFFF)            call READ
+   165 00000025 83C408                  add ESP,4*2
+   166 00000028 A3[00000000]            mov [STATUS],EAX
    167                                 
-   168                                 
-   169 00000063 68[00000000]            push I
-   170 00000068 68[00000000]            push LEXEME
-   171 0000006D E8(F6FFFFFF)            call LEX
-   172 00000072 83C408                  add ESP,4*2
-   173 00000075 A3[00000000]            mov [KIND],EAX
+   168                                 LJ2:
+   169                                 
+   170 0000002D A1[00000000]            mov EAX,[STATUS]
+   171 00000032 2B05[00000000]          sub EAX,[EOF]
+   172 00000038 0F84FB010000            jz LJ3
+   173                                 
    174                                 
-   175                                 
-   176 0000007A B801000000              mov EAX,1
-   177 0000007F C1E002                  sal EAX,2
-   178 00000082 05[00000000]            add EAX,LEXEME
-   179 00000087 8B00                    mov EAX,[EAX]
-   180 00000089 2B05[00000000]          sub EAX,[QUOTE]
-   181 0000008F 751E                    jne LJ6
+   175 0000003E B801000000              mov EAX,1
+   176 00000043 C1E002                  sal EAX,2
+   177 00000046 05[00000000]            add EAX,BUFF
+   178 0000004B 8B00                    mov EAX,[EAX]
+   179 0000004D 2B05[00000000]          sub EAX,[STAR]
+   180                                 
+   181 00000053 0F84C4010000            jz LJ4
    182                                 
    183                                 
-   184 00000091 B802000000              mov EAX,2
-   185 00000096 C1E002                  sal EAX,2
-   186 00000099 05[00000000]            add EAX,LEXEME
-   187 0000009E 8B00                    mov EAX,[EAX]
-   188 000000A0 A3[00000000]            mov [WORDS],EAX
+   184 00000059 B801000000              mov EAX,1
+   185 0000005E A3[00000000]            mov [I],EAX
+   186                                 
+   187                                 
+   188                                 
    189                                 
-   190                                 
-   191 000000A5 B801000000              mov EAX,1
-   192 000000AA A3[00000000]            mov [TAGS],EAX
-   193                                 
-   194 000000AF EB1A                    jmp LJ7
-   195                                 LJ6:
+   190 00000063 68[00000000]            push I
+   191 00000068 68[00000000]            push LEXEME
+   192 0000006D E8(F6FFFFFF)            call LEX
+   193 00000072 83C408                  add ESP,4*2
+   194 00000075 A3[00000000]            mov [KIND],EAX
+   195                                 
    196                                 
-   197                                 
-   198                                 
-   199 000000B1 68[00000000]            push LEXEME
-   200 000000B6 E8(F6FFFFFF)            call A2B40
-   201 000000BB 83C404                  add ESP,4*1
-   202 000000BE A3[00000000]            mov [WORDS],EAX
+   197 0000007A B801000000              mov EAX,1
+   198 0000007F C1E002                  sal EAX,2
+   199 00000082 05[00000000]            add EAX,LEXEME
+   200 00000087 8B00                    mov EAX,[EAX]
+   201 00000089 2B05[00000000]          sub EAX,[QUOTE]
+   202 0000008F 751E                    jne LJ6
    203                                 
    204                                 
-   205 000000C3 B800000000              mov EAX,0
-   206 000000C8 A3[00000000]            mov [TAGS],EAX
-   207                                 
-   208                                 LJ7:
-   209                                 
+   205 00000091 B802000000              mov EAX,2
+   206 00000096 C1E002                  sal EAX,2
+   207 00000099 05[00000000]            add EAX,LEXEME
+   208 0000009E 8B00                    mov EAX,[EAX]
+   209 000000A0 A3[00000000]            mov [WORDS],EAX
    210                                 
    211                                 
-   212 000000CD 68[00000000]            push I
-   213 000000D2 68[00000000]            push LEXEME
-   214 000000D7 E8(F6FFFFFF)            call LEX
-   215 000000DC 83C408                  add ESP,4*2
-   216 000000DF A3[00000000]            mov [KIND],EAX
+   212 000000A5 B801000000              mov EAX,1
+   213 000000AA A3[00000000]            mov [TAGS],EAX
+   214                                 
+   215 000000AF EB1A                    jmp LJ7
+   216                                 LJ6:
    217                                 
    218                                 
-   219 000000E4 B801000000              mov EAX,1
-   220 000000E9 A3[00000000]            mov [J],EAX
-   221                                 
-   222                                 
-   223                                 
-   224 000000EE 68[00000000]            push J
-   225 000000F3 68[00000000]            push LEXEME
-   226 000000F8 E8(F6FFFFFF)            call IREAD
-   227 000000FD 83C408                  add ESP,4*2
-   228 00000100 A3[00000000]            mov [TTYPE],EAX
-   229                                 
+   219                                 
+   220 000000B1 68[00000000]            push LEXEME
+   221 000000B6 E8(F6FFFFFF)            call A2B40
+   222 000000BB 83C404                  add ESP,4*1
+   223 000000BE A3[00000000]            mov [WORDS],EAX
+   224                                 
+   225                                 
+   226 000000C3 B800000000              mov EAX,0
+   227 000000C8 A3[00000000]            mov [TAGS],EAX
+   228                                 
+   229                                 LJ7:
    230                                 
-   231 00000105 A1[00000000]            mov EAX,[TAGS]
-   232 0000010A C1E004                  sal EAX,4
-   233 0000010D 0B05[00000000]          or EAX,[TTYPE]
-   234 00000113 C1E008                  sal EAX,8
-   235 00000116 A3[00000000]            mov [TAG],EAX
-   236                                 
-   237                                 
-   238                                 
-   239 0000011B 68[00000000]            push I
-   240 00000120 68[00000000]            push LEXEME
-   241 00000125 E8(F6FFFFFF)            call LEX
-   242 0000012A 83C408                  add ESP,4*2
-   243 0000012D A3[00000000]            mov [KIND],EAX
+   231                                 
+   232                                 
+   233                                 
+   234 000000CD 68[00000000]            push I
+   235 000000D2 68[00000000]            push LEXEME
+   236 000000D7 E8(F6FFFFFF)            call LEX
+   237 000000DC 83C408                  add ESP,4*2
+   238 000000DF A3[00000000]            mov [KIND],EAX
+   239                                 
+   240                                 
+   241 000000E4 B801000000              mov EAX,1
+   242 000000E9 A3[00000000]            mov [J],EAX
+   243                                 
    244                                 
    245                                 
-   246 00000132 B801000000              mov EAX,1
-   247 00000137 A3[00000000]            mov [J],EAX
-   248                                 
-   249                                 
-   250                                 
-   251 0000013C 68[00000000]            push J
-   252 00000141 68[00000000]            push LEXEME
-   253 00000146 E8(F6FFFFFF)            call IREAD
-   254 0000014B 83C408                  add ESP,4*2
-   255 0000014E A3[00000000]            mov [VAL],EAX
-   256                                 
-   257                                 
-   258                                 
-   259 00000153 68[00000000]            push WORDS
-   260 00000158 68[00000000]            push VAL
-   261 0000015D 68[00000000]            push TAG
-   262 00000162 E8(F6FFFFFF)            call LOOKS
-   263 00000167 83C40C                  add ESP,4*3
-   264 0000016A A3[00000000]            mov [INDEX],EAX
+   246 000000EE 68[00000000]            push J
+   247 000000F3 68[00000000]            push LEXEME
+   248 000000F8 E8(F6FFFFFF)            call IREAD
+   249 000000FD 83C408                  add ESP,4*2
+   250 00000100 A3[00000000]            mov [TTYPE],EAX
+   251                                 
+   252                                 
+   253                                 
+   254                                 
+   255 00000105 68[00000000]            push I
+   256 0000010A 68[00000000]            push LEXEME
+   257 0000010F E8(F6FFFFFF)            call LEX
+   258 00000114 83C408                  add ESP,4*2
+   259 00000117 A3[00000000]            mov [KIND],EAX
+   260                                 
+   261                                 
+   262 0000011C B801000000              mov EAX,1
+   263 00000121 A3[00000000]            mov [J],EAX
+   264                                 
    265                                 
    266                                 
-   267 0000016F A1[00000000]            mov EAX,[COUNT]
-   268 00000174 40                      inc EAX
-   269 00000175 A3[00000000]            mov [COUNT],EAX
-   270                                 
-   271                                 
-   272 0000017A A1[00000000]            mov EAX,[COUNT]
-   273 0000017F C1E002                  sal EAX,2
-   274 00000182 05[00000000]            add EAX,LIST
-   275 00000187 A3[00000000]            mov [T1Z],EAX
-   276 0000018C A1[00000000]            mov EAX,[INDEX]
-   277 00000191 89C2                    mov EDX,EAX
-   278 00000193 A1[00000000]            mov EAX,[T1Z]
-   279 00000198 8910                    mov [EAX],EDX
-   280                                 
-   281                                 LJ4:
+   267 00000126 68[00000000]            push J
+   268 0000012B 68[00000000]            push LEXEME
+   269 00000130 E8(F6FFFFFF)            call IREAD
+   270 00000135 83C408                  add ESP,4*2
+   271 00000138 A3[00000000]            mov [VAL],EAX
+   272                                 
+   273                                 
+   274                                 
+   275                                 
+   276 0000013D 68[00000000]            push I
+   277 00000142 68[00000000]            push LEXEME
+   278 00000147 E8(F6FFFFFF)            call LEX
+   279 0000014C 83C408                  add ESP,4*2
+   280 0000014F A3[00000000]            mov [KIND],EAX
+   281                                 
    282                                 
-   283                                 
-   284                                 
-   285 0000019A 68[00000000]            push SCRCH
-   286 0000019F 68[00000000]            push BUFF
-   287 000001A4 E8(F6FFFFFF)            call READ
-   288 000001A9 83C408                  add ESP,4*2
-   289 000001AC A3[00000000]            mov [STATUS],EAX
-   290                                 
-   291 000001B1 E972FEFFFF              jmp LJ2
-   292                                 LJ3:
+   283 00000154 B801000000              mov EAX,1
+   284 00000159 A3[00000000]            mov [J],EAX
+   285                                 
+   286                                 
+   287                                 
+   288 0000015E 68[00000000]            push J
+   289 00000163 68[00000000]            push LEXEME
+   290 00000168 E8(F6FFFFFF)            call IREAD
+   291 0000016D 83C408                  add ESP,4*2
+   292 00000170 A3[00000000]            mov [KIND],EAX
    293                                 
    294                                 
-   295 000001B6 89EC                    mov ESP,EBP
-   296 000001B8 5D                      pop EBP
-   297 000001B9 C3                      ret
-   298                                 
-   299                                 [section .data]
-   300                                 T1Z:
-   301 00000594 00000000<rept>          times 2 dd 0
-   302                                 [section .text]
+   295 00000175 A1[00000000]            mov EAX,[TAGS]
+   296 0000017A C1E004                  sal EAX,4
+   297 0000017D 0B05[00000000]          or EAX,[TTYPE]
+   298 00000183 C1E008                  sal EAX,8
+   299 00000186 0B05[00000000]          or EAX,[KIND]
+   300 0000018C A3[00000000]            mov [TAG],EAX
+   301                                 
+   302                                 
    303                                 
    304                                 
-   305                                 
-   306                                 DMPLIST:
-   307 000001BA 55                      push EBP
-   308 000001BB 89E5                    mov EBP,ESP
-   309                                 
+   305 00000191 68[00000000]            push I
+   306 00000196 68[00000000]            push LEXEME
+   307 0000019B E8(F6FFFFFF)            call LEX
+   308 000001A0 83C408                  add ESP,4*2
+   309 000001A3 A3[00000000]            mov [KIND],EAX
    310                                 
    311                                 
-   312                                 
-   313 000001BD B801000000              mov EAX,1
-   314 000001C2 A3[00000000]            mov [I],EAX
+   312 000001A8 B801000000              mov EAX,1
+   313 000001AD A3[00000000]            mov [J],EAX
+   314                                 
    315                                 
-   316                                 LJ15:
-   317                                 
-   318 000001C7 A1[00000000]            mov EAX,[I]
-   319 000001CC 2B05[00000000]          sub EAX,[COUNT]
-   320 000001D2 0F8F54010000            jg LJ16
-   321                                 
+   316                                 
+   317 000001B2 68[00000000]            push J
+   318 000001B7 68[00000000]            push LEXEME
+   319 000001BC E8(F6FFFFFF)            call IREAD
+   320 000001C1 83C408                  add ESP,4*2
+   321 000001C4 A3[00000000]            mov [ATTR],EAX
    322                                 
-   323 000001D8 A1[00000000]            mov EAX,[I]
-   324 000001DD C1E002                  sal EAX,2
-   325 000001E0 05[00000000]            add EAX,LIST
-   326 000001E5 8B00                    mov EAX,[EAX]
-   327 000001E7 A3[00000000]            mov [INDEX],EAX
+   323                                 
+   324 000001C9 A1[00000000]            mov EAX,[ATTR]
+   325 000001CE C1E008                  sal EAX,8
+   326 000001D1 0B05[00000000]          or EAX,[VAL]
+   327 000001D7 A3[00000000]            mov [VAL],EAX
    328                                 
    329                                 
-   330 000001EC 68[00000000]            push INDEX
-   331 000001F1 68[00000000]            push WORDS
-   332 000001F6 E8(F6FFFFFF)            call GETWRD
-   333 000001FB 83C408                  add ESP,4*2
-   334                                 
-   335                                 
-   336 000001FE 68[00000000]            push INDEX
-   337 00000203 68[00000000]            push VAL
-   338 00000208 68[00000000]            push TAG
-   339 0000020D E8(F6FFFFFF)            call GETS
-   340 00000212 83C40C                  add ESP,4*3
-   341                                 
-   342                                 
-   343 00000215 A1[00000000]            mov EAX,[TAG]
-   344 0000021A C1F808                  sar EAX,8
-   345 0000021D A3[00000000]            mov [TTYPE],EAX
-   346                                 
-   347                                 
-   348 00000222 A1[00000000]            mov EAX,[TTYPE]
-   349 00000227 C1F804                  sar EAX,4
-   350 0000022A A3[00000000]            mov [TAGS],EAX
-   351                                 
-   352                                 
-   353 0000022F A1[00000000]            mov EAX,[TTYPE]
-   354 00000234 83E00F                  and EAX,15
-   355 00000237 A3[00000000]            mov [TTYPE],EAX
+   330                                 
+   331                                 
+   332 000001DC 68[00000000]            push WORDS
+   333 000001E1 68[00000000]            push VAL
+   334 000001E6 68[00000000]            push TAG
+   335 000001EB E8(F6FFFFFF)            call LOOKS
+   336 000001F0 83C40C                  add ESP,4*3
+   337 000001F3 A3[00000000]            mov [INDEX],EAX
+   338                                 
+   339                                 
+   340 000001F8 A1[00000000]            mov EAX,[COUNT]
+   341 000001FD 40                      inc EAX
+   342 000001FE A3[00000000]            mov [COUNT],EAX
+   343                                 
+   344                                 
+   345 00000203 A1[00000000]            mov EAX,[COUNT]
+   346 00000208 C1E002                  sal EAX,2
+   347 0000020B 05[00000000]            add EAX,LIST
+   348 00000210 A3[00000000]            mov [T1Z],EAX
+   349 00000215 A1[00000000]            mov EAX,[INDEX]
+   350 0000021A 89C2                    mov EDX,EAX
+   351 0000021C A1[00000000]            mov EAX,[T1Z]
+   352 00000221 8910                    mov [EAX],EDX
+   353                                 
+   354                                 LJ4:
+   355                                 
    356                                 
    357                                 
-   358 0000023C B800000000              mov EAX,0
-   359 00000241 A3[00000000]            mov [BUFF],EAX
-   360                                 
-   361                                 
-   362 00000246 68[00000000]            push BUFF
-   363 0000024B 68[00000000]            push BLANKS
-   364 00000250 E8(F6FFFFFF)            call CAT2
-   365 00000255 83C408                  add ESP,4*2
+   358 00000223 68[00000000]            push SCRCH
+   359 00000228 68[00000000]            push BUFF
+   360 0000022D E8(F6FFFFFF)            call READ
+   361 00000232 83C408                  add ESP,4*2
+   362 00000235 A3[00000000]            mov [STATUS],EAX
+   363                                 
+   364 0000023A E9E9FDFFFF              jmp LJ2
+   365                                 LJ3:
    366                                 
    367                                 
-   368 00000258 B800000000              mov EAX,0
-   369 0000025D A3[00000000]            mov [BUFF],EAX
-   370                                 
+   368 0000023F 89EC                    mov ESP,EBP
+   369 00000241 5D                      pop EBP
+   370 00000242 C3                      ret
    371                                 
-   372 00000262 A1[00000000]            mov EAX,[TAGS]
-   373 00000267 83E001                  and EAX,1
-   374 0000026A 09C0                    or EAX,EAX
-   375 0000026C 7420                    jz LJ20
+   372                                 [section .data]
+   373                                 T1Z:
+   374 000005CC 00000000<rept>          times 2 dd 0
+   375                                 [section .text]
    376                                 
    377                                 
-   378 0000026E B801000000              mov EAX,1
-   379 00000273 C1E002                  sal EAX,2
-   380 00000276 05[00000000]            add EAX,BUFF
-   381 0000027B A3[00000000]            mov [T3Z],EAX
-   382 00000280 A1[00000000]            mov EAX,[WORDS]
-   383 00000285 89C2                    mov EDX,EAX
-   384 00000287 A1[00000000]            mov EAX,[T3Z]
-   385 0000028C 8910                    mov [EAX],EDX
-   386                                 
-   387 0000028E EB10                    jmp LJ21
-   388                                 LJ20:
-   389                                 
+   378                                 
+   379                                 DMPLIST:
+   380 00000243 55                      push EBP
+   381 00000244 89E5                    mov EBP,ESP
+   382                                 
+   383                                 
+   384                                 
+   385                                 
+   386 00000246 B801000000              mov EAX,1
+   387 0000024B A3[00000000]            mov [I],EAX
+   388                                 
+   389                                 LJ19:
    390                                 
-   391 00000290 68[00000000]            push WORDS
-   392 00000295 68[00000000]            push BUFF
-   393 0000029A E8(F6FFFFFF)            call B402A
-   394 0000029F 83C408                  add ESP,4*2
+   391 00000250 A1[00000000]            mov EAX,[I]
+   392 00000255 2B05[00000000]          sub EAX,[COUNT]
+   393 0000025B 0F8F54010000            jg LJ20
+   394                                 
    395                                 
-   396                                 LJ21:
-   397                                 
-   398                                 
-   399 000002A2 B808000000              mov EAX,8
-   400 000002A7 A3[00000000]            mov [BUFF],EAX
+   396 00000261 A1[00000000]            mov EAX,[I]
+   397 00000266 C1E002                  sal EAX,2
+   398 00000269 05[00000000]            add EAX,LIST
+   399 0000026E 8B00                    mov EAX,[EAX]
+   400 00000270 A3[00000000]            mov [INDEX],EAX
    401                                 
    402                                 
-   403 000002AC 68[00000000]            push VAL
-   404 000002B1 68[00000000]            push SCRATCH
-   405 000002B6 E8(F6FFFFFF)            call IFORM
-   406 000002BB 83C408                  add ESP,4*2
+   403 00000275 68[00000000]            push INDEX
+   404 0000027A 68[00000000]            push WORDS
+   405 0000027F E8(F6FFFFFF)            call GETWRD
+   406 00000284 83C408                  add ESP,4*2
    407                                 
    408                                 
-   409 000002BE 68[00000000]            push BUFF
-   410 000002C3 68[00000000]            push SCRATCH
-   411 000002C8 E8(F6FFFFFF)            call CAT2
-   412 000002CD 83C408                  add ESP,4*2
-   413                                 
+   409 00000287 68[00000000]            push INDEX
+   410 0000028C 68[00000000]            push VAL
+   411 00000291 68[00000000]            push TAG
+   412 00000296 E8(F6FFFFFF)            call GETS
+   413 0000029B 83C40C                  add ESP,4*3
    414                                 
-   415 000002D0 B800000000              mov EAX,0
-   416 000002D5 A3[00000000]            mov [SCRATCH],EAX
-   417                                 
-   418                                 
-   419 000002DA 68[00000000]            push SCRATCH
-   420 000002DF 68[00000000]            push BLANKS
-   421 000002E4 E8(F6FFFFFF)            call CAT2
-   422 000002E9 83C408                  add ESP,4*2
-   423                                 
+   415                                 
+   416 0000029E A1[00000000]            mov EAX,[TAG]
+   417 000002A3 C1F808                  sar EAX,8
+   418 000002A6 A3[00000000]            mov [TTYPE],EAX
+   419                                 
+   420                                 
+   421 000002AB A1[00000000]            mov EAX,[TTYPE]
+   422 000002B0 C1F804                  sar EAX,4
+   423 000002B3 A3[00000000]            mov [TAGS],EAX
    424                                 
-   425 000002EC 68[00000000]            push TAG
-   426 000002F1 68[00000000]            push SCRATCH
-   427 000002F6 E8(F6FFFFFF)            call IFORM
-   428 000002FB 83C408                  add ESP,4*2
+   425                                 
+   426 000002B8 A1[00000000]            mov EAX,[TTYPE]
+   427 000002BD 83E00F                  and EAX,15
+   428 000002C0 A3[00000000]            mov [TTYPE],EAX
    429                                 
    430                                 
-   431 000002FE 68[00000000]            push BUFF
-   432 00000303 68[00000000]            push SCRATCH
-   433 00000308 E8(F6FFFFFF)            call CAT2
-   434 0000030D 83C408                  add ESP,4*2
-   435                                 
-   436                                 
-   437 00000310 68[00000000]            push OUTCH
-   438 00000315 68[00000000]            push BUFF
-   439 0000031A E8(F6FFFFFF)            call WRITE
-   440 0000031F 83C408                  add ESP,4*2
-   441                                 
-   442                                 
-   443 00000322 A1[00000000]            mov EAX,[I]
-   444 00000327 40                      inc EAX
-   445 00000328 A3[00000000]            mov [I],EAX
-   446                                 
-   447 0000032D E990FEFFFF              jmp LJ15
-   448                                 LJ16:
+   431 000002C5 B800000000              mov EAX,0
+   432 000002CA A3[00000000]            mov [BUFF],EAX
+   433                                 
+   434                                 
+   435 000002CF 68[00000000]            push BUFF
+   436 000002D4 68[00000000]            push BLANKS
+   437 000002D9 E8(F6FFFFFF)            call CAT2
+   438 000002DE 83C408                  add ESP,4*2
+   439                                 
+   440                                 
+   441 000002E1 B800000000              mov EAX,0
+   442 000002E6 A3[00000000]            mov [BUFF],EAX
+   443                                 
+   444                                 
+   445 000002EB A1[00000000]            mov EAX,[TAGS]
+   446 000002F0 83E001                  and EAX,1
+   447 000002F3 09C0                    or EAX,EAX
+   448 000002F5 7420                    jz LJ24
    449                                 
    450                                 
-   451 00000332 89EC                    mov ESP,EBP
-   452 00000334 5D                      pop EBP
-   453 00000335 C3                      ret
-   454                                 
-   455                                 [section .data]
-   456                                 T3Z:
-   457 0000059C 00000000<rept>          times 2 dd 0
-   458                                 [section .text]
+   451 000002F7 B801000000              mov EAX,1
+   452 000002FC C1E002                  sal EAX,2
+   453 000002FF 05[00000000]            add EAX,BUFF
+   454 00000304 A3[00000000]            mov [T3Z],EAX
+   455 00000309 A1[00000000]            mov EAX,[WORDS]
+   456 0000030E 89C2                    mov EDX,EAX
+   457 00000310 A1[00000000]            mov EAX,[T3Z]
+   458 00000315 8910                    mov [EAX],EDX
    459                                 
-   460                                  end
+   460 00000317 EB10                    jmp LJ25
+   461                                 LJ24:
+   462                                 
+   463                                 
+   464 00000319 68[00000000]            push WORDS
+   465 0000031E 68[00000000]            push BUFF
+   466 00000323 E8(F6FFFFFF)            call B402A
+   467 00000328 83C408                  add ESP,4*2
+   468                                 
+   469                                 LJ25:
+   470                                 
+   471                                 
+   472 0000032B B808000000              mov EAX,8
+   473 00000330 A3[00000000]            mov [BUFF],EAX
+   474                                 
+   475                                 
+   476 00000335 68[00000000]            push VAL
+   477 0000033A 68[00000000]            push SCRATCH
+   478 0000033F E8(F6FFFFFF)            call IFORM
+   479 00000344 83C408                  add ESP,4*2
+   480                                 
+   481                                 
+   482 00000347 68[00000000]            push BUFF
+   483 0000034C 68[00000000]            push SCRATCH
+   484 00000351 E8(F6FFFFFF)            call CAT2
+   485 00000356 83C408                  add ESP,4*2
+   486                                 
+   487                                 
+   488 00000359 B800000000              mov EAX,0
+   489 0000035E A3[00000000]            mov [SCRATCH],EAX
+   490                                 
+   491                                 
+   492 00000363 68[00000000]            push SCRATCH
+   493 00000368 68[00000000]            push BLANKS
+   494 0000036D E8(F6FFFFFF)            call CAT2
+   495 00000372 83C408                  add ESP,4*2
+   496                                 
+   497                                 
+   498 00000375 68[00000000]            push TAG
+   499 0000037A 68[00000000]            push SCRATCH
+   500 0000037F E8(F6FFFFFF)            call IFORM
+   501 00000384 83C408                  add ESP,4*2
+   502                                 
+   503                                 
+   504 00000387 68[00000000]            push BUFF
+   505 0000038C 68[00000000]            push SCRATCH
+   506 00000391 E8(F6FFFFFF)            call CAT2
+   507 00000396 83C408                  add ESP,4*2
+   508                                 
+   509                                 
+   510 00000399 68[00000000]            push OUTCH
+   511 0000039E 68[00000000]            push BUFF
+   512 000003A3 E8(F6FFFFFF)            call WRITE
+   513 000003A8 83C408                  add ESP,4*2
+   514                                 
+   515                                 
+   516 000003AB A1[00000000]            mov EAX,[I]
+   517 000003B0 40                      inc EAX
+   518 000003B1 A3[00000000]            mov [I],EAX
+   519                                 
+   520 000003B6 E990FEFFFF              jmp LJ19
+   521                                 LJ20:
+   522                                 
+   523                                 
+   524                                 
+   525 000003BB 68[00000000]            push COLLS
+   526 000003C0 68[00000000]            push SCRATCH
+   527 000003C5 E8(F6FFFFFF)            call IFORM
+   528 000003CA 83C408                  add ESP,4*2
+   529                                 
+   530                                 
+   531 000003CD B800000000              mov EAX,0
+   532 000003D2 A3[00000000]            mov [BUFF],EAX
+   533                                 
+   534                                 
+   535 000003D7 68[00000000]            push BUFF
+   536 000003DC 68[00000000]            push COLLISIONS
+   537 000003E1 E8(F6FFFFFF)            call CAT2
+   538 000003E6 83C408                  add ESP,4*2
+   539                                 
+   540                                 
+   541 000003E9 68[00000000]            push BUFF
+   542 000003EE 68[00000000]            push SCRATCH
+   543 000003F3 E8(F6FFFFFF)            call CAT2
+   544 000003F8 83C408                  add ESP,4*2
+   545                                 
+   546                                 
+   547 000003FB 68[00000000]            push OUTCH
+   548 00000400 68[00000000]            push BUFF
+   549 00000405 E8(F6FFFFFF)            call WRITE
+   550 0000040A 83C408                  add ESP,4*2
+   551                                 
+   552                                 
+   553 0000040D 89EC                    mov ESP,EBP
+   554 0000040F 5D                      pop EBP
+   555 00000410 C3                      ret
+   556                                 
+   557                                 [section .data]
+   558                                 T3Z:
+   559 000005D4 00000000<rept>          times 2 dd 0
+   560                                 [section .text]
+   561                                 
+   562                                  end

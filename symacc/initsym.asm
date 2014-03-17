@@ -1,4 +1,5 @@
 ;* initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
+;* 03/14/2014 CRB Add COLLS collision counter and token KIND
 ;
 ;BEGIN INITSYM;
  global progr
@@ -33,6 +34,8 @@ progr:
  extern IREAD
  extern  IFORM
  extern  CAT2
+;EXT COLLS;
+ extern  COLLS
 ;
 ;DCL I,J,EOF=0,STATUS;
  section .data
@@ -57,7 +60,7 @@ OUTCH:
 ;DCL LEXEME(127);
 LEXEME:
  times 128 dd 0
-;DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL;
+;DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
 INDEX:
  times 1 dd 0
 WORDS:
@@ -71,6 +74,8 @@ TAG:
 TAGS:
  times 1 dd 0
 VAL:
+ times 1 dd 0
+ATTR:
  times 1 dd 0
 ;DCL COUNT=0,LIST(60);
 COUNT:
@@ -111,6 +116,21 @@ SCRATCH:
  dd  32
  dd  32
  dd  32
+ dd  32
+;MSG COLLISIONS='Collisions: ';
+COLLISIONS:
+ dd  12
+ dd  67
+ dd  111
+ dd  108
+ dd  108
+ dd  105
+ dd  115
+ dd  105
+ dd  111
+ dd  110
+ dd  115
+ dd  58
  dd  32
 ;
 ;LABEL INIT;
@@ -162,6 +182,7 @@ LJ2:
 ;.GEN =I,=1,.BNST,
  mov EAX,1
  mov [I],EAX
+;
 ;      KIND=LEX(I,LEXEME);       * get a symbol
 ;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
@@ -205,6 +226,7 @@ LJ6:
  mov [TAGS],EAX
 ;        ENDIF
 LJ7:
+;
 ;      KIND=LEX(I,LEXEME);       * get the TTYPE code
 ;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
@@ -225,13 +247,7 @@ LJ7:
  call IREAD
  add  ESP,4*2
  mov [TTYPE],EAX
-;      TAG=((TAGS SHL 4) OR TTYPE) SHL 8; * set TTYPE and TAGS bits
-;.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,.BNST,
- mov EAX,[TAGS]
- sal EAX,4
- or EAX,[TTYPE]
- sal EAX,8
- mov [TAG],EAX
+;
 ;      KIND=LEX(I,LEXEME);       * get VAL for this keyword
 ;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
@@ -252,6 +268,63 @@ LJ7:
  call IREAD
  add  ESP,4*2
  mov [VAL],EAX
+;
+;      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
+;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+; NARGS  2
+ push I
+ push LEXEME
+ call LEX
+ add  ESP,4*2
+ mov [KIND],EAX
+;      J=1;
+;.GEN =J,=1,.BNST,
+ mov EAX,1
+ mov [J],EAX
+;      KIND=IREAD(J,LEXEME); 
+;.GEN =KIND,(J,LEXEME),.UFIREAD,.BNST,
+; NARGS  2
+ push J
+ push LEXEME
+ call IREAD
+ add  ESP,4*2
+ mov [KIND],EAX
+;      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
+;.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,KIND,.BCOR,.BNST,
+ mov EAX,[TAGS]
+ sal EAX,4
+ or EAX,[TTYPE]
+ sal EAX,8
+ or EAX,[KIND]
+ mov [TAG],EAX
+;
+;      KIND=LEX(I,LEXEME);       * get the ATTR bits
+;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+; NARGS  2
+ push I
+ push LEXEME
+ call LEX
+ add  ESP,4*2
+ mov [KIND],EAX
+;      J=1;
+;.GEN =J,=1,.BNST,
+ mov EAX,1
+ mov [J],EAX
+;      ATTR=IREAD(J,LEXEME);
+;.GEN =ATTR,(J,LEXEME),.UFIREAD,.BNST,
+; NARGS  2
+ push J
+ push LEXEME
+ call IREAD
+ add  ESP,4*2
+ mov [ATTR],EAX
+;      VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB
+;.GEN =VAL,ATTR,=8,.BNSHL,VAL,.BCOR,.BNST,
+ mov EAX,[ATTR]
+ sal EAX,8
+ or EAX,[VAL]
+ mov [VAL],EAX
+;
 ;      INDEX=LOOKS(WORDS,VAL,TAG);
 ;.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
 ; NARGS  3
@@ -312,11 +385,11 @@ DMPLIST:
  mov EAX,1
  mov [I],EAX
 ;  DO WHILE I LE COUNT;
-LJ15:
+LJ19:
 ;.GEN I,COUNT,.BN-,
  mov EAX,[I]
  sub EAX,[COUNT]
- jg LJ16
+ jg LJ20
 ;    INDEX=LIST(I);
 ;.GEN =INDEX,=LIST,I,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
@@ -371,7 +444,7 @@ LJ15:
  mov EAX,[TAGS]
  and EAX,1
  or EAX,EAX
- jz LJ20
+ jz LJ24
 ;        BUFF(1)=WORDS;          * if single character use ASCII
 ;.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,.BNST,
  mov EAX,1
@@ -383,8 +456,8 @@ LJ15:
  mov EAX,[T3Z]
  mov [EAX],EDX
 ;      ELSE 
- jmp LJ21
-LJ20:
+ jmp LJ25
+LJ24:
 ;        CALL B402A(WORDS,BUFF); * decode symbol into BUFF
 ; NARGS  2
  push WORDS
@@ -392,7 +465,7 @@ LJ20:
  call B402A
  add  ESP,4*2
 ;      ENDIF
-LJ21:
+LJ25:
 ;    BUFF=8;
 ;.GEN =BUFF,=8,.BNST,
  mov EAX,8
@@ -443,8 +516,37 @@ LJ21:
  inc EAX
  mov [I],EAX
 ;    ENDDO
- jmp LJ15
-LJ16:
+ jmp LJ19
+LJ20:
+;
+;    CALL IFORM(COLLS,SCRATCH);
+; NARGS  2
+ push COLLS
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    BUFF=0;
+;.GEN =BUFF,=0,.BNST,
+ mov EAX,0
+ mov [BUFF],EAX
+;    CALL CAT2(BUFF,COLLISIONS);
+; NARGS  2
+ push BUFF
+ push COLLISIONS
+ call CAT2
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
+;    CALL WRITE(OUTCH,BUFF);
+; NARGS  2
+ push OUTCH
+ push BUFF
+ call WRITE
+ add  ESP,4*2
 ;  RETURN
 ; RETN  DMPLIST,0
  mov ESP,EBP

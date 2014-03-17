@@ -1,4 +1,5 @@
 ** SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
+** 03/14/2014 CRB Add COLLS collision counter
 *
 *BEGIN SYMACC;
  BEGIN
@@ -16,6 +17,8 @@
 *  ENTRY A2B40,B402A;            * ASCII, B40 conversion
  ENT  A2B40
  ENT  B402A
+*  ENTRY COLLS;                  * Collision counter
+ ENT  COLLS
 *
 *  SET TABSIZ=8191;              * prime < 2^13
 *  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -48,6 +51,12 @@
  SECT DATA
  LABEL MASKV
  CONST  -1
+*  DCL COLFLG,COLLS=0;           * collision counter on instertion only
+ SECT DATA
+ LABEL COLFLG
+ SPACE  1
+ LABEL COLLS
+ CONST  0
 *
 ** Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 ** Only upper case letters and decimal digits are allowed
@@ -263,6 +272,10 @@
  SHL  =1
  OR  =1
  ST  MASKV
+*  COLFLG=0;                     * reset collision flag
+*.GEN =COLFLG,=0,.BNST,
+ L  =0
+ ST  COLFLG
 *  I=WORDS MOD TABSIZ;
 *.GEN =I,WORDS,TABSIZ,.BNMOD,.BNST,
  L D WORDS
@@ -286,7 +299,7 @@
  +  =TABLE
  L  *.AC
  -  =0
-*      THEN TABLE(I)=WORDS;
+*      THEN TABLE(I)=WORDS;      * insert symbol
  JNE  LJ16
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  L  I
@@ -306,12 +319,24 @@
  SHL  =16
  OR D VAL
  ST  *T5Z1
+*        IF COLFLG; THEN         * if collision flag on then
+*.GEN COLFLG,=0,.BN-,
+ L  COLFLG
+ -  =0
+ JEQ  LJ17
+*          COLLS=COLLS+1;        * count collisions on insertion
+*.GEN =COLLS,COLLS,=1,.BC+,.BNST,
+ L  COLLS
+ +  =1
+ ST  COLLS
+*          ENDIF
+ LABEL LJ17
 *        RETURN I;
 *.GEN I,
  L  I
  RETN  LOOKS,3
 *      ELSE IF TABLE(I) EQ WORDS; * found match
- J  LJ17
+ J  LJ18
  LABEL LJ16
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  L  I
@@ -319,8 +344,8 @@
  +  =TABLE
  L  *.AC
  - D WORDS
-*      THEN B=TABLE(I+1);
- JNE  LJ18
+*      THEN B=TABLE(I+1);        * retrieve VAL and TAG
+ JNE  LJ19
 *.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  L  I
  +  =1
@@ -344,25 +369,29 @@
  L  I
  RETN  LOOKS,3
 *      ENDIF ENDIF
+ LABEL LJ19
  LABEL LJ18
- LABEL LJ17
 *    I=I+2;                      * try next slot
 *.GEN =I,I,=2,.BC+,.BNST,
  L  I
  +  =2
  ST  I
+*    COLFLG=1;                   * set collision flag
+*.GEN =COLFLG,=1,.BNST,
+ L  =1
+ ST  COLFLG
 *    IF I GT TABSIZ;
 *.GEN I,TABSIZ,.BN-,
  L  I
  - 8191 TABSIZ
 *      THEN I=I-TABSIZ;
- JLE  LJ19
+ JLE  LJ20
 *.GEN =I,I,TABSIZ,.BN-,.BNST,
  L  I
  - 8191 TABSIZ
  ST  I
 *      ENDIF
- LABEL LJ19
+ LABEL LJ20
 *    UNTIL I EQ J;               * check for wrap to starting position
 *.GEN I,J,.BN-,
  L  I
