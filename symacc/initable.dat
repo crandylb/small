@@ -1,61 +1,67 @@
-* Keyword TYPE VAL
-START      3    1
-IF         3    2
-DO         3    3
-REPEAT     3    4
-CASE       3    5
-LABEL      3    6
-EXIT       3    7
-GO         3    8
-SET        3    9
-CALL       3    10
-RECURSIVE  3    11
-REC        3    11
-PROCEDURE  3    12
-PROC       3    12
-RETURN     3    13
-ENTRY      3    14
-ENT        3    14
-EXTERNAL   3    15
-EXT        3    15
-DECLARE    3    16
-DCL        3    16
-MESSAGE    3    17
-MSG        3    17
-STOP       3    18
-BEGIN      3    30
-END        3    31
-THEN       3    32
-ELSE       3    33
-ENDIF      3    34
-WHILE      3    35
-ENDDO      3    36
-UNTIL      3    37
-OF         3    38
-ENDCASE    3    39
-TO         3    40
-ENDPROC    3    41
-* Operators
-'+'        3    50
-'-'        3    51
-NOT        3    52
-'*'        3    53
-'/'        3    54
-MOD        3    55
-AND        3    56
-SHL        3    57
-SHR        3    58
-OR         3    59
-XOR        3    60
-'.'        3    61
-','        3    62
-';'        3    63
-'('        3    64
-')'        3    65
-''         3    66
-EQ         3    70
-NE         3    71
-LE         3    72
-LT         3    73
-GE         3    74
-GT         3    75
+* initable.dat -- Symbol Table Initialization Data, CRB, Mar 11, 2014
+* 03/14/2014 CRB Add '=', token KIND, and ATTR bits
+*
+* Keyword TYPE VAL KIND ATTR
+START      3    1    1    0
+IF         3    2    1    0
+DO         3    3    1    0
+REPEAT     3    4    1    0
+CASE       3    5    1    0
+LABEL      3    6    1    0
+EXIT       3    7    1    0
+GO         3    8    1    0
+SET        3    9    1    0
+CALL       3    10   1    0
+RECURSIVE  3    11   1    0
+REC        3    11   1    0
+PROCEDURE  3    12   1    0
+PROC       3    12   1    0
+RETURN     3    13   1    0
+ENTRY      3    14   1    0
+ENT        3    14   1    0
+EXTERNAL   3    15   1    0
+EXT        3    15   1    0
+DECLARE    3    16   1    0
+DCL        3    16   1    0
+MESSAGE    3    17   1    0
+MSG        3    17   1    0
+STOP       3    18   1    0
+BEGIN      3    30   1    0
+END        3    31   1    0
+THEN       3    32   1    0
+ELSE       3    33   1    0
+ENDIF      3    34   1    0
+WHILE      3    35   1    0
+ENDDO      3    36   1    0
+UNTIL      3    37   1    0
+OF         3    38   1    0
+ENDCASE    3    39   1    0
+TO         3    40   1    0
+ENDPROC    3    41   1    0
+* Arithmetic and Logical Operators
+'+'        3    50   3    5
+'-'        3    51   3    7
+NOT        3    52   2    1
+'*'        3    53   4    4
+'/'        3    54   4    6
+MOD        3    55   4    6
+AND        3    56   4    4
+SHL        3    57   4    6
+SHR        3    58   4    6
+OR         3    59   3    4
+XOR        3    60   3    4
+* Punctuation Operators
+'.'        7    61   6    0
+','        7    62   6	  0
+';'        7    63   6	  0
+'('        7    64   6	  0
+')'        7    65   6	  0
+''         7    66   6	  0
+'='        7    67   6    6
+* Comparison Operators
+EQ         3    70   5    4
+NE         3    71   5	  4
+LE         3    72   5	  4
+LT         3    73   5	  4
+GE         3    74   5	  4
+GT         3    75   5	  4

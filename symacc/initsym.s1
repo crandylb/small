@@ -1,4 +1,5 @@
 * initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
+* 03/14/2014 CRB Add COLLS collision counter and token KIND
 
 BEGIN INITSYM;
 ENT INITSYM;
@@ -11,18 +12,20 @@ EXT PROC LEX;
 EXT PROC A2B40,B402A;
 EXT PROC LOOKS,GETS,GETWRD;
 EXT PROC IREAD,IFORM,CAT2;
+EXT COLLS;
 
 DCL I,J,EOF=0,STATUS;
 DCL BUFF(127);
 DCL INCH=1,SCRCH=2,OUTCH=3;
 DCL LEXEME(127);
-DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL;
+DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
 DCL COUNT=0,LIST(60);
 DCL STAR=('*');
 DCL DOT=('.');
 DCL QUOTE=39;                   * ASCII single qoute mark
 MSG BLANKS='          ';
 MSG SCRATCH='          ';
+MSG COLLISIONS='Collisions: ';
 
 LABEL INIT;
   CALL INITSYM;
@@ -35,6 +38,7 @@ PROC INITSYM;
     IF BUFF(1) NE STAR;         * skip comment line
       THEN 
       I=1;
+
       KIND=LEX(I,LEXEME);       * get a symbol
       IF LEXEME(1) EQ QUOTE; THEN 
           WORDS=LEXEME(2);      * use ASCII code for single character
@@ -43,13 +47,25 @@ PROC INITSYM;
           WORDS=A2B40(LEXEME);  * convert to B40
           TAGS=0;               * bit for normal base 40 coding
         ENDIF
+
       KIND=LEX(I,LEXEME);       * get the TTYPE code
       J=1;
       TTYPE=IREAD(J,LEXEME);    * convert to binary
-      TAG=((TAGS SHL 4) OR TTYPE) SHL 8; * set TTYPE and TAGS bits
+
       KIND=LEX(I,LEXEME);       * get VAL for this keyword
       J=1;
       VAL=IREAD(J,LEXEME);      * convert to binary
+
+      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
+      J=1;
+      KIND=IREAD(J,LEXEME); 
+      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
+
+      KIND=LEX(I,LEXEME);       * get the ATTR bits
+      J=1;
+      ATTR=IREAD(J,LEXEME);
+      VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB
+
       INDEX=LOOKS(WORDS,VAL,TAG);
       COUNT=COUNT+1;
       LIST(COUNT)=INDEX;        * save INDEX of this keyword
@@ -86,6 +102,12 @@ PROC DMPLIST;
     CALL WRITE(OUTCH,BUFF);
     I=I+1;
     ENDDO
+
+    CALL IFORM(COLLS,SCRATCH);
+    BUFF=0;
+    CALL CAT2(BUFF,COLLISIONS);
+    CALL CAT2(BUFF,SCRATCH);
+    CALL WRITE(OUTCH,BUFF);
   RETURN
   ENDPROC
 END

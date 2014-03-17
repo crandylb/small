@@ -1,4 +1,5 @@
 * SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
+* 03/14/2014 CRB Add COLLS collision counter
 
 BEGIN SYMACC;
 * Symbols are stored in an array called TABLE that is indexed by a hash
@@ -9,6 +10,7 @@ BEGIN SYMACC;
 
   ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures
   ENTRY A2B40,B402A;            * ASCII, B40 conversion
+  ENTRY COLLS;                  * Collision counter
 
   SET TABSIZ=8191;              * prime < 2^13
   DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -16,6 +18,7 @@ BEGIN SYMACC;
   DCL I,J,CHAR,LEN,B,CODE;      * local variables
   DCL MASKE=-2;                 * mask for even number
   DCL MASKV=65535;              * mask for low 16 bits
+  DCL COLFLG,COLLS=0;           * collision counter on instertion only
 
 * Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 * Only upper case letters and decimal digits are allowed
@@ -74,21 +77,26 @@ PROC B402A(B40,NAME);           * convert base 40 to ASCII string
 *****************************************
 PROC LOOKS(WORDS,VAL,TAG);      * look up or insert symbol
   MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
+  COLFLG=0;                     * reset collision flag
   I=WORDS MOD TABSIZ;
   I=I AND MASKE;                * use only even index
   J=I;                          * save starting position
   REPEAT 
     IF TABLE(I) EQ 0;           * found empty slot
-      THEN TABLE(I)=WORDS;
+      THEN TABLE(I)=WORDS;      * insert symbol
         TABLE(I+1)=(TAG SHL 16) OR VAL;
+        IF COLFLG; THEN         * if collision flag on then
+          COLLS=COLLS+1;        * count collisions on insertion
+          ENDIF
         RETURN I;
       ELSE IF TABLE(I) EQ WORDS; * found match
-      THEN B=TABLE(I+1);
+      THEN B=TABLE(I+1);        * retrieve VAL and TAG
         VAL=B AND MASKV;
         TAG=(B SHR 16) AND MASKV;
         RETURN I;
       ENDIF ENDIF
     I=I+2;                      * try next slot
+    COLFLG=1;                   * set collision flag
     IF I GT TABSIZ;
       THEN I=I-TABSIZ;
       ENDIF
