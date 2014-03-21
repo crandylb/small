@@ -1,5 +1,6 @@
 * SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
 * 03/14/2014 CRB Add COLLS collision counter
+* 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
 
 BEGIN SYMACC;
 * Symbols are stored in an array called TABLE that is indexed by a hash
@@ -11,6 +12,7 @@ BEGIN SYMACC;
   ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures
   ENTRY A2B40,B402A;            * ASCII, B40 conversion
   ENTRY COLLS;                  * Collision counter
+  ENTRY MASKV;
 
   SET TABSIZ=8191;              * prime < 2^13
   DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -18,7 +20,7 @@ BEGIN SYMACC;
   DCL I,J,CHAR,LEN,B,CODE;      * local variables
   DCL MASKE=-2;                 * mask for even number
   DCL MASKV=65535;              * mask for low 16 bits
-  DCL COLFLG,COLLS=0;           * collision counter on instertion only
+  DCL COLFLG,COLLS=0;           * collision counter on insertion only
 
 * Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 * Only upper case letters and decimal digits are allowed
@@ -76,7 +78,7 @@ PROC B402A(B40,NAME);           * convert base 40 to ASCII string
 * Return value is index of entry in TABLE
 *****************************************
 PROC LOOKS(WORDS,VAL,TAG);      * look up or insert symbol
-  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
+*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
   COLFLG=0;                     * reset collision flag
   I=WORDS MOD TABSIZ;
   I=I AND MASKE;                * use only even index
@@ -117,15 +119,15 @@ PROC GETS(INDEX,VAL,TAG);       * get VAL and TAG for INDEX
 * Put new VAL and TAG for this INDEX in TABLE
 * No return value
 *****************
-PROC PUTS(PINDEX,VAL,TAG);      * put VAL and TAG at INDEX
-  TABLE(PINDEX+1)=(TAG SHL 16) OR VAL;
+PROC PUTS(INDEX,VAL,TAG);       * put VAL and TAG at INDEX
+  TABLE(INDEX+1)=(TAG SHL 16) OR VAL;
   RETURN
   ENDPROC
 
 * Get packed symbol (WDS) for this index in TABLE
 * No return value
 *****************
-PROC GETWRD(INDEX,WDS);        * get base 40 code at INDEX
+PROC GETWRD(INDEX,WDS);         * get base 40 code at INDEX
   WDS=TABLE(INDEX);
   RETURN
   ENDPROC

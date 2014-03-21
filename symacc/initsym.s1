@@ -1,5 +1,6 @@
 * initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
 * 03/14/2014 CRB Add COLLS collision counter and token KIND
+* 03/18/2014 CRB Randomize single char ops, add INDEX output
 
 BEGIN INITSYM;
 ENT INITSYM;
@@ -12,7 +13,7 @@ EXT PROC LEX;
 EXT PROC A2B40,B402A;
 EXT PROC LOOKS,GETS,GETWRD;
 EXT PROC IREAD,IFORM,CAT2;
-EXT COLLS;
+EXT COLLS,MASKV;
 
 DCL I,J,EOF=0,STATUS;
 DCL BUFF(127);
@@ -26,6 +27,7 @@ DCL QUOTE=39;                   * ASCII single qoute mark
 MSG BLANKS='          ';
 MSG SCRATCH='          ';
 MSG COLLISIONS='Collisions: ';
+SET PRIM18=61;                  * prime # 18
 
 LABEL INIT;
   CALL INITSYM;
@@ -33,6 +35,7 @@ LABEL INIT;
 RETURN
 
 PROC INITSYM;
+  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
   STATUS=READ(SCRCH,BUFF);      * read first line from chan 2
   DO WHILE STATUS NE EOF;
     IF BUFF(1) NE STAR;         * skip comment line
@@ -41,7 +44,7 @@ PROC INITSYM;
 
       KIND=LEX(I,LEXEME);       * get a symbol
       IF LEXEME(1) EQ QUOTE; THEN 
-          WORDS=LEXEME(2);      * use ASCII code for single character
+          WORDS=LEXEME(2)*PRIM18; * use ASCII code for single character
           TAGS=1;               * bit for single ASCII character
         ELSE 
           WORDS=A2B40(LEXEME);  * convert to B40
@@ -88,18 +91,20 @@ PROC DMPLIST;
     CALL CAT2(BUFF,BLANKS);     * clear BUFF
     BUFF=0;
     IF TAGS AND 1; THEN 
-        BUFF(1)=WORDS;          * if single character use ASCII
+        BUFF(1)=WORDS/PRIM18;   * if single character use ASCII
       ELSE 
         CALL B402A(WORDS,BUFF); * decode symbol into BUFF
       ENDIF
     BUFF=8;
     CALL IFORM(VAL,SCRATCH);    * insert VAL in BUFF
     CALL CAT2(BUFF,SCRATCH);
-    SCRATCH=0;
-    CALL CAT2(SCRATCH,BLANKS);
     CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF
     CALL CAT2(BUFF,SCRATCH);
+
+    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+    CALL CAT2(BUFF,SCRATCH);
     CALL WRITE(OUTCH,BUFF);
+
     I=I+1;
     ENDDO
 
