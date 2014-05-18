@@ -1,0 +1,40 @@
+* IREAD -- FUNCTION TO SCAN FOR AN INTEGER AND RETURN ITS VALUE
+* CRB OCT 31, 1981
+     BEGIN IREAD;  ENTRY IREAD;
+     DCL I;                   * LOCAL COPY OF IPTR
+     DCL L;                   * LENGTH OF LINE
+     DCL N;                   * VALUE OF NUMBER BEING CONVERTED
+     DCL PLUS=('+'),MINUS=('-'),SIGN;
+*---------------
+PROC IREAD(IPTR,LINE);
+     SIGN=0;                  * SET SIGN FOR POSITIVE NUMBER
+     N=0;
+     I=IPTR;                  * LOCAL COPY
+     L=LINE;                  * ASSUME LINE(0) CONTAINS LENGTH
+     DO WHILE LINE(I) EQ ' '; * TRIM LEADING BLANKS
+       IF I GE L; THEN IPTR=I; RETURN 0; ENDIF
+       I=I+1;
+       ENDDO
+     IF LINE(I) EQ PLUS; THEN GO TO IR1  ENDIF
+     IF LINE(I) EQ MINUS; THEN 
+       SIGN=-1;               * SET SIGN FOR NEGATIVE NUMBER
+LABEL IR1;
+       I=I+1;
+       DO WHILE LINE(I) EQ ' '; * ALLOW BLANKS AFTER + OR -
+         IF I GE L; THEN RETURN 0; ENDIF
+         I=I+1;
+         ENDDO
+       ENDIF
+     IF LINE(I) LT '0'; THEN RETURN 0; ENDIF
+     IF LINE(I) GT '9'; THEN RETURN 0; ENDIF
+     DO WHILE I LE L;
+       IF LINE(I) LT '0'; THEN EXIT ENDIF
+       IF LINE(I) GT '9'; THEN EXIT ENDIF
+       N=10*N-'0'+LINE(I);
+       I=I+1;
+       ENDDO
+     IF SIGN; THEN N=-N; ENDIF
+     IPTR=I;                  * MOVE INPUT POINTER TO TERMINATING CHAR
+     RETURN N;                * RETURN ACCUMULATED NUMBER AS VALUE
+   ENDPROC
+ END

@@ -1,0 +1,41 @@
+1       * IREAD -- FUNCTION TO SCAN FOR AN INTEGER AND RETURN ITS VALUE         
+2       * CRB OCT 31, 1981                                                      
+3            BEGIN IREAD;  ENTRY IREAD;                                         
+4            DCL I;                   * LOCAL COPY OF IPTR                      
+5            DCL L;                   * LENGTH OF LINE                          
+6            DCL N;                   * VALUE OF NUMBER BEING CONVERTED         
+7            DCL PLUS=('+'),MINUS=('-'),SIGN;                                   
+8       *---------------                                                        
+9       PROC IREAD(IPTR,LINE);                                                  
+10   1       SIGN=0;                  * SET SIGN FOR POSITIVE NUMBER            
+11   1       N=0;                                                               
+12   1       I=IPTR;                  * LOCAL COPY                              
+13   1       L=LINE;                  * ASSUME LINE(0) CONTAINS LENGTH          
+14   1       DO WHILE LINE(I) EQ ' '; * TRIM LEADING BLANKS                     
+15   2         IF I GE L; THEN IPTR=I; RETURN 0; ENDIF                          
+16   2         I=I+1;                                                           
+17   2         ENDDO                                                            
+18   1       IF LINE(I) EQ PLUS; THEN GO TO IR1  ENDIF                          
+19   1       IF LINE(I) EQ MINUS; THEN                                          
+20   2         SIGN=-1;               * SET SIGN FOR NEGATIVE NUMBER            
+21   2  LABEL IR1;                                                              
+22   2         I=I+1;                                                           
+23   2         DO WHILE LINE(I) EQ ' '; * ALLOW BLANKS AFTER + OR -             
+24   3           IF I GE L; THEN RETURN 0; ENDIF                                
+25   3           I=I+1;                                                         
+26   3           ENDDO                                                          
+27   2         ENDIF                                                            
+28   1       IF LINE(I) LT '0'; THEN RETURN 0; ENDIF                            
+29   1       IF LINE(I) GT '9'; THEN RETURN 0; ENDIF                            
+30   1       DO WHILE I LE L;                                                   
+31   2         IF LINE(I) LT '0'; THEN EXIT ENDIF                               
+32   2         IF LINE(I) GT '9'; THEN EXIT ENDIF                               
+33   2         N=10*N-'0'+LINE(I);                                              
+34   2         I=I+1;                                                           
+35   2         ENDDO                                                            
+36   1       IF SIGN; THEN N=-N; ENDIF                                          
+37   1       IPTR=I;                  * MOVE INPUT POINTER TO TERMINATING CHAR  
+38   1       RETURN N;                * RETURN ACCUMULATED NUMBER AS VALUE      
+39   1     ENDPROC                                                              
+40   0   END                                                                    
+ NO ERRORS DETECTED

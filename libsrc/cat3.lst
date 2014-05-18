@@ -1,0 +1,113 @@
+     1                                 %line 1+1 cat3.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 [global progr]
+     6                                 [extern exit]
+     7                                 
+     8                                 [global CAT3]
+     9                                 
+    10                                 
+    11                                 [section .data]
+    12                                 I:
+    13 00000000 00000000                times 1 dd 0
+    14                                 J:
+    15 00000004 00000000                times 1 dd 0
+    16                                 LEN:
+    17 00000008 00000000                times 1 dd 0
+    18                                 
+    19                                 
+    20                                 
+    21                                 [section .text]
+    22                                 
+    23                                 CAT3:
+    24 00000000 55                      push EBP
+    25 00000001 89E5                    mov EBP,ESP
+    26                                 
+    27                                 
+    28                                 
+    29                                 
+    30                                 
+    31                                 
+    32                                 
+    33                                 
+    34 00000003 8B5D0C                  mov EBX,[EBP+12]
+    35 00000006 8B03                    mov EAX,[EBX]
+    36 00000008 C1F808                  sar EAX,8
+    37 0000000B A3[00000000]            mov [LEN],EAX
+    38                                 
+    39                                 
+    40                                 
+    41 00000010 8B5D0C                  mov EBX,[EBP+12]
+    42 00000013 8B03                    mov EAX,[EBX]
+    43 00000015 25FF000000              and EAX,255
+    44 0000001A A3[00000000]            mov [I],EAX
+    45                                 
+    46                                 
+    47                                 
+    48 0000001F 8B5D10                  mov EBX,[EBP+16]
+    49 00000022 8B03                    mov EAX,[EBX]
+    50 00000024 A3[00000000]            mov [J],EAX
+    51                                 
+    52                                 
+    53                                 
+    54 00000029 8B5D10                  mov EBX,[EBP+16]
+    55 0000002C 8B03                    mov EAX,[EBX]
+    56 0000002E 0305[00000000]          add EAX,[LEN]
+    57                                 
+    58 00000034 8B5D10                  mov EBX,[EBP+16]
+    59 00000037 8903                    mov [EBX],EAX
+    60                                 
+    61                                 LJ1:
+    62                                 
+    63 00000039 A1[00000000]            mov EAX,[LEN]
+    64 0000003E 09C0                    or EAX,EAX
+    65 00000040 744B                    jz LJ2
+    66                                 
+    67                                 
+    68 00000042 A1[00000000]            mov EAX,[J]
+    69 00000047 C1E002                  sal EAX,2
+    70                                 
+    71 0000004A 8B5D10                  mov EBX,[EBP+16]
+    72 0000004D 01D8                    add EAX,EBX
+    73 0000004F A3[00000000]            mov [T1Z1],EAX
+    74 00000054 A1[00000000]            mov EAX,[I]
+    75 00000059 C1E002                  sal EAX,2
+    76                                 
+    77 0000005C 8B5D08                  mov EBX,[EBP+8]
+    78 0000005F 01D8                    add EAX,EBX
+    79 00000061 8B00                    mov EAX,[EAX]
+    80 00000063 89C2                    mov EDX,EAX
+    81 00000065 A1[00000000]            mov EAX,[T1Z1]
+    82 0000006A 8910                    mov [EAX],EDX
+    83                                 
+    84                                 
+    85 0000006C A1[00000000]            mov EAX,[I]
+    86 00000071 40                      inc EAX
+    87 00000072 A3[00000000]            mov [I],EAX
+    88                                 
+    89                                 
+    90 00000077 A1[00000000]            mov EAX,[J]
+    91 0000007C 40                      inc EAX
+    92 0000007D A3[00000000]            mov [J],EAX
+    93                                 
+    94                                 
+    95 00000082 A1[00000000]            mov EAX,[LEN]
+    96 00000087 48                      dec EAX
+    97 00000088 A3[00000000]            mov [LEN],EAX
+    98                                 
+    99 0000008D EBA8                    jmp LJ1
+   100                                 LJ2:
+   101                                 
+   102                                 
+   103 0000008F 89EC                    mov ESP,EBP
+   104 00000091 5D                      pop EBP
+   105 00000092 C3                      ret
+   106                                 
+   107                                 [section .data]
+   108                                 T1Z1:
+   109 0000000C 00000000                times 1 dd 0
+   110                                 [section .text]
+   111                                 
+   112                                 
+   113                                  end
