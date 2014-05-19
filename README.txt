@@ -7,6 +7,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 03/02/2014 CRB Add symacc
 03/16/2014 CRB Update symacc, initsym, and initable.dat
 03/20/2014 CRB Minor updates to symacc and initsym
+05/18/2014 CRB Add cat3 and libsrc
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -29,6 +30,7 @@ Test Programs:   Directories containing test programs written in Small
   testcase       testing CASE statement
   scan           testing prescan with libs1 and lex
 lib              a library for Small programs
+libsrc		 source files for lib
 symacc           symbol table access module
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
@@ -109,6 +111,11 @@ modules. The makefile shows how the library is made using ar. The library is
 used by gcc with -L defining the path to the library, and -ls1 to link any
 needed modules. Note that only "s1" is given to the -l option, and "lib" and
 ".a" will be assumed automatically.
+
+libsrc
+This directory contains the source files written in Small for the s1 library
+in the lib subdirectory, except for grandios and smallio which contain source
+files written in C in their own subdirectories.
 
 symacc
 This directory contains an implementation of the symbol table access module,
