@@ -8,6 +8,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 03/16/2014 CRB Update symacc, initsym, and initable.dat
 03/20/2014 CRB Minor updates to symacc and initsym
 05/18/2014 CRB Add cat3 and libsrc
+05/23/2014 CRB Update mill2yasm, testlex, and symacc
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -59,6 +60,9 @@ This set of macros translates Mill to yasm, an x86 assembler used here to
 create a 32-bit implementation of Small for x86, i.e. Intel and AMD processors
 using the 32-bit 386/486 and beyond instruction sets. For more details see the
 implementation notes.
+Update 05/23/2014 Added ". ARGT D" macro to transfer a formal parameter used
+as an actual parameter in anothed procedure call. This still needs work to be
+able to handle more that one such eaxample in a single call.
 
 smallio.c
 This C program interfaces I/O in Small to the conventions used in the grandios
@@ -92,6 +96,11 @@ two-dimensional array. Since Small only supports one-dimensional arrays the 2D
 array is represented by concatenated 1D arrays. Each call to LEX returns a
 KIND code, 1 for a name (identifier), 2 for an integer, 3 for a quoted string
 of characters, and 4 for any other individual special character.
+
+Update 05/23/2014 Modified to work with symacc as a compiler/interpreter
+module. Alphanumeric tokens are looked up using symacc and properties are
+returned in the LEXEME array. Numeric tokens are evaluated as scanned and
+value returned in LEXEME(1).
 
 testcase
 This directory tests the CASE statement. The case label list is zero indexed
@@ -144,6 +153,12 @@ attribute bits for operators. This is intended to aid parsing of tokens. Some
 of this may be overkill and more documentation is needed to clarify details.
 Update (03/20/2014) minor updates to symacc and initsym. Moved initialization
 of MASKV from symacc.s1 to initsym.s1, other typo corrections.
+
+Update 05/23/2014 Modified to work with lex as a compiler/interpreter
+module. Input tokens are scanned using lex and properties are eturned in a
+LEXEME array for parsing and any other further evaluation. This module also
+includes an initialization phase to predefine keywords and alphabetic
+operators. 
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including

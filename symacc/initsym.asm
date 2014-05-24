@@ -1,5 +1,8 @@
 ;* initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
 ;* 03/14/2014 CRB Add COLLS collision counter and token KIND
+;* 03/18/2014 CRB Randomize single char ops, add INDEX output
+;* 04/03/2014 CRB Use integer value from LEX in LEXEME(1)
+;* 05/10/2014 CRB Ude INDEX from LEXEME(1) to set VAL and TAG with PUTS
 ;
 ;BEGIN INITSYM;
  global progr
@@ -26,16 +29,20 @@ progr:
 ;EXT PROC A2B40,B402A;
  extern A2B40
  extern  B402A
-;EXT PROC LOOKS,GETS,GETWRD;
+;EXT PROC A2B40L;
+ extern A2B40L
+;EXT PROC LOOKS,GETS,PUTS,GETWRD;
  extern LOOKS
  extern  GETS
+ extern  PUTS
  extern  GETWRD
 ;EXT PROC IREAD,IFORM,CAT2;
  extern IREAD
  extern  IFORM
  extern  CAT2
-;EXT COLLS;
+;EXT COLLS,MASKV;
  extern  COLLS
+ extern  MASKV
 ;
 ;DCL I,J,EOF=0,STATUS;
  section .data
@@ -57,9 +64,9 @@ SCRCH:
  dd  2
 OUTCH:
  dd  3
-;DCL LEXEME(127);
+;DCL LEXEME(4);
 LEXEME:
- times 128 dd 0
+ times 5 dd 0
 ;DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
 INDEX:
  times 1 dd 0
@@ -132,6 +139,10 @@ COLLISIONS:
  dd  115
  dd  58
  dd  32
+;SET PRIM18=61;                  * prime 
+;DCL ANC;                        * anchor
+ANC:
+ times 1 dd 0
 ;
 ;LABEL INIT;
  section .text
@@ -155,6 +166,12 @@ INITSYM:
  mov  EBP,ESP
 ; NPARS  0
 ; PEND
+;  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
+;.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
+ mov EAX,32767
+ sal EAX,1
+ or EAX,1
+ mov [MASKV],EAX
 ;  STATUS=READ(SCRCH,BUFF);      * read first line from chan 2
 ;.GEN =STATUS,(SCRCH,BUFF),.UFREAD,.BNST,
 ; NARGS  2
@@ -191,41 +208,65 @@ LJ2:
  call LEX
  add  ESP,4*2
  mov [KIND],EAX
-;      IF LEXEME(1) EQ QUOTE; THEN 
-;.GEN =LEXEME,=1,=2,.BNSHL,.BC+,.UA,QUOTE,.BN-,
- mov EAX,1
+;      ANC=LEXEME AND 255;       * extract the anchor from LEXEME(0)
+;.GEN =ANC,LEXEME,=255,.BCAND,.BNST,
+ mov EAX,[LEXEME]
+ and EAX,255
+ mov [ANC],EAX
+;      IF BUFF(ANC) EQ QUOTE; THEN 
+;.GEN =BUFF,ANC,=2,.BNSHL,.BC+,.UA,QUOTE,.BN-,
+ mov EAX,[ANC]
  sal EAX,2
- add EAX,LEXEME
+ add EAX,BUFF
  mov EAX,[EAX]
  sub EAX,[QUOTE]
  jne LJ6
-;          WORDS=LEXEME(2);      * use ASCII code for single character
-;.GEN =WORDS,=LEXEME,=2,=2,.BNSHL,.BC+,.UA,.BNST,
- mov EAX,2
+;          WORDS=BUFF(ANC+1)*PRIM18; * use ASCII code
+;.GEN =WORDS,=BUFF,ANC,=1,.BC+,=2,.BNSHL,.BC+,.UA,PRIM18,.BC*,.BNST,
+ mov EAX,[ANC]
+ inc EAX
  sal EAX,2
- add EAX,LEXEME
+ add EAX,BUFF
  mov EAX,[EAX]
+ imul EAX,61
  mov [WORDS],EAX
 ;          TAGS=1;               * bit for single ASCII character
 ;.GEN =TAGS,=1,.BNST,
  mov EAX,1
  mov [TAGS],EAX
+;          INDEX=LOOKS(WORDS,VAL,TAG); * use this INDEX in PUTS below
+;.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
+; NARGS  3
+ push WORDS
+ push VAL
+ push TAG
+ call LOOKS
+ add  ESP,4*3
+ mov [INDEX],EAX
 ;        ELSE 
- jmp LJ7
+ jmp LJ8
 LJ6:
-;          WORDS=A2B40(LEXEME);  * convert to B40
-;.GEN =WORDS,(LEXEME),.UFA2B40,.BNST,
-; NARGS  1
+;          WORDS=A2B40L(LEXEME,BUFF);  * convert to B40
+;.GEN =WORDS,(LEXEME,BUFF),.UFA2B40L,.BNST,
+; NARGS  2
  push LEXEME
- call A2B40
- add  ESP,4*1
+ push BUFF
+ call A2B40L
+ add  ESP,4*2
  mov [WORDS],EAX
 ;          TAGS=0;               * bit for normal base 40 coding
 ;.GEN =TAGS,=0,.BNST,
  mov EAX,0
  mov [TAGS],EAX
+;          INDEX=LEXEME(1);      * save INDEX returned from LEX
+;.GEN =INDEX,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
+ mov EAX,1
+ sal EAX,2
+ add EAX,LEXEME
+ mov EAX,[EAX]
+ mov [INDEX],EAX
 ;        ENDIF
-LJ7:
+LJ8:
 ;
 ;      KIND=LEX(I,LEXEME);       * get the TTYPE code
 ;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
@@ -235,17 +276,12 @@ LJ7:
  call LEX
  add  ESP,4*2
  mov [KIND],EAX
-;      J=1;
-;.GEN =J,=1,.BNST,
+;      TTYPE=LEXEME(1);
+;.GEN =TTYPE,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
- mov [J],EAX
-;      TTYPE=IREAD(J,LEXEME);    * convert to binary
-;.GEN =TTYPE,(J,LEXEME),.UFIREAD,.BNST,
-; NARGS  2
- push J
- push LEXEME
- call IREAD
- add  ESP,4*2
+ sal EAX,2
+ add EAX,LEXEME
+ mov EAX,[EAX]
  mov [TTYPE],EAX
 ;
 ;      KIND=LEX(I,LEXEME);       * get VAL for this keyword
@@ -256,17 +292,12 @@ LJ7:
  call LEX
  add  ESP,4*2
  mov [KIND],EAX
-;      J=1;
-;.GEN =J,=1,.BNST,
+;      VAL=LEXEME(1);
+;.GEN =VAL,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
- mov [J],EAX
-;      VAL=IREAD(J,LEXEME);      * convert to binary
-;.GEN =VAL,(J,LEXEME),.UFIREAD,.BNST,
-; NARGS  2
- push J
- push LEXEME
- call IREAD
- add  ESP,4*2
+ sal EAX,2
+ add EAX,LEXEME
+ mov EAX,[EAX]
  mov [VAL],EAX
 ;
 ;      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
@@ -277,17 +308,12 @@ LJ7:
  call LEX
  add  ESP,4*2
  mov [KIND],EAX
-;      J=1;
-;.GEN =J,=1,.BNST,
+;      KIND=LEXEME(1);
+;.GEN =KIND,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
- mov [J],EAX
-;      KIND=IREAD(J,LEXEME); 
-;.GEN =KIND,(J,LEXEME),.UFIREAD,.BNST,
-; NARGS  2
- push J
- push LEXEME
- call IREAD
- add  ESP,4*2
+ sal EAX,2
+ add EAX,LEXEME
+ mov EAX,[EAX]
  mov [KIND],EAX
 ;      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
 ;.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,KIND,.BCOR,.BNST,
@@ -306,17 +332,12 @@ LJ7:
  call LEX
  add  ESP,4*2
  mov [KIND],EAX
-;      J=1;
-;.GEN =J,=1,.BNST,
+;      ATTR=LEXEME(1);
+;.GEN =ATTR,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
- mov [J],EAX
-;      ATTR=IREAD(J,LEXEME);
-;.GEN =ATTR,(J,LEXEME),.UFIREAD,.BNST,
-; NARGS  2
- push J
- push LEXEME
- call IREAD
- add  ESP,4*2
+ sal EAX,2
+ add EAX,LEXEME
+ mov EAX,[EAX]
  mov [ATTR],EAX
 ;      VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB
 ;.GEN =VAL,ATTR,=8,.BNSHL,VAL,.BCOR,.BNST,
@@ -325,15 +346,13 @@ LJ7:
  or EAX,[VAL]
  mov [VAL],EAX
 ;
-;      INDEX=LOOKS(WORDS,VAL,TAG);
-;.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
+;      CALL PUTS(INDEX,VAL,TAG); * set VAL and TAG for this symbol
 ; NARGS  3
- push WORDS
+ push INDEX
  push VAL
  push TAG
- call LOOKS
+ call PUTS
  add  ESP,4*3
- mov [INDEX],EAX
 ;      COUNT=COUNT+1;
 ;.GEN =COUNT,COUNT,=1,.BC+,.BNST,
  mov EAX,[COUNT]
@@ -385,11 +404,11 @@ DMPLIST:
  mov EAX,1
  mov [I],EAX
 ;  DO WHILE I LE COUNT;
-LJ19:
+LJ16:
 ;.GEN I,COUNT,.BN-,
  mov EAX,[I]
  sub EAX,[COUNT]
- jg LJ20
+ jg LJ17
 ;    INDEX=LIST(I);
 ;.GEN =INDEX,=LIST,I,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
@@ -444,20 +463,24 @@ LJ19:
  mov EAX,[TAGS]
  and EAX,1
  or EAX,EAX
- jz LJ24
-;        BUFF(1)=WORDS;          * if single character use ASCII
-;.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,.BNST,
+ jz LJ21
+;        BUFF(1)=WORDS/PRIM18;   * if single character use ASCII
+;.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,PRIM18,.BN/,.BNST,
  mov EAX,1
  sal EAX,2
  add EAX,BUFF
- mov [T3Z],EAX
+ mov [T3Z1],EAX
  mov EAX,[WORDS]
+; / 61 PRIM18
+ cdq
+ mov  ECX,61
+ idiv dword ECX
  mov EDX,EAX
- mov EAX,[T3Z]
+ mov EAX,[T3Z1]
  mov [EAX],EDX
 ;      ELSE 
- jmp LJ25
-LJ24:
+ jmp LJ22
+LJ21:
 ;        CALL B402A(WORDS,BUFF); * decode symbol into BUFF
 ; NARGS  2
  push WORDS
@@ -465,7 +488,7 @@ LJ24:
  call B402A
  add  ESP,4*2
 ;      ENDIF
-LJ25:
+LJ22:
 ;    BUFF=8;
 ;.GEN =BUFF,=8,.BNST,
  mov EAX,8
@@ -482,19 +505,22 @@ LJ25:
  push SCRATCH
  call CAT2
  add  ESP,4*2
-;    SCRATCH=0;
-;.GEN =SCRATCH,=0,.BNST,
- mov EAX,0
- mov [SCRATCH],EAX
-;    CALL CAT2(SCRATCH,BLANKS);
-; NARGS  2
- push SCRATCH
- push BLANKS
- call CAT2
- add  ESP,4*2
 ;    CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF
 ; NARGS  2
  push TAG
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
+;
+;    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+; NARGS  2
+ push INDEX
  push SCRATCH
  call IFORM
  add  ESP,4*2
@@ -510,14 +536,15 @@ LJ25:
  push BUFF
  call WRITE
  add  ESP,4*2
+;
 ;    I=I+1;
 ;.GEN =I,I,=1,.BC+,.BNST,
  mov EAX,[I]
  inc EAX
  mov [I],EAX
 ;    ENDDO
- jmp LJ19
-LJ20:
+ jmp LJ16
+LJ17:
 ;
 ;    CALL IFORM(COLLS,SCRATCH);
 ; NARGS  2
@@ -554,8 +581,8 @@ LJ20:
  ret
 ;  ENDPROC
  section .data
-T3Z:
- times 2 dd 0
+T3Z1:
+ times 1 dd 0
  section .text
 ;END
  end

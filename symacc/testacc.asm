@@ -1,4 +1,5 @@
 ;* TESTACC.S1 -- Test Symbol Table Access, CRB, Feb 14, 2014
+;* 04/28/2014 CRB Update, add GETS test
 ;
 ;ENT TESTACC;
  global  TESTACC
@@ -28,6 +29,8 @@ progr:
 ;EXT PROC LEX,CAT2;
  extern LEX
  extern  CAT2
+;EXT MASKV;
+ extern  MASKV
 ;
 ;MSG IFS='IF';
  section .data
@@ -169,6 +172,12 @@ TESTACC:
  push GREET
  call WRITE
  add  ESP,4*2
+;  MASKV=32767 SHL 1 OR 1;       * initialization needed
+;.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
+ mov EAX,32767
+ sal EAX,1
+ or EAX,1
+ mov [MASKV],EAX
 ;  TESTIT=7;
 ;.GEN =TESTIT,=7,.BNST,
  mov EAX,7
@@ -247,6 +256,37 @@ TESTACC:
  push WORDS
  push SCRATCH
  call B402A
+ add  ESP,4*2
+;  CALL WRITE(OUTCH,SCRATCH);
+; NARGS  2
+ push OUTCH
+ push SCRATCH
+ call WRITE
+ add  ESP,4*2
+;  CALL GETS(INDEX,VAL,TAG);
+; NARGS  3
+ push INDEX
+ push VAL
+ push TAG
+ call GETS
+ add  ESP,4*3
+;  CALL IFORM(VAL,SCRATCH);
+; NARGS  2
+ push VAL
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;  CALL WRITE(OUTCH,SCRATCH);
+; NARGS  2
+ push OUTCH
+ push SCRATCH
+ call WRITE
+ add  ESP,4*2
+;  CALL IFORM(TAG,SCRATCH);
+; NARGS  2
+ push TAG
+ push SCRATCH
+ call IFORM
  add  ESP,4*2
 ;  CALL WRITE(OUTCH,SCRATCH);
 ; NARGS  2

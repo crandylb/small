@@ -1,5 +1,8 @@
 ** SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
 ** 03/14/2014 CRB Add COLLS collision counter
+** 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
+** 03/29/2014 CRB Add A2B40L for use with LEX
+** 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
 *
 *BEGIN SYMACC;
  BEGIN
@@ -14,11 +17,14 @@
  ENT  GETS
  ENT  PUTS
  ENT  GETWRD
-*  ENTRY A2B40,B402A;            * ASCII, B40 conversion
+*  ENTRY A2B40,A2B40L,B402A;     * ASCII, B40 conversion
  ENT  A2B40
+ ENT  A2B40L
  ENT  B402A
 *  ENTRY COLLS;                  * Collision counter
  ENT  COLLS
+*  ENTRY MASKV;
+ ENT  MASKV
 *
 *  SET TABSIZ=8191;              * prime < 2^13
 *  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -51,12 +57,16 @@
  SECT DATA
  LABEL MASKV
  CONST  -1
-*  DCL COLFLG,COLLS=0;           * collision counter on instertion only
+*  DCL COLFLG,COLLS=0;           * collision counter on insertion only
  SECT DATA
  LABEL COLFLG
  SPACE  1
  LABEL COLLS
  CONST  0
+*  DCL ANC;                      * anchor
+ SECT DATA
+ LABEL ANC
+ SPACE  1
 *
 ** Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 ** Only upper case letters and decimal digits are allowed
@@ -162,6 +172,119 @@
  RETN  A2B40,1
 *  ENDPROC
 *
+** Use this version to grab a token from a substring
+** SUBSTR contains length SHL 8 and anchor starting index
+*******************************
+*PROC A2B40L(SUBSTR,STR);        * convert ASCII string to base 40
+ SECT CODE
+ SUBR P A2B40L
+ NPARS  2
+ PAR  SUBSTR
+ PAR  STR
+ PEND
+*  ANC=SUBSTR AND 255;           * get anchor starting index
+*.GEN =ANC,SUBSTR,=255,.BCAND,.BNST,
+ L D SUBSTR
+ AND  =255
+ ST  ANC
+*  LEN=SUBSTR SHR 8 AND 255;     * get length of string
+*.GEN =LEN,SUBSTR,=8,.BNSHR,=255,.BCAND,.BNST,
+ L D SUBSTR
+ SHR  =8
+ AND  =255
+ ST  LEN
+*  IF LEN GT 6; THEN 
+*.GEN LEN,=6,.BN-,
+ L  LEN
+ -  =6
+ JLE  LJ9
+*    LEN=6;                      * truncate length to 6
+*.GEN =LEN,=6,.BNST,
+ L  =6
+ ST  LEN
+*    ENDIF
+ LABEL LJ9
+*  I=ANC+LEN-1;                    * start at end of token string
+*.GEN =I,ANC,LEN,.BC+,=1,.BN-,.BNST,
+ L  ANC
+ +  LEN
+ -  =1
+ ST  I
+*  CODE=0;                       * init B40 code
+*.GEN =CODE,=0,.BNST,
+ L  =0
+ ST  CODE
+*  DO WHILE I GE ANC;
+ LABEL LJ10
+*.GEN I,ANC,.BN-,
+ L  I
+ -  ANC
+ JLT  LJ11
+*    CHAR=STR(I);                * read charaters in reverse order
+*.GEN =CHAR,=STR,I,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  I
+ SHL  =2
+ + D =STR
+ L  *.AC
+ ST  CHAR
+*    IF CHAR LE 57; THEN 
+*.GEN CHAR,=57,.BN-,
+ L  CHAR
+ -  =57
+ JGT  LJ12
+*      B=CHAR-21;                * digits 0..9 -> 27..36
+*.GEN =B,CHAR,=21,.BN-,.BNST,
+ L  CHAR
+ -  =21
+ ST  B
+*    ELSE IF CHAR LE 90; THEN 
+ J  LJ13
+ LABEL LJ12
+*.GEN CHAR,=90,.BN-,
+ L  CHAR
+ -  =90
+ JGT  LJ14
+*      B=CHAR-64;                * upper case A..Z -> 1..26
+*.GEN =B,CHAR,=64,.BN-,.BNST,
+ L  CHAR
+ -  =64
+ ST  B
+*    ELSE IF CHAR LE 122; THEN 
+ J  LJ15
+ LABEL LJ14
+*.GEN CHAR,=122,.BN-,
+ L  CHAR
+ -  =122
+ JGT  LJ16
+*      B=CHAR-96;                * lower case a..z -> 1..26
+*.GEN =B,CHAR,=96,.BN-,.BNST,
+ L  CHAR
+ -  =96
+ ST  B
+*      ENDIF ENDIF ENDIF
+ LABEL LJ16
+ LABEL LJ15
+ LABEL LJ13
+*    CODE=40*CODE+B;             * calculate base 40 code
+*.GEN =CODE,=40,CODE,.BC*,B,.BC+,.BNST,
+ L  =40
+ *  CODE
+ +  B
+ ST  CODE
+*    I=I-1;                      * decrement I for next character
+*.GEN =I,I,=1,.BN-,.BNST,
+ L  I
+ -  =1
+ ST  I
+*    ENDDO
+ J  LJ10
+ LABEL LJ11
+*  RETURN CODE;                  * return accumulated base 40 code
+*.GEN CODE,
+ L  CODE
+ RETN  A2B40L,2
+*  ENDPROC
+*
 ** Convert base 40 code to ASCII in NAME
 ** No return value
 ******************
@@ -181,11 +304,11 @@
  L  =0
  ST  I
 *  DO WHILE I LT 6;
- LABEL LJ9
+ LABEL LJ17
 *.GEN I,=6,.BN-,
  L  I
  -  =6
- JGE  LJ10
+ JGE  LJ18
 *    I=I+1;
 *.GEN =I,I,=1,.BC+,.BNST,
  L  I
@@ -206,40 +329,40 @@
  L  CHAR
  -  =0
 *      THEN EXIT
- JNE  LJ11
- J  LJ10
+ JNE  LJ19
+ J  LJ18
 *      ENDIF
- LABEL LJ11
+ LABEL LJ19
 *    IF CHAR LE 26;
 *.GEN CHAR,=26,.BN-,
  L  CHAR
  -  =26
 *      THEN CHAR=CHAR+64;        * upper case letter
- JGT  LJ12
+ JGT  LJ20
 *.GEN =CHAR,CHAR,=64,.BC+,.BNST,
  L  CHAR
  +  =64
  ST  CHAR
 *      ELSE CHAR=CHAR+21;        * decimal digit
- J  LJ13
- LABEL LJ12
+ J  LJ21
+ LABEL LJ20
 *.GEN =CHAR,CHAR,=21,.BC+,.BNST,
  L  CHAR
  +  =21
  ST  CHAR
 *      ENDIF
- LABEL LJ13
+ LABEL LJ21
 *     NAME(I)=CHAR;              * put character in name string
 *.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
  L  I
  SHL  =2
  + D =NAME
- ST  T3Z
+ ST  T5Z
  L  CHAR
- ST  *T3Z
+ ST  *T5Z
 *     ENDDO
- J  LJ9
- LABEL LJ10
+ J  LJ17
+ LABEL LJ18
 *  NAME=I;                       * set string length
 *.GEN =NAME,I,.BNST,
  L  I
@@ -248,7 +371,7 @@
  RETN  B402A,2
 *  ENDPROC
  SECT DATA
- LABEL T3Z
+ LABEL T5Z
  SPACE  2
  SECT CODE
 *
@@ -266,12 +389,7 @@
  PAR  VAL
  PAR  TAG
  PEND
-*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
-*.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
- L  =32767
- SHL  =1
- OR  =1
- ST  MASKV
+**  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
 *  COLFLG=0;                     * reset collision flag
 *.GEN =COLFLG,=0,.BNST,
  L  =0
@@ -291,7 +409,7 @@
  L  I
  ST  J
 *  REPEAT 
- LABEL LJ14
+ LABEL LJ22
 *    IF TABLE(I) EQ 0;           * found empty slot
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,=0,.BN-,
  L  I
@@ -300,44 +418,44 @@
  L  *.AC
  -  =0
 *      THEN TABLE(I)=WORDS;      * insert symbol
- JNE  LJ16
+ JNE  LJ24
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  L  I
  SHL  =2
  +  =TABLE
- ST  T5Z
+ ST  T7Z
  L D WORDS
- ST  *T5Z
+ ST  *T7Z
 *        TABLE(I+1)=(TAG SHL 16) OR VAL;
 *.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
  L  I
  +  =1
  SHL  =2
  +  =TABLE
- ST  T5Z1
+ ST  T7Z1
  L D TAG
  SHL  =16
  OR D VAL
- ST  *T5Z1
+ ST  *T7Z1
 *        IF COLFLG; THEN         * if collision flag on then
 *.GEN COLFLG,=0,.BN-,
  L  COLFLG
  -  =0
- JEQ  LJ17
+ JEQ  LJ25
 *          COLLS=COLLS+1;        * count collisions on insertion
 *.GEN =COLLS,COLLS,=1,.BC+,.BNST,
  L  COLLS
  +  =1
  ST  COLLS
 *          ENDIF
- LABEL LJ17
+ LABEL LJ25
 *        RETURN I;
 *.GEN I,
  L  I
  RETN  LOOKS,3
 *      ELSE IF TABLE(I) EQ WORDS; * found match
- J  LJ18
- LABEL LJ16
+ J  LJ26
+ LABEL LJ24
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  L  I
  SHL  =2
@@ -345,7 +463,7 @@
  L  *.AC
  - D WORDS
 *      THEN B=TABLE(I+1);        * retrieve VAL and TAG
- JNE  LJ19
+ JNE  LJ27
 *.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  L  I
  +  =1
@@ -369,8 +487,8 @@
  L  I
  RETN  LOOKS,3
 *      ENDIF ENDIF
- LABEL LJ19
- LABEL LJ18
+ LABEL LJ27
+ LABEL LJ26
 *    I=I+2;                      * try next slot
 *.GEN =I,I,=2,.BC+,.BNST,
  L  I
@@ -385,19 +503,19 @@
  L  I
  - 8191 TABSIZ
 *      THEN I=I-TABSIZ;
- JLE  LJ20
+ JLE  LJ28
 *.GEN =I,I,TABSIZ,.BN-,.BNST,
  L  I
  - 8191 TABSIZ
  ST  I
 *      ENDIF
- LABEL LJ20
+ LABEL LJ28
 *    UNTIL I EQ J;               * check for wrap to starting position
 *.GEN I,J,.BN-,
  L  I
  -  J
- JNE  LJ14
- LABEL LJ15
+ JNE  LJ22
+ LABEL LJ23
 *  RETURN -1;                    * table full
 *.GEN =1,.U-,
  L  =1
@@ -405,11 +523,11 @@
  RETN  LOOKS,3
 *  ENDPROC
  SECT DATA
- LABEL T5Z
+ LABEL T7Z
  SPACE  2
  SECT CODE
  SECT DATA
- LABEL T5Z1
+ LABEL T7Z1
  SPACE  1
  SECT CODE
 *
@@ -450,37 +568,37 @@
 ** Put new VAL and TAG for this INDEX in TABLE
 ** No return value
 ******************
-*PROC PUTS(PINDEX,VAL,TAG);      * put VAL and TAG at INDEX
+*PROC PUTS(INDEX,VAL,TAG);       * put VAL and TAG at INDEX
  SECT CODE
  SUBR P PUTS
  NPARS  3
- PAR  PINDEX
+ PAR  INDEX
  PAR  VAL
  PAR  TAG
  PEND
-*  TABLE(PINDEX+1)=(TAG SHL 16) OR VAL;
-*.GEN =TABLE,PINDEX,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
- L D PINDEX
+*  TABLE(INDEX+1)=(TAG SHL 16) OR VAL;
+*.GEN =TABLE,INDEX,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
+ L D INDEX
  +  =1
  SHL  =2
  +  =TABLE
- ST  T9Z1
+ ST  T11Z1
  L D TAG
  SHL  =16
  OR D VAL
- ST  *T9Z1
+ ST  *T11Z1
 *  RETURN
  RETN  PUTS,3
 *  ENDPROC
  SECT DATA
- LABEL T9Z1
+ LABEL T11Z1
  SPACE  1
  SECT CODE
 *
 ** Get packed symbol (WDS) for this index in TABLE
 ** No return value
 ******************
-*PROC GETWRD(INDEX,WDS);        * get base 40 code at INDEX
+*PROC GETWRD(INDEX,WDS);         * get base 40 code at INDEX
  SECT CODE
  SUBR P GETWRD
  NPARS  2

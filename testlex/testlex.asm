@@ -1,4 +1,6 @@
 ;* testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014
+;* CRB 03/27/2014 Changed for revised lex
+;* CRB 04/15/2014 Revise for changed LEX and LEXEME
 ;
 ;  ENTRY TESTLEX;
  global  TESTLEX
@@ -21,6 +23,8 @@ progr:
 ;  EXTERNAL PROC LEX,CAT2;
  extern LEX
  extern  CAT2
+;  EXTERNAL PROC CAT3;
+ extern CAT3
 ;
 ;  DCL BUFF(128),SCRATCH(128);
  section .data
@@ -38,10 +42,10 @@ STATUS:
 ;  DCL EOF=0;
 EOF:
  dd  0
-;  DCL LEXEME(120);
+;  DCL LEXEME(4);
 LEXEME:
- times 121 dd 0
-;  MSG GREET='Begin Small LEX Test'
+ times 5 dd 0
+;  MSG GREET='Begin Small LEX Test';
 GREET:
  dd  20
  dd  66
@@ -64,13 +68,16 @@ GREET:
  dd  101
  dd  115
  dd  116
-;  DCL KIND,KINDN;
+;  DCL KIND,LENANC;
 KIND:
  times 1 dd 0
-KINDN:
+LENANC:
  times 1 dd 0
 ;  DCL ICHAR;
 ICHAR:
+ times 1 dd 0
+;  DCL MASKV;                    * mask for low 16 bits
+MASKV:
  times 1 dd 0
 ;
 ;LABEL TESTLEX;
@@ -82,6 +89,12 @@ TESTLEX:
  push GREET
  call WRITE
  add  ESP,4*2
+;  MASKV=32767 SHL 1 OR 1;
+;.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
+ mov EAX,32767
+ sal EAX,1
+ or EAX,1
+ mov [MASKV],EAX
 ;  REPEAT 
 LJ2:
 ;    STATUS=READ(INCH,BUFF);
@@ -106,7 +119,6 @@ LJ2:
 LJ6:
 ;.GEN ICHAR,BUFF,.BN-,
  mov EAX,[ICHAR]
-; -  BUFF
  sub EAX,[BUFF]
  jg LJ7
 ;      KIND=LEX(ICHAR,LEXEME);
@@ -148,30 +160,45 @@ LJ6:
  mov EDX,EAX
  mov EAX,[TZ]
  mov [EAX],EDX
-;      SCRATCH=2;                  * number of characters
-;.GEN =SCRATCH,=2,.BNST,
- mov EAX,2
+;      SCRATCH=3;                  * number of characters
+;.GEN =SCRATCH,=3,.BNST,
+ mov EAX,3
  mov [SCRATCH],EAX
-;      CALL CAT2(SCRATCH,LEXEME);  * concatenate
-; NARGS  2
+;      LENANC=LEXEME AND MASKV;
+;.GEN =LENANC,LEXEME,MASKV,.BCAND,.BNST,
+ mov EAX,[LEXEME]
+ and EAX,[MASKV]
+ mov [LENANC],EAX
+;      CALL CAT3(SCRATCH,LENANC,BUFF);  * concatenate
+; NARGS  3
  push SCRATCH
- push LEXEME
- call CAT2
- add  ESP,4*2
+ push LENANC
+ push BUFF
+ call CAT3
+ add  ESP,4*3
+;      SCRATCH(SCRATCH)=-1;        * insert EOL
+;.GEN =SCRATCH,SCRATCH,=2,.BNSHL,.BC+,=1,.U-,.BNST,
+ mov EAX,[SCRATCH]
+ sal EAX,2
+ add EAX,SCRATCH
+ mov [TZ1],EAX
+ mov EAX,1
+ neg EAX
+ mov EDX,EAX
+ mov EAX,[TZ1]
+ mov [EAX],EDX
 ;      CALL WRITE(OUTCH,SCRATCH);
 ; NARGS  2
  push OUTCH
  push SCRATCH
  call WRITE
  add  ESP,4*2
-;*      CALL WRITE(OUTCH,LEXEME);
 ;      ENDDO
  jmp LJ6
 LJ7:
 ;    UNTIL STATUS EQ EOF;
 ;.GEN STATUS,EOF,.BN-,
  mov EAX,[STATUS]
-; -  EOF
  sub EAX,[EOF]
  jne LJ2
 LJ3:

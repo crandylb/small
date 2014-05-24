@@ -3,591 +3,719 @@
      3                                 
      4                                 
      5                                 
-     6                                 [global progr]
-     7                                 [extern exit]
+     6                                 
+     7                                 
      8                                 
-     9                                 
-    10                                 
+     9                                 [global progr]
+    10                                 [extern exit]
     11                                 
     12                                 
     13                                 
     14                                 
-    15                                 [global LOOKS]
-    16                                 [global GETS]
-    17                                 [global PUTS]
-    18                                 [global GETWRD]
-    19                                 
-    20                                 [global A2B40]
-    21                                 [global B402A]
+    15                                 
+    16                                 
+    17                                 
+    18                                 [global LOOKS]
+    19                                 [global GETS]
+    20                                 [global PUTS]
+    21                                 [global GETWRD]
     22                                 
-    23                                 [global COLLS]
-    24                                 
-    25                                 
+    23                                 [global A2B40]
+    24                                 [global A2B40L]
+    25                                 [global B402A]
     26                                 
-    27                                 [section .data]
-    28                                 TABLE:
-    29 00000000 00000000<rept>          times 8192 dd 0
+    27                                 [global COLLS]
+    28                                 
+    29                                 [global MASKV]
     30                                 
-    31                                 STRING:
-    32 00008000 00000000<rept>          times 7 dd 0
-    33                                 
-    34                                 I:
-    35 0000801C 00000000                times 1 dd 0
-    36                                 J:
-    37 00008020 00000000                times 1 dd 0
-    38                                 CHAR:
-    39 00008024 00000000                times 1 dd 0
-    40                                 LEN:
-    41 00008028 00000000                times 1 dd 0
-    42                                 B:
-    43 0000802C 00000000                times 1 dd 0
-    44                                 CODE:
-    45 00008030 00000000                times 1 dd 0
-    46                                 
-    47                                 MASKE:
-    48 00008034 FEFFFFFF                dd -2
-    49                                 
-    50                                 MASKV:
-    51 00008038 FFFFFFFF                dd -1
+    31                                 
+    32                                 
+    33                                 [section .data]
+    34                                 TABLE:
+    35 00000000 00000000<rept>          times 8192 dd 0
+    36                                 
+    37                                 STRING:
+    38 00008000 00000000<rept>          times 7 dd 0
+    39                                 
+    40                                 I:
+    41 0000801C 00000000                times 1 dd 0
+    42                                 J:
+    43 00008020 00000000                times 1 dd 0
+    44                                 CHAR:
+    45 00008024 00000000                times 1 dd 0
+    46                                 LEN:
+    47 00008028 00000000                times 1 dd 0
+    48                                 B:
+    49 0000802C 00000000                times 1 dd 0
+    50                                 CODE:
+    51 00008030 00000000                times 1 dd 0
     52                                 
-    53                                 COLFLG:
-    54 0000803C 00000000                times 1 dd 0
-    55                                 COLLS:
-    56 00008040 00000000                dd 0
-    57                                 
+    53                                 MASKE:
+    54 00008034 FEFFFFFF                dd -2
+    55                                 
+    56                                 MASKV:
+    57 00008038 FFFFFFFF                dd -1
     58                                 
-    59                                 
-    60                                 
-    61                                 
-    62                                 
-    63                                 [section .text]
-    64                                 
-    65                                 A2B40:
-    66 00000000 55                      push EBP
-    67 00000001 89E5                    mov EBP,ESP
+    59                                 COLFLG:
+    60 0000803C 00000000                times 1 dd 0
+    61                                 COLLS:
+    62 00008040 00000000                dd 0
+    63                                 
+    64                                 ANC:
+    65 00008044 00000000                times 1 dd 0
+    66                                 
+    67                                 
     68                                 
     69                                 
     70                                 
     71                                 
-    72                                 
+    72                                 [section .text]
     73                                 
-    74 00000003 8B5D08                  mov EBX,[EBP+8]
-    75 00000006 8B03                    mov EAX,[EBX]
-    76 00000008 A3[00000000]            mov [LEN],EAX
+    74                                 A2B40:
+    75 00000000 55                      push EBP
+    76 00000001 89E5                    mov EBP,ESP
     77                                 
     78                                 
-    79 0000000D A1[00000000]            mov EAX,[LEN]
-    80 00000012 83E806                  sub EAX,6
-    81 00000015 7E08                    jle LJ1
+    79                                 
+    80                                 
+    81                                 
     82                                 
-    83                                 
-    84 00000017 B806000000              mov EAX,6
-    85 0000001C A3[00000000]            mov [LEN],EAX
+    83 00000003 8B5D08                  mov EBX,[EBP+8]
+    84 00000006 8B03                    mov EAX,[EBX]
+    85 00000008 A3[00000000]            mov [LEN],EAX
     86                                 
-    87                                 LJ1:
-    88                                 
-    89                                 
-    90 00000021 A1[00000000]            mov EAX,[LEN]
-    91 00000026 A3[00000000]            mov [I],EAX
+    87                                 
+    88 0000000D A1[00000000]            mov EAX,[LEN]
+    89 00000012 83E806                  sub EAX,6
+    90 00000015 7E08                    jle LJ1
+    91                                 
     92                                 
-    93                                 
-    94 0000002B B800000000              mov EAX,0
-    95 00000030 A3[00000000]            mov [CODE],EAX
-    96                                 
-    97                                 LJ2:
+    93 00000017 B806000000              mov EAX,6
+    94 0000001C A3[00000000]            mov [LEN],EAX
+    95                                 
+    96                                 LJ1:
+    97                                 
     98                                 
-    99 00000035 A1[00000000]            mov EAX,[I]
-   100 0000003A 09C0                    or EAX,EAX
-   101 0000003C 0F8E7D000000            jle LJ3
+    99 00000021 A1[00000000]            mov EAX,[LEN]
+   100 00000026 A3[00000000]            mov [I],EAX
+   101                                 
    102                                 
-   103                                 
-   104 00000042 A1[00000000]            mov EAX,[I]
-   105 00000047 C1E002                  sal EAX,2
-   106                                 
-   107 0000004A 8B5D08                  mov EBX,[EBP+8]
-   108 0000004D 01D8                    add EAX,EBX
-   109 0000004F 8B00                    mov EAX,[EAX]
-   110 00000051 A3[00000000]            mov [CHAR],EAX
+   103 0000002B B800000000              mov EAX,0
+   104 00000030 A3[00000000]            mov [CODE],EAX
+   105                                 
+   106                                 LJ2:
+   107                                 
+   108 00000035 A1[00000000]            mov EAX,[I]
+   109 0000003A 09C0                    or EAX,EAX
+   110 0000003C 0F8E7D000000            jle LJ3
    111                                 
    112                                 
-   113 00000056 A1[00000000]            mov EAX,[CHAR]
-   114 0000005B 83E839                  sub EAX,57
-   115 0000005E 7F0D                    jg LJ4
-   116                                 
-   117                                 
-   118 00000060 A1[00000000]            mov EAX,[CHAR]
-   119 00000065 83E815                  sub EAX,21
-   120 00000068 A3[00000000]            mov [B],EAX
+   113 00000042 A1[00000000]            mov EAX,[I]
+   114 00000047 C1E002                  sal EAX,2
+   115                                 
+   116 0000004A 8B5D08                  mov EBX,[EBP+8]
+   117 0000004D 01D8                    add EAX,EBX
+   118 0000004F 8B00                    mov EAX,[EAX]
+   119 00000051 A3[00000000]            mov [CHAR],EAX
+   120                                 
    121                                 
-   122 0000006D EB2E                    jmp LJ5
-   123                                 LJ4:
-   124                                 
-   125 0000006F A1[00000000]            mov EAX,[CHAR]
-   126 00000074 83E85A                  sub EAX,90
-   127 00000077 7F0D                    jg LJ6
-   128                                 
-   129                                 
-   130 00000079 A1[00000000]            mov EAX,[CHAR]
-   131 0000007E 83E840                  sub EAX,64
-   132 00000081 A3[00000000]            mov [B],EAX
+   122 00000056 A1[00000000]            mov EAX,[CHAR]
+   123 0000005B 83E839                  sub EAX,57
+   124 0000005E 7F0D                    jg LJ4
+   125                                 
+   126                                 
+   127 00000060 A1[00000000]            mov EAX,[CHAR]
+   128 00000065 83E815                  sub EAX,21
+   129 00000068 A3[00000000]            mov [B],EAX
+   130                                 
+   131 0000006D EB2E                    jmp LJ5
+   132                                 LJ4:
    133                                 
-   134 00000086 EB15                    jmp LJ7
-   135                                 LJ6:
-   136                                 
-   137 00000088 A1[00000000]            mov EAX,[CHAR]
-   138 0000008D 83E87A                  sub EAX,122
-   139 00000090 7F0B                    jg LJ8
-   140                                 
-   141                                 
-   142 00000092 A1[00000000]            mov EAX,[CHAR]
-   143 00000097 83E860                  sub EAX,96
-   144 0000009A A3[00000000]            mov [B],EAX
+   134 0000006F A1[00000000]            mov EAX,[CHAR]
+   135 00000074 83E85A                  sub EAX,90
+   136 00000077 7F0D                    jg LJ6
+   137                                 
+   138                                 
+   139 00000079 A1[00000000]            mov EAX,[CHAR]
+   140 0000007E 83E840                  sub EAX,64
+   141 00000081 A3[00000000]            mov [B],EAX
+   142                                 
+   143 00000086 EB15                    jmp LJ7
+   144                                 LJ6:
    145                                 
-   146                                 LJ8:
-   147                                 LJ7:
-   148                                 LJ5:
+   146 00000088 A1[00000000]            mov EAX,[CHAR]
+   147 0000008D 83E87A                  sub EAX,122
+   148 00000090 7F0B                    jg LJ8
    149                                 
    150                                 
-   151 0000009F B828000000              mov EAX,40
-   152 000000A4 F72D[00000000]          imul dword [CODE]
-   153 000000AA 0305[00000000]          add EAX,[B]
-   154 000000B0 A3[00000000]            mov [CODE],EAX
-   155                                 
-   156                                 
-   157 000000B5 A1[00000000]            mov EAX,[I]
-   158 000000BA 48                      dec EAX
-   159 000000BB A3[00000000]            mov [I],EAX
-   160                                 
-   161 000000C0 E96BFFFFFF              jmp LJ2
-   162                                 LJ3:
-   163                                 
+   151 00000092 A1[00000000]            mov EAX,[CHAR]
+   152 00000097 83E860                  sub EAX,96
+   153 0000009A A3[00000000]            mov [B],EAX
+   154                                 
+   155                                 LJ8:
+   156                                 LJ7:
+   157                                 LJ5:
+   158                                 
+   159                                 
+   160 0000009F B828000000              mov EAX,40
+   161 000000A4 F72D[00000000]          imul dword [CODE]
+   162 000000AA 0305[00000000]          add EAX,[B]
+   163 000000B0 A3[00000000]            mov [CODE],EAX
    164                                 
-   165 000000C5 A1[00000000]            mov EAX,[CODE]
-   166                                 
-   167 000000CA 89EC                    mov ESP,EBP
-   168 000000CC 5D                      pop EBP
-   169 000000CD C3                      ret
-   170                                 
-   171                                 
+   165                                 
+   166 000000B5 A1[00000000]            mov EAX,[I]
+   167 000000BA 48                      dec EAX
+   168 000000BB A3[00000000]            mov [I],EAX
+   169                                 
+   170 000000C0 E96BFFFFFF              jmp LJ2
+   171                                 LJ3:
    172                                 
    173                                 
-   174                                 
+   174 000000C5 A1[00000000]            mov EAX,[CODE]
    175                                 
-   176                                 
-   177                                 B402A:
-   178 000000CE 55                      push EBP
-   179 000000CF 89E5                    mov EBP,ESP
+   176 000000CA 89EC                    mov ESP,EBP
+   177 000000CC 5D                      pop EBP
+   178 000000CD C3                      ret
+   179                                 
    180                                 
    181                                 
    182                                 
    183                                 
    184                                 
    185                                 
-   186                                 
-   187 000000D1 8B5D0C                  mov EBX,[EBP+12]
-   188 000000D4 8B03                    mov EAX,[EBX]
-   189 000000D6 A3[00000000]            mov [B],EAX
+   186                                 A2B40L:
+   187 000000CE 55                      push EBP
+   188 000000CF 89E5                    mov EBP,ESP
+   189                                 
    190                                 
    191                                 
-   192 000000DB B800000000              mov EAX,0
-   193 000000E0 A3[00000000]            mov [I],EAX
+   192                                 
+   193                                 
    194                                 
-   195                                 LJ9:
-   196                                 
-   197 000000E5 A1[00000000]            mov EAX,[I]
-   198 000000EA 83E806                  sub EAX,6
-   199 000000ED 0F8D81000000            jge LJ10
+   195                                 
+   196 000000D1 8B5D0C                  mov EBX,[EBP+12]
+   197 000000D4 8B03                    mov EAX,[EBX]
+   198 000000D6 25FF000000              and EAX,255
+   199 000000DB A3[00000000]            mov [ANC],EAX
    200                                 
    201                                 
-   202 000000F3 A1[00000000]            mov EAX,[I]
-   203 000000F8 40                      inc EAX
-   204 000000F9 A3[00000000]            mov [I],EAX
-   205                                 
-   206                                 
-   207 000000FE A1[00000000]            mov EAX,[B]
-   208 00000103 99                      cdq
-   209 00000104 B928000000              mov ECX,40
-   210 00000109 F7F9                    idiv dword ECX
-   211 0000010B 89D0                    mov EAX,EDX
-   212 0000010D A3[00000000]            mov [CHAR],EAX
+   202                                 
+   203 000000E0 8B5D0C                  mov EBX,[EBP+12]
+   204 000000E3 8B03                    mov EAX,[EBX]
+   205 000000E5 C1F808                  sar EAX,8
+   206 000000E8 25FF000000              and EAX,255
+   207 000000ED A3[00000000]            mov [LEN],EAX
+   208                                 
+   209                                 
+   210 000000F2 A1[00000000]            mov EAX,[LEN]
+   211 000000F7 83E806                  sub EAX,6
+   212 000000FA 7E08                    jle LJ9
    213                                 
    214                                 
-   215 00000112 A1[00000000]            mov EAX,[B]
-   216 00000117 99                      cdq
-   217 00000118 B928000000              mov ECX,40
-   218 0000011D F7F9                    idiv dword ECX
-   219 0000011F A3[00000000]            mov [B],EAX
+   215 000000FC B806000000              mov EAX,6
+   216 00000101 A3[00000000]            mov [LEN],EAX
+   217                                 
+   218                                 LJ9:
+   219                                 
    220                                 
-   221                                 
-   222 00000124 A1[00000000]            mov EAX,[CHAR]
-   223 00000129 09C0                    or EAX,EAX
-   224                                 
-   225 0000012B 7500                    jne LJ11
-   226 0000012D EB49                    jmp LJ10
-   227                                 
-   228                                 LJ11:
+   221 00000106 A1[00000000]            mov EAX,[ANC]
+   222 0000010B 0305[00000000]          add EAX,[LEN]
+   223 00000111 48                      dec EAX
+   224 00000112 A3[00000000]            mov [I],EAX
+   225                                 
+   226                                 
+   227 00000117 B800000000              mov EAX,0
+   228 0000011C A3[00000000]            mov [CODE],EAX
    229                                 
-   230                                 
-   231 0000012F A1[00000000]            mov EAX,[CHAR]
-   232 00000134 83E81A                  sub EAX,26
-   233                                 
-   234 00000137 7F0D                    jg LJ12
+   230                                 LJ10:
+   231                                 
+   232 00000121 A1[00000000]            mov EAX,[I]
+   233 00000126 2B05[00000000]          sub EAX,[ANC]
+   234 0000012C 0F8C7D000000            jl LJ11
    235                                 
-   236 00000139 A1[00000000]            mov EAX,[CHAR]
-   237 0000013E 83C040                  add EAX,64
-   238 00000141 A3[00000000]            mov [CHAR],EAX
+   236                                 
+   237 00000132 A1[00000000]            mov EAX,[I]
+   238 00000137 C1E002                  sal EAX,2
    239                                 
-   240 00000146 EB0B                    jmp LJ13
-   241                                 LJ12:
-   242                                 
-   243 00000148 A1[00000000]            mov EAX,[CHAR]
-   244 0000014D 83C015                  add EAX,21
-   245 00000150 A3[00000000]            mov [CHAR],EAX
-   246                                 
-   247                                 LJ13:
-   248                                 
+   240 0000013A 8B5D08                  mov EBX,[EBP+8]
+   241 0000013D 01D8                    add EAX,EBX
+   242 0000013F 8B00                    mov EAX,[EAX]
+   243 00000141 A3[00000000]            mov [CHAR],EAX
+   244                                 
+   245                                 
+   246 00000146 A1[00000000]            mov EAX,[CHAR]
+   247 0000014B 83E839                  sub EAX,57
+   248 0000014E 7F0D                    jg LJ12
    249                                 
-   250 00000155 A1[00000000]            mov EAX,[I]
-   251 0000015A C1E002                  sal EAX,2
-   252                                 
-   253 0000015D 8B5D08                  mov EBX,[EBP+8]
-   254 00000160 01D8                    add EAX,EBX
-   255 00000162 A3[00000000]            mov [T3Z],EAX
-   256 00000167 A1[00000000]            mov EAX,[CHAR]
-   257 0000016C 89C2                    mov EDX,EAX
-   258 0000016E A1[00000000]            mov EAX,[T3Z]
-   259 00000173 8910                    mov [EAX],EDX
-   260                                 
-   261 00000175 E966FFFFFF              jmp LJ9
-   262                                 LJ10:
-   263                                 
-   264                                 
-   265 0000017A A1[00000000]            mov EAX,[I]
+   250                                 
+   251 00000150 A1[00000000]            mov EAX,[CHAR]
+   252 00000155 83E815                  sub EAX,21
+   253 00000158 A3[00000000]            mov [B],EAX
+   254                                 
+   255 0000015D EB2E                    jmp LJ13
+   256                                 LJ12:
+   257                                 
+   258 0000015F A1[00000000]            mov EAX,[CHAR]
+   259 00000164 83E85A                  sub EAX,90
+   260 00000167 7F0D                    jg LJ14
+   261                                 
+   262                                 
+   263 00000169 A1[00000000]            mov EAX,[CHAR]
+   264 0000016E 83E840                  sub EAX,64
+   265 00000171 A3[00000000]            mov [B],EAX
    266                                 
-   267 0000017F 8B5D08                  mov EBX,[EBP+8]
-   268 00000182 8903                    mov [EBX],EAX
+   267 00000176 EB15                    jmp LJ15
+   268                                 LJ14:
    269                                 
-   270                                 
-   271 00000184 89EC                    mov ESP,EBP
-   272 00000186 5D                      pop EBP
-   273 00000187 C3                      ret
+   270 00000178 A1[00000000]            mov EAX,[CHAR]
+   271 0000017D 83E87A                  sub EAX,122
+   272 00000180 7F0B                    jg LJ16
+   273                                 
    274                                 
-   275                                 [section .data]
-   276                                 T3Z:
-   277 00008044 00000000<rept>          times 2 dd 0
-   278                                 [section .text]
-   279                                 
-   280                                 
-   281                                 
+   275 00000182 A1[00000000]            mov EAX,[CHAR]
+   276 00000187 83E860                  sub EAX,96
+   277 0000018A A3[00000000]            mov [B],EAX
+   278                                 
+   279                                 LJ16:
+   280                                 LJ15:
+   281                                 LJ13:
    282                                 
    283                                 
-   284                                 
-   285                                 
-   286                                 
-   287                                 
-   288                                 LOOKS:
-   289 00000188 55                      push EBP
-   290 00000189 89E5                    mov EBP,ESP
-   291                                 
-   292                                 
+   284 0000018F B828000000              mov EAX,40
+   285 00000194 F72D[00000000]          imul dword [CODE]
+   286 0000019A 0305[00000000]          add EAX,[B]
+   287 000001A0 A3[00000000]            mov [CODE],EAX
+   288                                 
+   289                                 
+   290 000001A5 A1[00000000]            mov EAX,[I]
+   291 000001AA 48                      dec EAX
+   292 000001AB A3[00000000]            mov [I],EAX
    293                                 
-   294                                 
-   295                                 
+   294 000001B0 E967FFFFFF              jmp LJ10
+   295                                 LJ11:
    296                                 
    297                                 
-   298 0000018B B8FF7F0000              mov EAX,32767
-   299 00000190 D1E0                    sal EAX,1
-   300 00000192 83C801                  or EAX,1
-   301 00000195 A3[00000000]            mov [MASKV],EAX
-   302                                 
+   298 000001B5 A1[00000000]            mov EAX,[CODE]
+   299                                 
+   300 000001BA 89EC                    mov ESP,EBP
+   301 000001BC 5D                      pop EBP
+   302 000001BD C3                      ret
    303                                 
-   304 0000019A B800000000              mov EAX,0
-   305 0000019F A3[00000000]            mov [COLFLG],EAX
+   304                                 
+   305                                 
    306                                 
    307                                 
    308                                 
-   309 000001A4 8B5D10                  mov EBX,[EBP+16]
-   310 000001A7 8B03                    mov EAX,[EBX]
-   311                                 
-   312 000001A9 99                      cdq
-   313 000001AA B9FF1F0000              mov ECX,8191
-   314 000001AF F7F9                    idiv dword ECX
-   315 000001B1 89D0                    mov EAX,EDX
-   316 000001B3 A3[00000000]            mov [I],EAX
+   309                                 
+   310                                 B402A:
+   311 000001BE 55                      push EBP
+   312 000001BF 89E5                    mov EBP,ESP
+   313                                 
+   314                                 
+   315                                 
+   316                                 
    317                                 
    318                                 
-   319 000001B8 A1[00000000]            mov EAX,[I]
-   320 000001BD 2305[00000000]          and EAX,[MASKE]
-   321 000001C3 A3[00000000]            mov [I],EAX
-   322                                 
+   319                                 
+   320 000001C1 8B5D0C                  mov EBX,[EBP+12]
+   321 000001C4 8B03                    mov EAX,[EBX]
+   322 000001C6 A3[00000000]            mov [B],EAX
    323                                 
-   324 000001C8 A1[00000000]            mov EAX,[I]
-   325 000001CD A3[00000000]            mov [J],EAX
-   326                                 
-   327                                 LJ14:
-   328                                 
+   324                                 
+   325 000001CB B800000000              mov EAX,0
+   326 000001D0 A3[00000000]            mov [I],EAX
+   327                                 
+   328                                 LJ17:
    329                                 
-   330 000001D2 A1[00000000]            mov EAX,[I]
-   331 000001D7 C1E002                  sal EAX,2
-   332 000001DA 05[00000000]            add EAX,TABLE
-   333 000001DF 8B00                    mov EAX,[EAX]
-   334 000001E1 09C0                    or EAX,EAX
-   335                                 
-   336 000001E3 7566                    jne LJ16
-   337                                 
-   338 000001E5 A1[00000000]            mov EAX,[I]
-   339 000001EA C1E002                  sal EAX,2
-   340 000001ED 05[00000000]            add EAX,TABLE
-   341 000001F2 A3[00000000]            mov [T5Z],EAX
-   342                                 
-   343 000001F7 8B5D10                  mov EBX,[EBP+16]
-   344 000001FA 8B03                    mov EAX,[EBX]
-   345 000001FC 89C2                    mov EDX,EAX
-   346 000001FE A1[00000000]            mov EAX,[T5Z]
-   347 00000203 8910                    mov [EAX],EDX
-   348                                 
-   349                                 
-   350 00000205 A1[00000000]            mov EAX,[I]
-   351 0000020A 40                      inc EAX
-   352 0000020B C1E002                  sal EAX,2
-   353 0000020E 05[00000000]            add EAX,TABLE
-   354 00000213 A3[00000000]            mov [T5Z1],EAX
-   355                                 
-   356 00000218 8B5D08                  mov EBX,[EBP+8]
-   357 0000021B 8B03                    mov EAX,[EBX]
-   358 0000021D C1E010                  sal EAX,16
-   359                                 
-   360 00000220 8B5D0C                  mov EBX,[EBP+12]
-   361 00000223 0B03                    or EAX,[EBX]
-   362 00000225 89C2                    mov EDX,EAX
-   363 00000227 A1[00000000]            mov EAX,[T5Z1]
-   364 0000022C 8910                    mov [EAX],EDX
-   365                                 
+   330 000001D5 A1[00000000]            mov EAX,[I]
+   331 000001DA 83E806                  sub EAX,6
+   332 000001DD 0F8D81000000            jge LJ18
+   333                                 
+   334                                 
+   335 000001E3 A1[00000000]            mov EAX,[I]
+   336 000001E8 40                      inc EAX
+   337 000001E9 A3[00000000]            mov [I],EAX
+   338                                 
+   339                                 
+   340 000001EE A1[00000000]            mov EAX,[B]
+   341 000001F3 99                      cdq
+   342 000001F4 B928000000              mov ECX,40
+   343 000001F9 F7F9                    idiv dword ECX
+   344 000001FB 89D0                    mov EAX,EDX
+   345 000001FD A3[00000000]            mov [CHAR],EAX
+   346                                 
+   347                                 
+   348 00000202 A1[00000000]            mov EAX,[B]
+   349 00000207 99                      cdq
+   350 00000208 B928000000              mov ECX,40
+   351 0000020D F7F9                    idiv dword ECX
+   352 0000020F A3[00000000]            mov [B],EAX
+   353                                 
+   354                                 
+   355 00000214 A1[00000000]            mov EAX,[CHAR]
+   356 00000219 09C0                    or EAX,EAX
+   357                                 
+   358 0000021B 7500                    jne LJ19
+   359 0000021D EB49                    jmp LJ18
+   360                                 
+   361                                 LJ19:
+   362                                 
+   363                                 
+   364 0000021F A1[00000000]            mov EAX,[CHAR]
+   365 00000224 83E81A                  sub EAX,26
    366                                 
-   367 0000022E A1[00000000]            mov EAX,[COLFLG]
-   368 00000233 09C0                    or EAX,EAX
-   369 00000235 7409                    jz LJ17
-   370                                 
-   371                                 
-   372 00000237 A1[00000000]            mov EAX,[COLLS]
-   373 0000023C 40                      inc EAX
-   374 0000023D A3[00000000]            mov [COLLS],EAX
+   367 00000227 7F0D                    jg LJ20
+   368                                 
+   369 00000229 A1[00000000]            mov EAX,[CHAR]
+   370 0000022E 83C040                  add EAX,64
+   371 00000231 A3[00000000]            mov [CHAR],EAX
+   372                                 
+   373 00000236 EB0B                    jmp LJ21
+   374                                 LJ20:
    375                                 
-   376                                 LJ17:
-   377                                 
-   378                                 
-   379 00000242 A1[00000000]            mov EAX,[I]
-   380                                 
-   381 00000247 89EC                    mov ESP,EBP
-   382 00000249 5D                      pop EBP
-   383 0000024A C3                      ret
-   384                                 
-   385 0000024B EB55                    jmp LJ18
-   386                                 LJ16:
-   387                                 
-   388 0000024D A1[00000000]            mov EAX,[I]
-   389 00000252 C1E002                  sal EAX,2
-   390 00000255 05[00000000]            add EAX,TABLE
-   391 0000025A 8B00                    mov EAX,[EAX]
-   392                                 
-   393 0000025C 8B5D10                  mov EBX,[EBP+16]
-   394 0000025F 2B03                    sub EAX,[EBX]
-   395                                 
-   396 00000261 753F                    jne LJ19
+   376 00000238 A1[00000000]            mov EAX,[CHAR]
+   377 0000023D 83C015                  add EAX,21
+   378 00000240 A3[00000000]            mov [CHAR],EAX
+   379                                 
+   380                                 LJ21:
+   381                                 
+   382                                 
+   383 00000245 A1[00000000]            mov EAX,[I]
+   384 0000024A C1E002                  sal EAX,2
+   385                                 
+   386 0000024D 8B5D08                  mov EBX,[EBP+8]
+   387 00000250 01D8                    add EAX,EBX
+   388 00000252 A3[00000000]            mov [T5Z],EAX
+   389 00000257 A1[00000000]            mov EAX,[CHAR]
+   390 0000025C 89C2                    mov EDX,EAX
+   391 0000025E A1[00000000]            mov EAX,[T5Z]
+   392 00000263 8910                    mov [EAX],EDX
+   393                                 
+   394 00000265 E966FFFFFF              jmp LJ17
+   395                                 LJ18:
+   396                                 
    397                                 
-   398 00000263 A1[00000000]            mov EAX,[I]
-   399 00000268 40                      inc EAX
-   400 00000269 C1E002                  sal EAX,2
-   401 0000026C 05[00000000]            add EAX,TABLE
-   402 00000271 8B00                    mov EAX,[EAX]
-   403 00000273 A3[00000000]            mov [B],EAX
-   404                                 
-   405                                 
-   406 00000278 A1[00000000]            mov EAX,[B]
-   407 0000027D 2305[00000000]          and EAX,[MASKV]
-   408                                 
-   409 00000283 8B5D0C                  mov EBX,[EBP+12]
-   410 00000286 8903                    mov [EBX],EAX
-   411                                 
+   398 0000026A A1[00000000]            mov EAX,[I]
+   399                                 
+   400 0000026F 8B5D08                  mov EBX,[EBP+8]
+   401 00000272 8903                    mov [EBX],EAX
+   402                                 
+   403                                 
+   404 00000274 89EC                    mov ESP,EBP
+   405 00000276 5D                      pop EBP
+   406 00000277 C3                      ret
+   407                                 
+   408                                 [section .data]
+   409                                 T5Z:
+   410 00008048 00000000<rept>          times 2 dd 0
+   411                                 [section .text]
    412                                 
-   413 00000288 A1[00000000]            mov EAX,[B]
-   414 0000028D C1F810                  sar EAX,16
-   415 00000290 2305[00000000]          and EAX,[MASKV]
+   413                                 
+   414                                 
+   415                                 
    416                                 
-   417 00000296 8B5D08                  mov EBX,[EBP+8]
-   418 00000299 8903                    mov [EBX],EAX
+   417                                 
+   418                                 
    419                                 
    420                                 
-   421 0000029B A1[00000000]            mov EAX,[I]
-   422                                 
-   423 000002A0 89EC                    mov ESP,EBP
-   424 000002A2 5D                      pop EBP
-   425 000002A3 C3                      ret
+   421                                 LOOKS:
+   422 00000278 55                      push EBP
+   423 00000279 89E5                    mov EBP,ESP
+   424                                 
+   425                                 
    426                                 
-   427                                 LJ19:
-   428                                 LJ18:
+   427                                 
+   428                                 
    429                                 
    430                                 
-   431 000002A4 A1[00000000]            mov EAX,[I]
-   432 000002A9 83C002                  add EAX,2
-   433 000002AC A3[00000000]            mov [I],EAX
+   431                                 
+   432 0000027B B800000000              mov EAX,0
+   433 00000280 A3[00000000]            mov [COLFLG],EAX
    434                                 
    435                                 
-   436 000002B1 B801000000              mov EAX,1
-   437 000002B6 A3[00000000]            mov [COLFLG],EAX
-   438                                 
+   436                                 
+   437 00000285 8B5D10                  mov EBX,[EBP+16]
+   438 00000288 8B03                    mov EAX,[EBX]
    439                                 
-   440 000002BB A1[00000000]            mov EAX,[I]
-   441 000002C0 2DFF1F0000              sub EAX,8191
-   442                                 
-   443 000002C5 7E0D                    jle LJ20
-   444                                 
-   445 000002C7 A1[00000000]            mov EAX,[I]
-   446 000002CC 2DFF1F0000              sub EAX,8191
-   447 000002D1 A3[00000000]            mov [I],EAX
-   448                                 
-   449                                 LJ20:
+   440 0000028A 99                      cdq
+   441 0000028B B9FF1F0000              mov ECX,8191
+   442 00000290 F7F9                    idiv dword ECX
+   443 00000292 89D0                    mov EAX,EDX
+   444 00000294 A3[00000000]            mov [I],EAX
+   445                                 
+   446                                 
+   447 00000299 A1[00000000]            mov EAX,[I]
+   448 0000029E 2305[00000000]          and EAX,[MASKE]
+   449 000002A4 A3[00000000]            mov [I],EAX
    450                                 
    451                                 
-   452 000002D6 A1[00000000]            mov EAX,[I]
-   453 000002DB 2B05[00000000]          sub EAX,[J]
-   454 000002E1 0F85E5FEFFFF            jne LJ14
-   455                                 LJ15:
+   452 000002A9 A1[00000000]            mov EAX,[I]
+   453 000002AE A3[00000000]            mov [J],EAX
+   454                                 
+   455                                 LJ22:
    456                                 
    457                                 
-   458 000002E7 B801000000              mov EAX,1
-   459 000002EC F7D8                    neg EAX
-   460                                 
-   461 000002EE 89EC                    mov ESP,EBP
-   462 000002F0 5D                      pop EBP
-   463 000002F1 C3                      ret
-   464                                 
-   465                                 [section .data]
-   466                                 T5Z:
-   467 0000804C 00000000<rept>          times 2 dd 0
-   468                                 [section .text]
-   469                                 [section .data]
-   470                                 T5Z1:
-   471 00008054 00000000                times 1 dd 0
-   472                                 [section .text]
-   473                                 
-   474                                 
-   475                                 
+   458 000002B3 A1[00000000]            mov EAX,[I]
+   459 000002B8 C1E002                  sal EAX,2
+   460 000002BB 05[00000000]            add EAX,TABLE
+   461 000002C0 8B00                    mov EAX,[EAX]
+   462 000002C2 09C0                    or EAX,EAX
+   463                                 
+   464 000002C4 7566                    jne LJ24
+   465                                 
+   466 000002C6 A1[00000000]            mov EAX,[I]
+   467 000002CB C1E002                  sal EAX,2
+   468 000002CE 05[00000000]            add EAX,TABLE
+   469 000002D3 A3[00000000]            mov [T7Z],EAX
+   470                                 
+   471 000002D8 8B5D10                  mov EBX,[EBP+16]
+   472 000002DB 8B03                    mov EAX,[EBX]
+   473 000002DD 89C2                    mov EDX,EAX
+   474 000002DF A1[00000000]            mov EAX,[T7Z]
+   475 000002E4 8910                    mov [EAX],EDX
    476                                 
    477                                 
-   478                                 
-   479                                 GETS:
-   480 000002F2 55                      push EBP
-   481 000002F3 89E5                    mov EBP,ESP
-   482                                 
+   478 000002E6 A1[00000000]            mov EAX,[I]
+   479 000002EB 40                      inc EAX
+   480 000002EC C1E002                  sal EAX,2
+   481 000002EF 05[00000000]            add EAX,TABLE
+   482 000002F4 A3[00000000]            mov [T7Z1],EAX
    483                                 
-   484                                 
-   485                                 
-   486                                 
+   484 000002F9 8B5D08                  mov EBX,[EBP+8]
+   485 000002FC 8B03                    mov EAX,[EBX]
+   486 000002FE C1E010                  sal EAX,16
    487                                 
-   488                                 
-   489                                 
-   490 000002F5 8B5D10                  mov EBX,[EBP+16]
-   491 000002F8 8B03                    mov EAX,[EBX]
-   492 000002FA 40                      inc EAX
-   493 000002FB C1E002                  sal EAX,2
-   494 000002FE 05[00000000]            add EAX,TABLE
-   495 00000303 8B00                    mov EAX,[EAX]
-   496 00000305 A3[00000000]            mov [B],EAX
-   497                                 
+   488 00000301 8B5D0C                  mov EBX,[EBP+12]
+   489 00000304 0B03                    or EAX,[EBX]
+   490 00000306 89C2                    mov EDX,EAX
+   491 00000308 A1[00000000]            mov EAX,[T7Z1]
+   492 0000030D 8910                    mov [EAX],EDX
+   493                                 
+   494                                 
+   495 0000030F A1[00000000]            mov EAX,[COLFLG]
+   496 00000314 09C0                    or EAX,EAX
+   497 00000316 7409                    jz LJ25
    498                                 
-   499 0000030A A1[00000000]            mov EAX,[B]
-   500 0000030F 2305[00000000]          and EAX,[MASKV]
-   501                                 
-   502 00000315 8B5D0C                  mov EBX,[EBP+12]
-   503 00000318 8903                    mov [EBX],EAX
-   504                                 
+   499                                 
+   500 00000318 A1[00000000]            mov EAX,[COLLS]
+   501 0000031D 40                      inc EAX
+   502 0000031E A3[00000000]            mov [COLLS],EAX
+   503                                 
+   504                                 LJ25:
    505                                 
-   506 0000031A A1[00000000]            mov EAX,[B]
-   507 0000031F C1F810                  sar EAX,16
-   508 00000322 2305[00000000]          and EAX,[MASKV]
-   509                                 
-   510 00000328 8B5D08                  mov EBX,[EBP+8]
-   511 0000032B 8903                    mov [EBX],EAX
+   506                                 
+   507 00000323 A1[00000000]            mov EAX,[I]
+   508                                 
+   509 00000328 89EC                    mov ESP,EBP
+   510 0000032A 5D                      pop EBP
+   511 0000032B C3                      ret
    512                                 
-   513                                 
-   514 0000032D 89EC                    mov ESP,EBP
-   515 0000032F 5D                      pop EBP
-   516 00000330 C3                      ret
-   517                                 
-   518                                 
-   519                                 
+   513 0000032C EB55                    jmp LJ26
+   514                                 LJ24:
+   515                                 
+   516 0000032E A1[00000000]            mov EAX,[I]
+   517 00000333 C1E002                  sal EAX,2
+   518 00000336 05[00000000]            add EAX,TABLE
+   519 0000033B 8B00                    mov EAX,[EAX]
    520                                 
-   521                                 
-   522                                 
+   521 0000033D 8B5D10                  mov EBX,[EBP+16]
+   522 00000340 2B03                    sub EAX,[EBX]
    523                                 
-   524                                 PUTS:
-   525 00000331 55                      push EBP
-   526 00000332 89E5                    mov EBP,ESP
-   527                                 
-   528                                 
-   529                                 
-   530                                 
-   531                                 
+   524 00000342 753F                    jne LJ27
+   525                                 
+   526 00000344 A1[00000000]            mov EAX,[I]
+   527 00000349 40                      inc EAX
+   528 0000034A C1E002                  sal EAX,2
+   529 0000034D 05[00000000]            add EAX,TABLE
+   530 00000352 8B00                    mov EAX,[EAX]
+   531 00000354 A3[00000000]            mov [B],EAX
    532                                 
    533                                 
-   534                                 
-   535 00000334 8B5D10                  mov EBX,[EBP+16]
-   536 00000337 8B03                    mov EAX,[EBX]
-   537 00000339 40                      inc EAX
-   538 0000033A C1E002                  sal EAX,2
-   539 0000033D 05[00000000]            add EAX,TABLE
-   540 00000342 A3[00000000]            mov [T9Z1],EAX
-   541                                 
-   542 00000347 8B5D08                  mov EBX,[EBP+8]
-   543 0000034A 8B03                    mov EAX,[EBX]
-   544 0000034C C1E010                  sal EAX,16
-   545                                 
-   546 0000034F 8B5D0C                  mov EBX,[EBP+12]
-   547 00000352 0B03                    or EAX,[EBX]
-   548 00000354 89C2                    mov EDX,EAX
-   549 00000356 A1[00000000]            mov EAX,[T9Z1]
-   550 0000035B 8910                    mov [EAX],EDX
-   551                                 
-   552                                 
-   553 0000035D 89EC                    mov ESP,EBP
-   554 0000035F 5D                      pop EBP
-   555 00000360 C3                      ret
-   556                                 
-   557                                 [section .data]
-   558                                 T9Z1:
-   559 00008058 00000000                times 1 dd 0
-   560                                 [section .text]
-   561                                 
+   534 00000359 A1[00000000]            mov EAX,[B]
+   535 0000035E 2305[00000000]          and EAX,[MASKV]
+   536                                 
+   537 00000364 8B5D0C                  mov EBX,[EBP+12]
+   538 00000367 8903                    mov [EBX],EAX
+   539                                 
+   540                                 
+   541 00000369 A1[00000000]            mov EAX,[B]
+   542 0000036E C1F810                  sar EAX,16
+   543 00000371 2305[00000000]          and EAX,[MASKV]
+   544                                 
+   545 00000377 8B5D08                  mov EBX,[EBP+8]
+   546 0000037A 8903                    mov [EBX],EAX
+   547                                 
+   548                                 
+   549 0000037C A1[00000000]            mov EAX,[I]
+   550                                 
+   551 00000381 89EC                    mov ESP,EBP
+   552 00000383 5D                      pop EBP
+   553 00000384 C3                      ret
+   554                                 
+   555                                 LJ27:
+   556                                 LJ26:
+   557                                 
+   558                                 
+   559 00000385 A1[00000000]            mov EAX,[I]
+   560 0000038A 83C002                  add EAX,2
+   561 0000038D A3[00000000]            mov [I],EAX
    562                                 
    563                                 
-   564                                 
-   565                                 
+   564 00000392 B801000000              mov EAX,1
+   565 00000397 A3[00000000]            mov [COLFLG],EAX
    566                                 
-   567                                 GETWRD:
-   568 00000361 55                      push EBP
-   569 00000362 89E5                    mov EBP,ESP
+   567                                 
+   568 0000039C A1[00000000]            mov EAX,[I]
+   569 000003A1 2DFF1F0000              sub EAX,8191
    570                                 
-   571                                 
+   571 000003A6 7E0D                    jle LJ28
    572                                 
-   573                                 
-   574                                 
-   575                                 
+   573 000003A8 A1[00000000]            mov EAX,[I]
+   574 000003AD 2DFF1F0000              sub EAX,8191
+   575 000003B2 A3[00000000]            mov [I],EAX
    576                                 
-   577 00000364 8B5D0C                  mov EBX,[EBP+12]
-   578 00000367 8B03                    mov EAX,[EBX]
-   579 00000369 C1E002                  sal EAX,2
-   580 0000036C 05[00000000]            add EAX,TABLE
-   581 00000371 8B00                    mov EAX,[EAX]
-   582                                 
-   583 00000373 8B5D08                  mov EBX,[EBP+8]
-   584 00000376 8903                    mov [EBX],EAX
+   577                                 LJ28:
+   578                                 
+   579                                 
+   580 000003B7 A1[00000000]            mov EAX,[I]
+   581 000003BC 2B05[00000000]          sub EAX,[J]
+   582 000003C2 0F85E5FEFFFF            jne LJ22
+   583                                 LJ23:
+   584                                 
    585                                 
-   586                                 
-   587 00000378 89EC                    mov ESP,EBP
-   588 0000037A 5D                      pop EBP
-   589 0000037B C3                      ret
-   590                                 
-   591                                 
+   586 000003C8 B801000000              mov EAX,1
+   587 000003CD F7D8                    neg EAX
+   588                                 
+   589 000003CF 89EC                    mov ESP,EBP
+   590 000003D1 5D                      pop EBP
+   591 000003D2 C3                      ret
    592                                 
-   593                                  end
+   593                                 [section .data]
+   594                                 T7Z:
+   595 00008050 00000000<rept>          times 2 dd 0
+   596                                 [section .text]
+   597                                 [section .data]
+   598                                 T7Z1:
+   599 00008058 00000000                times 1 dd 0
+   600                                 [section .text]
+   601                                 
+   602                                 
+   603                                 
+   604                                 
+   605                                 
+   606                                 
+   607                                 GETS:
+   608 000003D3 55                      push EBP
+   609 000003D4 89E5                    mov EBP,ESP
+   610                                 
+   611                                 
+   612                                 
+   613                                 
+   614                                 
+   615                                 
+   616                                 
+   617                                 
+   618 000003D6 8B5D10                  mov EBX,[EBP+16]
+   619 000003D9 8B03                    mov EAX,[EBX]
+   620 000003DB 40                      inc EAX
+   621 000003DC C1E002                  sal EAX,2
+   622 000003DF 05[00000000]            add EAX,TABLE
+   623 000003E4 8B00                    mov EAX,[EAX]
+   624 000003E6 A3[00000000]            mov [B],EAX
+   625                                 
+   626                                 
+   627 000003EB A1[00000000]            mov EAX,[B]
+   628 000003F0 2305[00000000]          and EAX,[MASKV]
+   629                                 
+   630 000003F6 8B5D0C                  mov EBX,[EBP+12]
+   631 000003F9 8903                    mov [EBX],EAX
+   632                                 
+   633                                 
+   634 000003FB A1[00000000]            mov EAX,[B]
+   635 00000400 C1F810                  sar EAX,16
+   636 00000403 2305[00000000]          and EAX,[MASKV]
+   637                                 
+   638 00000409 8B5D08                  mov EBX,[EBP+8]
+   639 0000040C 8903                    mov [EBX],EAX
+   640                                 
+   641                                 
+   642 0000040E 89EC                    mov ESP,EBP
+   643 00000410 5D                      pop EBP
+   644 00000411 C3                      ret
+   645                                 
+   646                                 
+   647                                 
+   648                                 
+   649                                 
+   650                                 
+   651                                 
+   652                                 PUTS:
+   653 00000412 55                      push EBP
+   654 00000413 89E5                    mov EBP,ESP
+   655                                 
+   656                                 
+   657                                 
+   658                                 
+   659                                 
+   660                                 
+   661                                 
+   662                                 
+   663 00000415 8B5D10                  mov EBX,[EBP+16]
+   664 00000418 8B03                    mov EAX,[EBX]
+   665 0000041A 40                      inc EAX
+   666 0000041B C1E002                  sal EAX,2
+   667 0000041E 05[00000000]            add EAX,TABLE
+   668 00000423 A3[00000000]            mov [T11Z1],EAX
+   669                                 
+   670 00000428 8B5D08                  mov EBX,[EBP+8]
+   671 0000042B 8B03                    mov EAX,[EBX]
+   672 0000042D C1E010                  sal EAX,16
+   673                                 
+   674 00000430 8B5D0C                  mov EBX,[EBP+12]
+   675 00000433 0B03                    or EAX,[EBX]
+   676 00000435 89C2                    mov EDX,EAX
+   677 00000437 A1[00000000]            mov EAX,[T11Z1]
+   678 0000043C 8910                    mov [EAX],EDX
+   679                                 
+   680                                 
+   681 0000043E 89EC                    mov ESP,EBP
+   682 00000440 5D                      pop EBP
+   683 00000441 C3                      ret
+   684                                 
+   685                                 [section .data]
+   686                                 T11Z1:
+   687 0000805C 00000000                times 1 dd 0
+   688                                 [section .text]
+   689                                 
+   690                                 
+   691                                 
+   692                                 
+   693                                 
+   694                                 
+   695                                 GETWRD:
+   696 00000442 55                      push EBP
+   697 00000443 89E5                    mov EBP,ESP
+   698                                 
+   699                                 
+   700                                 
+   701                                 
+   702                                 
+   703                                 
+   704                                 
+   705 00000445 8B5D0C                  mov EBX,[EBP+12]
+   706 00000448 8B03                    mov EAX,[EBX]
+   707 0000044A C1E002                  sal EAX,2
+   708 0000044D 05[00000000]            add EAX,TABLE
+   709 00000452 8B00                    mov EAX,[EAX]
+   710                                 
+   711 00000454 8B5D08                  mov EBX,[EBP+8]
+   712 00000457 8903                    mov [EBX],EAX
+   713                                 
+   714                                 
+   715 00000459 89EC                    mov ESP,EBP
+   716 0000045B 5D                      pop EBP
+   717 0000045C C3                      ret
+   718                                 
+   719                                 
+   720                                 
+   721                                  end

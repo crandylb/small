@@ -1,49 +1,57 @@
 1       * TESTACC.S1 -- Test Symbol Table Access, CRB, Feb 14, 2014             
-2                                                                               
-3       ENT TESTACC;                                                            
-4       BEGIN TESTACC;                                                          
-5       START TESTACC;                                                          
-6                                                                               
-7       EXT PROC LOOKS,GETS,PUTS,GETWRD;                                        
-8       EXT PROC A2B40,B402A;                                                   
-9       EXT PROC READ,WRITE,IFORM;                                              
-10      EXT PROC LEX,CAT2;                                                      
-11                                                                              
-12      MSG IFS='IF';                                                           
-13      MSG THENS='THEN';                                                       
-14      MSG ELSES='ELSE';                                                       
-15      MSG PROCES='PROCEDURE';                                                 
-16      MSG PROCS='PROC';                                                       
-17      MSG GREET='Begin SYMACC Test';                                          
-18      MSG TESTIT='Test:               ';                                      
-19      DCL STAR=('*');                                                         
-20      DCL SLASH=('/');                                                        
-21      DCL PLUS=('+');                                                         
-22      DCL MINUS=('-');                                                        
-23      DCL LPAREN=40;                                                          
-24      DCL RPAREN=41;                                                          
-25      DCL OUTCH=3;                                                            
-26      DCL INDEX,VAL,TAG,WORDS,TTYPE;                                          
-27      DCL LIST(20);                                                           
-28      MSG SCRATCH='          ';                                               
-29                                                                              
-30      LABEL TESTACC;                                                          
-31        CALL WRITE(OUTCH,GREET);                                              
-32        TESTIT=7;                                                             
-33        CALL CAT2(TESTIT,IFS);                                                
-34        CALL WRITE(OUTCH,TESTIT);                                             
-35        WORDS=A2B40(IFS);                                                     
-36        CALL IFORM(WORDS,SCRATCH);                                            
-37        CALL WRITE(OUTCH,SCRATCH);                                            
-38        VAL=2;                        * IF                                    
-39        TTYPE=3;                      * Token type = Keyword                  
-40        TAG=TTYPE SHL 8;                                                      
-41        INDEX=LOOKS(WORDS,VAL,TAG);                                           
-42        SCRATCH=10;                                                           
-43        CALL IFORM(INDEX,SCRATCH);                                            
-44        CALL WRITE(OUTCH,SCRATCH);                                            
-45        CALL B402A(WORDS,SCRATCH);                                            
-46        CALL WRITE(OUTCH,SCRATCH);                                            
-47        RETURN;                                                               
-48      END                                                                     
+2       * 04/28/2014 CRB Update, add GETS test                                  
+3                                                                               
+4       ENT TESTACC;                                                            
+5       BEGIN TESTACC;                                                          
+6       START TESTACC;                                                          
+7                                                                               
+8       EXT PROC LOOKS,GETS,PUTS,GETWRD;                                        
+9       EXT PROC A2B40,B402A;                                                   
+10      EXT PROC READ,WRITE,IFORM;                                              
+11      EXT PROC LEX,CAT2;                                                      
+12      EXT MASKV;                                                              
+13                                                                              
+14      MSG IFS='IF';                                                           
+15      MSG THENS='THEN';                                                       
+16      MSG ELSES='ELSE';                                                       
+17      MSG PROCES='PROCEDURE';                                                 
+18      MSG PROCS='PROC';                                                       
+19      MSG GREET='Begin SYMACC Test';                                          
+20      MSG TESTIT='Test:               ';                                      
+21      DCL STAR=('*');                                                         
+22      DCL SLASH=('/');                                                        
+23      DCL PLUS=('+');                                                         
+24      DCL MINUS=('-');                                                        
+25      DCL LPAREN=40;                                                          
+26      DCL RPAREN=41;                                                          
+27      DCL OUTCH=3;                                                            
+28      DCL INDEX,VAL,TAG,WORDS,TTYPE;                                          
+29      DCL LIST(20);                                                           
+30      MSG SCRATCH='          ';                                               
+31                                                                              
+32      LABEL TESTACC;                                                          
+33        CALL WRITE(OUTCH,GREET);                                              
+34        MASKV=32767 SHL 1 OR 1;       * initialization needed                 
+35        TESTIT=7;                                                             
+36        CALL CAT2(TESTIT,IFS);                                                
+37        CALL WRITE(OUTCH,TESTIT);                                             
+38        WORDS=A2B40(IFS);                                                     
+39        CALL IFORM(WORDS,SCRATCH);                                            
+40        CALL WRITE(OUTCH,SCRATCH);                                            
+41        VAL=2;                        * IF                                    
+42        TTYPE=3;                      * Token type = Keyword                  
+43        TAG=TTYPE SHL 8;                                                      
+44        INDEX=LOOKS(WORDS,VAL,TAG);                                           
+45        SCRATCH=10;                                                           
+46        CALL IFORM(INDEX,SCRATCH);                                            
+47        CALL WRITE(OUTCH,SCRATCH);                                            
+48        CALL B402A(WORDS,SCRATCH);                                            
+49        CALL WRITE(OUTCH,SCRATCH);                                            
+50        CALL GETS(INDEX,VAL,TAG);                                             
+51        CALL IFORM(VAL,SCRATCH);                                              
+52        CALL WRITE(OUTCH,SCRATCH);                                            
+53        CALL IFORM(TAG,SCRATCH);                                              
+54        CALL WRITE(OUTCH,SCRATCH);                                            
+55        RETURN;                                                               
+56      END                                                                     
  NO ERRORS DETECTED

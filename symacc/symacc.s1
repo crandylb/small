@@ -1,6 +1,8 @@
 * SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
 * 03/14/2014 CRB Add COLLS collision counter
 * 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
+* 03/29/2014 CRB Add A2B40L for use with LEX
+* 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
 
 BEGIN SYMACC;
 * Symbols are stored in an array called TABLE that is indexed by a hash
@@ -10,7 +12,7 @@ BEGIN SYMACC;
 * 16-bit VAL and TAG words.
 
   ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures
-  ENTRY A2B40,B402A;            * ASCII, B40 conversion
+  ENTRY A2B40,A2B40L,B402A;     * ASCII, B40 conversion
   ENTRY COLLS;                  * Collision counter
   ENTRY MASKV;
 
@@ -21,6 +23,7 @@ BEGIN SYMACC;
   DCL MASKE=-2;                 * mask for even number
   DCL MASKV=65535;              * mask for low 16 bits
   DCL COLFLG,COLLS=0;           * collision counter on insertion only
+  DCL ANC;                      * anchor
 
 * Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 * Only upper case letters and decimal digits are allowed
@@ -34,6 +37,32 @@ PROC A2B40(STR);                * convert ASCII string to base 40
   I=LEN;
   CODE=0;                       * init B40 code
   DO WHILE I GT 0;
+    CHAR=STR(I);                * read charaters in reverse order
+    IF CHAR LE 57; THEN 
+      B=CHAR-21;                * digits 0..9 -> 27..36
+    ELSE IF CHAR LE 90; THEN 
+      B=CHAR-64;                * upper case A..Z -> 1..26
+    ELSE IF CHAR LE 122; THEN 
+      B=CHAR-96;                * lower case a..z -> 1..26
+      ENDIF ENDIF ENDIF
+    CODE=40*CODE+B;             * calculate base 40 code
+    I=I-1;                      * decrement I for next character
+    ENDDO
+  RETURN CODE;                  * return accumulated base 40 code
+  ENDPROC
+
+* Use this version to grab a token from a substring
+* SUBSTR contains length SHL 8 and anchor starting index
+******************************
+PROC A2B40L(SUBSTR,STR);        * convert ASCII string to base 40
+  ANC=SUBSTR AND 255;           * get anchor starting index
+  LEN=SUBSTR SHR 8 AND 255;     * get length of string
+  IF LEN GT 6; THEN 
+    LEN=6;                      * truncate length to 6
+    ENDIF
+  I=ANC+LEN-1;                    * start at end of token string
+  CODE=0;                       * init B40 code
+  DO WHILE I GE ANC;
     CHAR=STR(I);                * read charaters in reverse order
     IF CHAR LE 57; THEN 
       B=CHAR-21;                * digits 0..9 -> 27..36

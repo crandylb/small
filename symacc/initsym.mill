@@ -1,5 +1,8 @@
 ** initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014
 ** 03/14/2014 CRB Add COLLS collision counter and token KIND
+** 03/18/2014 CRB Randomize single char ops, add INDEX output
+** 04/03/2014 CRB Use integer value from LEX in LEXEME(1)
+** 05/10/2014 CRB Ude INDEX from LEXEME(1) to set VAL and TAG with PUTS
 *
 *BEGIN INITSYM;
  BEGIN
@@ -21,16 +24,20 @@
 *EXT PROC A2B40,B402A;
  EXT P A2B40
  EXT  B402A
-*EXT PROC LOOKS,GETS,GETWRD;
+*EXT PROC A2B40L;
+ EXT P A2B40L
+*EXT PROC LOOKS,GETS,PUTS,GETWRD;
  EXT P LOOKS
  EXT  GETS
+ EXT  PUTS
  EXT  GETWRD
 *EXT PROC IREAD,IFORM,CAT2;
  EXT P IREAD
  EXT  IFORM
  EXT  CAT2
-*EXT COLLS;
+*EXT COLLS,MASKV;
  EXT  COLLS
+ EXT  MASKV
 *
 *DCL I,J,EOF=0,STATUS;
  SECT DATA
@@ -54,10 +61,10 @@
  CONST  2
  LABEL OUTCH
  CONST  3
-*DCL LEXEME(127);
+*DCL LEXEME(4);
  SECT DATA
  LABEL LEXEME
- SPACE  128
+ SPACE  5
 *DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
  SECT DATA
  LABEL INDEX
@@ -138,6 +145,11 @@
  CONST  115
  CONST  58
  CONST  32
+*SET PRIM18=61;                  * prime 
+*DCL ANC;                        * anchor
+ SECT DATA
+ LABEL ANC
+ SPACE  1
 *
 *LABEL INIT;
  SECT CODE
@@ -158,6 +170,12 @@
  SUBR P INITSYM
  NPARS  0
  PEND
+*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
+*.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
+ L  =32767
+ SHL  =1
+ OR  =1
+ ST  MASKV
 *  STATUS=READ(SCRCH,BUFF);      * read first line from chan 2
 *.GEN =STATUS,(SCRCH,BUFF),.UFREAD,.BNST,
  SCALL P READ
@@ -194,41 +212,65 @@
  ARG  LEXEME
  CEND
  ST  KIND
-*      IF LEXEME(1) EQ QUOTE; THEN 
-*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,.UA,QUOTE,.BN-,
- L  =1
+*      ANC=LEXEME AND 255;       * extract the anchor from LEXEME(0)
+*.GEN =ANC,LEXEME,=255,.BCAND,.BNST,
+ L  LEXEME
+ AND  =255
+ ST  ANC
+*      IF BUFF(ANC) EQ QUOTE; THEN 
+*.GEN =BUFF,ANC,=2,.BNSHL,.BC+,.UA,QUOTE,.BN-,
+ L  ANC
  SHL  =2
- +  =LEXEME
+ +  =BUFF
  L  *.AC
  -  QUOTE
  JNE  LJ6
-*          WORDS=LEXEME(2);      * use ASCII code for single character
-*.GEN =WORDS,=LEXEME,=2,=2,.BNSHL,.BC+,.UA,.BNST,
- L  =2
+*          WORDS=BUFF(ANC+1)*PRIM18; * use ASCII code
+*.GEN =WORDS,=BUFF,ANC,=1,.BC+,=2,.BNSHL,.BC+,.UA,PRIM18,.BC*,.BNST,
+ L  ANC
+ +  =1
  SHL  =2
- +  =LEXEME
+ +  =BUFF
  L  *.AC
+ * 61 PRIM18
  ST  WORDS
 *          TAGS=1;               * bit for single ASCII character
 *.GEN =TAGS,=1,.BNST,
  L  =1
  ST  TAGS
+*          INDEX=LOOKS(WORDS,VAL,TAG); * use this INDEX in PUTS below
+*.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
+ SCALL P LOOKS
+ NARGS  3
+ ARG  WORDS
+ ARG  VAL
+ ARG  TAG
+ CEND
+ ST  INDEX
 *        ELSE 
- J  LJ7
+ J  LJ8
  LABEL LJ6
-*          WORDS=A2B40(LEXEME);  * convert to B40
-*.GEN =WORDS,(LEXEME),.UFA2B40,.BNST,
- SCALL P A2B40
- NARGS  1
+*          WORDS=A2B40L(LEXEME,BUFF);  * convert to B40
+*.GEN =WORDS,(LEXEME,BUFF),.UFA2B40L,.BNST,
+ SCALL P A2B40L
+ NARGS  2
  ARG  LEXEME
+ ARG  BUFF
  CEND
  ST  WORDS
 *          TAGS=0;               * bit for normal base 40 coding
 *.GEN =TAGS,=0,.BNST,
  L  =0
  ST  TAGS
+*          INDEX=LEXEME(1);      * save INDEX returned from LEX
+*.GEN =INDEX,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  =1
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
+ ST  INDEX
 *        ENDIF
- LABEL LJ7
+ LABEL LJ8
 *
 *      KIND=LEX(I,LEXEME);       * get the TTYPE code
 *.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
@@ -238,17 +280,12 @@
  ARG  LEXEME
  CEND
  ST  KIND
-*      J=1;
-*.GEN =J,=1,.BNST,
+*      TTYPE=LEXEME(1);
+*.GEN =TTYPE,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  L  =1
- ST  J
-*      TTYPE=IREAD(J,LEXEME);    * convert to binary
-*.GEN =TTYPE,(J,LEXEME),.UFIREAD,.BNST,
- SCALL P IREAD
- NARGS  2
- ARG  J
- ARG  LEXEME
- CEND
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
  ST  TTYPE
 *
 *      KIND=LEX(I,LEXEME);       * get VAL for this keyword
@@ -259,17 +296,12 @@
  ARG  LEXEME
  CEND
  ST  KIND
-*      J=1;
-*.GEN =J,=1,.BNST,
+*      VAL=LEXEME(1);
+*.GEN =VAL,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  L  =1
- ST  J
-*      VAL=IREAD(J,LEXEME);      * convert to binary
-*.GEN =VAL,(J,LEXEME),.UFIREAD,.BNST,
- SCALL P IREAD
- NARGS  2
- ARG  J
- ARG  LEXEME
- CEND
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
  ST  VAL
 *
 *      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
@@ -280,17 +312,12 @@
  ARG  LEXEME
  CEND
  ST  KIND
-*      J=1;
-*.GEN =J,=1,.BNST,
+*      KIND=LEXEME(1);
+*.GEN =KIND,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  L  =1
- ST  J
-*      KIND=IREAD(J,LEXEME); 
-*.GEN =KIND,(J,LEXEME),.UFIREAD,.BNST,
- SCALL P IREAD
- NARGS  2
- ARG  J
- ARG  LEXEME
- CEND
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
  ST  KIND
 *      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
 *.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,KIND,.BCOR,.BNST,
@@ -309,17 +336,12 @@
  ARG  LEXEME
  CEND
  ST  KIND
-*      J=1;
-*.GEN =J,=1,.BNST,
+*      ATTR=LEXEME(1);
+*.GEN =ATTR,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  L  =1
- ST  J
-*      ATTR=IREAD(J,LEXEME);
-*.GEN =ATTR,(J,LEXEME),.UFIREAD,.BNST,
- SCALL P IREAD
- NARGS  2
- ARG  J
- ARG  LEXEME
- CEND
+ SHL  =2
+ +  =LEXEME
+ L  *.AC
  ST  ATTR
 *      VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB
 *.GEN =VAL,ATTR,=8,.BNSHL,VAL,.BCOR,.BNST,
@@ -328,15 +350,13 @@
  OR  VAL
  ST  VAL
 *
-*      INDEX=LOOKS(WORDS,VAL,TAG);
-*.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
- SCALL P LOOKS
+*      CALL PUTS(INDEX,VAL,TAG); * set VAL and TAG for this symbol
+ SCALL  PUTS
  NARGS  3
- ARG  WORDS
+ ARG  INDEX
  ARG  VAL
  ARG  TAG
  CEND
- ST  INDEX
 *      COUNT=COUNT+1;
 *.GEN =COUNT,COUNT,=1,.BC+,.BNST,
  L  COUNT
@@ -381,11 +401,11 @@
  L  =1
  ST  I
 *  DO WHILE I LE COUNT;
- LABEL LJ19
+ LABEL LJ16
 *.GEN I,COUNT,.BN-,
  L  I
  -  COUNT
- JGT  LJ20
+ JGT  LJ17
 *    INDEX=LIST(I);
 *.GEN =INDEX,=LIST,I,=2,.BNSHL,.BC+,.UA,.BNST,
  L  I
@@ -440,18 +460,19 @@
  L  TAGS
  AND  =1
  -  =0
- JEQ  LJ24
-*        BUFF(1)=WORDS;          * if single character use ASCII
-*.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,.BNST,
+ JEQ  LJ21
+*        BUFF(1)=WORDS/PRIM18;   * if single character use ASCII
+*.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,PRIM18,.BN/,.BNST,
  L  =1
  SHL  =2
  +  =BUFF
- ST  T3Z
+ ST  T3Z1
  L  WORDS
- ST  *T3Z
+ / 61 PRIM18
+ ST  *T3Z1
 *      ELSE 
- J  LJ25
- LABEL LJ24
+ J  LJ22
+ LABEL LJ21
 *        CALL B402A(WORDS,BUFF); * decode symbol into BUFF
  SCALL  B402A
  NARGS  2
@@ -459,7 +480,7 @@
  ARG  BUFF
  CEND
 *      ENDIF
- LABEL LJ25
+ LABEL LJ22
 *    BUFF=8;
 *.GEN =BUFF,=8,.BNST,
  L  =8
@@ -476,20 +497,23 @@
  ARG  BUFF
  ARG  SCRATCH
  CEND
-*    SCRATCH=0;
-*.GEN =SCRATCH,=0,.BNST,
- L  =0
- ST  SCRATCH
-*    CALL CAT2(SCRATCH,BLANKS);
- SCALL  CAT2
- NARGS  2
- ARG  SCRATCH
- ARG  BLANKS
- CEND
 *    CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF
  SCALL  IFORM
  NARGS  2
  ARG  TAG
+ ARG  SCRATCH
+ CEND
+*    CALL CAT2(BUFF,SCRATCH);
+ SCALL  CAT2
+ NARGS  2
+ ARG  BUFF
+ ARG  SCRATCH
+ CEND
+*
+*    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+ SCALL  IFORM
+ NARGS  2
+ ARG  INDEX
  ARG  SCRATCH
  CEND
 *    CALL CAT2(BUFF,SCRATCH);
@@ -504,14 +528,15 @@
  ARG  OUTCH
  ARG  BUFF
  CEND
+*
 *    I=I+1;
 *.GEN =I,I,=1,.BC+,.BNST,
  L  I
  +  =1
  ST  I
 *    ENDDO
- J  LJ19
- LABEL LJ20
+ J  LJ16
+ LABEL LJ17
 *
 *    CALL IFORM(COLLS,SCRATCH);
  SCALL  IFORM
@@ -545,8 +570,8 @@
  RETN  DMPLIST,0
 *  ENDPROC
  SECT DATA
- LABEL T3Z
- SPACE  2
+ LABEL T3Z1
+ SPACE  1
  SECT CODE
 *END
  END

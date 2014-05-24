@@ -1,4 +1,6 @@
 * testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014
+* CRB 03/27/2014 Changed for revised lex
+* CRB 04/15/2014 Revise for changed LEX and LEXEME
 
   ENTRY TESTLEX;
   BEGIN TESTLEX;
@@ -7,17 +9,20 @@
 
   EXTERNAL PROC READ,WRITE;
   EXTERNAL PROC LEX,CAT2;
+  EXTERNAL PROC CAT3;
 
   DCL BUFF(128),SCRATCH(128);
   DCL INCH=1,OUTCH=3,STATUS;
   DCL EOF=0;
-  DCL LEXEME(120);
-  MSG GREET='Begin Small LEX Test'
-  DCL KIND,KINDN;
+  DCL LEXEME(4);
+  MSG GREET='Begin Small LEX Test';
+  DCL KIND,LENANC;
   DCL ICHAR;
+  DCL MASKV;                    * mask for low 16 bits
 
 LABEL TESTLEX;
   CALL WRITE(OUTCH,GREET);
+  MASKV=32767 SHL 1 OR 1;
   REPEAT 
     STATUS=READ(INCH,BUFF);
     CALL WRITE(OUTCH,BUFF);
@@ -27,8 +32,10 @@ LABEL TESTLEX;
       SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit
       SCRATCH(2)=' ';             * follow with space
       SCRATCH(3)=' ';             * terminate line
-      SCRATCH=2;                  * number of characters
-      CALL CAT2(SCRATCH,LEXEME);  * concatenate
+      SCRATCH=3;                  * number of characters
+      LENANC=LEXEME AND MASKV;
+      CALL CAT3(SCRATCH,LENANC,BUFF);  * concatenate
+      SCRATCH(SCRATCH)=-1;        * insert EOL
       CALL WRITE(OUTCH,SCRATCH);
       ENDDO
     UNTIL STATUS EQ EOF;

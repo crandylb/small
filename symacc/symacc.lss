@@ -1,134 +1,165 @@
 1       * SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014   
 2       * 03/14/2014 CRB Add COLLS collision counter                            
-3                                                                               
-4       BEGIN SYMACC;                                                           
-5       * Symbols are stored in an array called TABLE that is indexed by a hash 
-6       * function on the first six characters of a name. Each symbol occupies  
-7       * two 32-bit words in the table. The first word contains the compressed 
-8       * base 40 representation of the symbol, and the second word contains the
-9       * 16-bit VAL and TAG words.                                             
-10                                                                              
-11        ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures         
-12        ENTRY A2B40,B402A;            * ASCII, B40 conversion                 
-13        ENTRY COLLS;                  * Collision counter                     
-14                                                                              
-15        SET TABSIZ=8191;              * prime < 2^13                          
-16        DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols      
-17        DCL STRING(6);                * space to hold converted ASCII string  
-18        DCL I,J,CHAR,LEN,B,CODE;      * local variables                       
-19        DCL MASKE=-2;                 * mask for even number                  
-20        DCL MASKV=65535;              * mask for low 16 bits                  
-21        DCL COLFLG,COLLS=0;           * collision counter on instertion only  
-22                                                                              
-23      * Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word 
-24      * Only upper case letters and decimal digits are allowed                
-25      * Return the 32-bit CODE value                                          
-26      ******************************                                          
-27      PROC A2B40(STR);                * convert ASCII string to base 40       
-28   1    LEN=STR;                      * get length of string                  
-29   1    IF LEN GT 6; THEN                                                     
-30   2      LEN=6;                      * truncate length to 6                  
-31   2      ENDIF                                                               
-32   1    I=LEN;                                                                
-33   1    CODE=0;                       * init B40 code                         
-34   1    DO WHILE I GT 0;                                                      
-35   2      CHAR=STR(I);                * read charaters in reverse order       
-36   2      IF CHAR LE 57; THEN                                                 
-37   3        B=CHAR-21;                * digits 0..9 -> 27..36                 
-38   3      ELSE IF CHAR LE 90; THEN                                            
-39   4        B=CHAR-64;                * upper case A..Z -> 1..26              
-40   4      ELSE IF CHAR LE 122; THEN                                           
-41   5        B=CHAR-96;                * lower case a..z -> 1..26              
-42   5        ENDIF ENDIF ENDIF                                                 
-43   2      CODE=40*CODE+B;             * calculate base 40 code                
-44   2      I=I-1;                      * decrement I for next character        
-45   2      ENDDO                                                               
-46   1    RETURN CODE;                  * return accumulated base 40 code       
-47   1    ENDPROC                                                               
-48   0                                                                          
-49   0  * Convert base 40 code to ASCII in NAME                                 
-50   0  * No return value                                                       
-51   0  *****************                                                       
-52   0  PROC B402A(B40,NAME);           * convert base 40 to ASCII string       
-53   1    B=B40;                                                                
-54   1    I=0;                                                                  
-55   1    DO WHILE I LT 6;                                                      
-56   2      I=I+1;                                                              
-57   2      CHAR=B MOD 40;                                                      
-58   2      B=B/40;                                                             
-59   2      IF CHAR EQ 0;                                                       
-60   3        THEN EXIT                                                         
-61   3        ENDIF                                                             
-62   2      IF CHAR LE 26;                                                      
-63   3        THEN CHAR=CHAR+64;        * upper case letter                     
-64   3        ELSE CHAR=CHAR+21;        * decimal digit                         
-65   3        ENDIF                                                             
-66   2       NAME(I)=CHAR;              * put character in name string          
-67   2       ENDDO                                                              
-68   1    NAME=I;                       * set string length                     
-69   1    RETURN                                                                
-70   1    ENDPROC                                                               
-71   0                                                                          
-72   0  * Look up a packed symbol (WORDS) in TABLE                              
-73   0  * Insert the new symbol with VAL and TAG if not already in TABLE        
-74   0  * If collision use next empty slot, if TABLE full return -1             
-75   0  * If existing entry found return VAL and TAG from TABLE                 
-76   0  * Return value is index of entry in TABLE                               
-77   0  *****************************************                               
-78   0  PROC LOOKS(WORDS,VAL,TAG);      * look up or insert symbol              
-79   1    MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask           
-80   1    COLFLG=0;                     * reset collision flag                  
-81   1    I=WORDS MOD TABSIZ;                                                   
-82   1    I=I AND MASKE;                * use only even index                   
-83   1    J=I;                          * save starting position                
-84   1    REPEAT                                                                
-85   2      IF TABLE(I) EQ 0;           * found empty slot                      
-86   3        THEN TABLE(I)=WORDS;      * insert symbol                         
-87   3          TABLE(I+1)=(TAG SHL 16) OR VAL;                                 
-88   3          IF COLFLG; THEN         * if collision flag on then             
-89   4            COLLS=COLLS+1;        * count collisions on insertion         
-90   4            ENDIF                                                         
-91   3          RETURN I;                                                       
-92   3        ELSE IF TABLE(I) EQ WORDS; * found match                          
-93   4        THEN B=TABLE(I+1);        * retrieve VAL and TAG                  
-94   4          VAL=B AND MASKV;                                                
-95   4          TAG=(B SHR 16) AND MASKV;                                       
-96   4          RETURN I;                                                       
-97   4        ENDIF ENDIF                                                       
-98   2      I=I+2;                      * try next slot                         
-99   2      COLFLG=1;                   * set collision flag                    
-100  2      IF I GT TABSIZ;                                                     
-101  3        THEN I=I-TABSIZ;                                                  
-102  3        ENDIF                                                             
-103  2      UNTIL I EQ J;               * check for wrap to starting position   
-104  1    RETURN -1;                    * table full                            
-105  1    ENDPROC                                                               
-106  0                                                                          
-107  0  * Get VAL and TAG for this INDEX in TABLE                               
-108  0  * No return value                                                       
-109  0  *****************                                                       
-110  0  PROC GETS(INDEX,VAL,TAG);       * get VAL and TAG for INDEX             
-111  1    B=TABLE(INDEX+1);                                                     
-112  1    VAL=B AND MASKV;              * get VAL part                          
-113  1    TAG=(B SHR 16) AND MASKV;     * get TAG part                          
-114  1    RETURN                                                                
-115  1    ENDPROC                                                               
-116  0                                                                          
-117  0  * Put new VAL and TAG for this INDEX in TABLE                           
-118  0  * No return value                                                       
-119  0  *****************                                                       
-120  0  PROC PUTS(PINDEX,VAL,TAG);      * put VAL and TAG at INDEX              
-121  1    TABLE(PINDEX+1)=(TAG SHL 16) OR VAL;                                  
-122  1    RETURN                                                                
-123  1    ENDPROC                                                               
-124  0                                                                          
-125  0  * Get packed symbol (WDS) for this index in TABLE                       
-126  0  * No return value                                                       
-127  0  *****************                                                       
-128  0  PROC GETWRD(INDEX,WDS);        * get base 40 code at INDEX              
-129  1    WDS=TABLE(INDEX);                                                     
-130  1    RETURN                                                                
-131  1    ENDPROC                                                               
-132  0                                                                          
-133  0  END                                                                     
+3       * 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
+4       * 03/29/2014 CRB Add A2B40L for use with LEX                            
+5       * 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN                
+6                                                                               
+7       BEGIN SYMACC;                                                           
+8       * Symbols are stored in an array called TABLE that is indexed by a hash 
+9       * function on the first six characters of a name. Each symbol occupies  
+10      * two 32-bit words in the table. The first word contains the compressed 
+11      * base 40 representation of the symbol, and the second word contains the
+12      * 16-bit VAL and TAG words.                                             
+13                                                                              
+14        ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures         
+15        ENTRY A2B40,A2B40L,B402A;     * ASCII, B40 conversion                 
+16        ENTRY COLLS;                  * Collision counter                     
+17        ENTRY MASKV;                                                          
+18                                                                              
+19        SET TABSIZ=8191;              * prime < 2^13                          
+20        DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols      
+21        DCL STRING(6);                * space to hold converted ASCII string  
+22        DCL I,J,CHAR,LEN,B,CODE;      * local variables                       
+23        DCL MASKE=-2;                 * mask for even number                  
+24        DCL MASKV=65535;              * mask for low 16 bits                  
+25        DCL COLFLG,COLLS=0;           * collision counter on insertion only   
+26        DCL ANC;                      * anchor                                
+27                                                                              
+28      * Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word 
+29      * Only upper case letters and decimal digits are allowed                
+30      * Return the 32-bit CODE value                                          
+31      ******************************                                          
+32      PROC A2B40(STR);                * convert ASCII string to base 40       
+33   1    LEN=STR;                      * get length of string                  
+34   1    IF LEN GT 6; THEN                                                     
+35   2      LEN=6;                      * truncate length to 6                  
+36   2      ENDIF                                                               
+37   1    I=LEN;                                                                
+38   1    CODE=0;                       * init B40 code                         
+39   1    DO WHILE I GT 0;                                                      
+40   2      CHAR=STR(I);                * read charaters in reverse order       
+41   2      IF CHAR LE 57; THEN                                                 
+42   3        B=CHAR-21;                * digits 0..9 -> 27..36                 
+43   3      ELSE IF CHAR LE 90; THEN                                            
+44   4        B=CHAR-64;                * upper case A..Z -> 1..26              
+45   4      ELSE IF CHAR LE 122; THEN                                           
+46   5        B=CHAR-96;                * lower case a..z -> 1..26              
+47   5        ENDIF ENDIF ENDIF                                                 
+48   2      CODE=40*CODE+B;             * calculate base 40 code                
+49   2      I=I-1;                      * decrement I for next character        
+50   2      ENDDO                                                               
+51   1    RETURN CODE;                  * return accumulated base 40 code       
+52   1    ENDPROC                                                               
+53   0                                                                          
+54   0  * Use this version to grab a token from a substring                     
+55   0  * SUBSTR contains length SHL 8 and anchor starting index                
+56   0  ******************************                                          
+57   0  PROC A2B40L(SUBSTR,STR);        * convert ASCII string to base 40       
+58   1    ANC=SUBSTR AND 255;           * get anchor starting index             
+59   1    LEN=SUBSTR SHR 8 AND 255;     * get length of string                  
+60   1    IF LEN GT 6; THEN                                                     
+61   2      LEN=6;                      * truncate length to 6                  
+62   2      ENDIF                                                               
+63   1    I=ANC+LEN-1;                    * start at end of token string        
+64   1    CODE=0;                       * init B40 code                         
+65   1    DO WHILE I GE ANC;                                                    
+66   2      CHAR=STR(I);                * read charaters in reverse order       
+67   2      IF CHAR LE 57; THEN                                                 
+68   3        B=CHAR-21;                * digits 0..9 -> 27..36                 
+69   3      ELSE IF CHAR LE 90; THEN                                            
+70   4        B=CHAR-64;                * upper case A..Z -> 1..26              
+71   4      ELSE IF CHAR LE 122; THEN                                           
+72   5        B=CHAR-96;                * lower case a..z -> 1..26              
+73   5        ENDIF ENDIF ENDIF                                                 
+74   2      CODE=40*CODE+B;             * calculate base 40 code                
+75   2      I=I-1;                      * decrement I for next character        
+76   2      ENDDO                                                               
+77   1    RETURN CODE;                  * return accumulated base 40 code       
+78   1    ENDPROC                                                               
+79   0                                                                          
+80   0  * Convert base 40 code to ASCII in NAME                                 
+81   0  * No return value                                                       
+82   0  *****************                                                       
+83   0  PROC B402A(B40,NAME);           * convert base 40 to ASCII string       
+84   1    B=B40;                                                                
+85   1    I=0;                                                                  
+86   1    DO WHILE I LT 6;                                                      
+87   2      I=I+1;                                                              
+88   2      CHAR=B MOD 40;                                                      
+89   2      B=B/40;                                                             
+90   2      IF CHAR EQ 0;                                                       
+91   3        THEN EXIT                                                         
+92   3        ENDIF                                                             
+93   2      IF CHAR LE 26;                                                      
+94   3        THEN CHAR=CHAR+64;        * upper case letter                     
+95   3        ELSE CHAR=CHAR+21;        * decimal digit                         
+96   3        ENDIF                                                             
+97   2       NAME(I)=CHAR;              * put character in name string          
+98   2       ENDDO                                                              
+99   1    NAME=I;                       * set string length                     
+100  1    RETURN                                                                
+101  1    ENDPROC                                                               
+102  0                                                                          
+103  0  * Look up a packed symbol (WORDS) in TABLE                              
+104  0  * Insert the new symbol with VAL and TAG if not already in TABLE        
+105  0  * If collision use next empty slot, if TABLE full return -1             
+106  0  * If existing entry found return VAL and TAG from TABLE                 
+107  0  * Return value is index of entry in TABLE                               
+108  0  *****************************************                               
+109  0  PROC LOOKS(WORDS,VAL,TAG);      * look up or insert symbol              
+110  1  *  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask          
+111  1    COLFLG=0;                     * reset collision flag                  
+112  1    I=WORDS MOD TABSIZ;                                                   
+113  1    I=I AND MASKE;                * use only even index                   
+114  1    J=I;                          * save starting position                
+115  1    REPEAT                                                                
+116  2      IF TABLE(I) EQ 0;           * found empty slot                      
+117  3        THEN TABLE(I)=WORDS;      * insert symbol                         
+118  3          TABLE(I+1)=(TAG SHL 16) OR VAL;                                 
+119  3          IF COLFLG; THEN         * if collision flag on then             
+120  4            COLLS=COLLS+1;        * count collisions on insertion         
+121  4            ENDIF                                                         
+122  3          RETURN I;                                                       
+123  3        ELSE IF TABLE(I) EQ WORDS; * found match                          
+124  4        THEN B=TABLE(I+1);        * retrieve VAL and TAG                  
+125  4          VAL=B AND MASKV;                                                
+126  4          TAG=(B SHR 16) AND MASKV;                                       
+127  4          RETURN I;                                                       
+128  4        ENDIF ENDIF                                                       
+129  2      I=I+2;                      * try next slot                         
+130  2      COLFLG=1;                   * set collision flag                    
+131  2      IF I GT TABSIZ;                                                     
+132  3        THEN I=I-TABSIZ;                                                  
+133  3        ENDIF                                                             
+134  2      UNTIL I EQ J;               * check for wrap to starting position   
+135  1    RETURN -1;                    * table full                            
+136  1    ENDPROC                                                               
+137  0                                                                          
+138  0  * Get VAL and TAG for this INDEX in TABLE                               
+139  0  * No return value                                                       
+140  0  *****************                                                       
+141  0  PROC GETS(INDEX,VAL,TAG);       * get VAL and TAG for INDEX             
+142  1    B=TABLE(INDEX+1);                                                     
+143  1    VAL=B AND MASKV;              * get VAL part                          
+144  1    TAG=(B SHR 16) AND MASKV;     * get TAG part                          
+145  1    RETURN                                                                
+146  1    ENDPROC                                                               
+147  0                                                                          
+148  0  * Put new VAL and TAG for this INDEX in TABLE                           
+149  0  * No return value                                                       
+150  0  *****************                                                       
+151  0  PROC PUTS(INDEX,VAL,TAG);       * put VAL and TAG at INDEX              
+152  1    TABLE(INDEX+1)=(TAG SHL 16) OR VAL;                                   
+153  1    RETURN                                                                
+154  1    ENDPROC                                                               
+155  0                                                                          
+156  0  * Get packed symbol (WDS) for this index in TABLE                       
+157  0  * No return value                                                       
+158  0  *****************                                                       
+159  0  PROC GETWRD(INDEX,WDS);         * get base 40 code at INDEX             
+160  1    WDS=TABLE(INDEX);                                                     
+161  1    RETURN                                                                
+162  1    ENDPROC                                                               
+163  0                                                                          
+164  0  END                                                                     
  NO ERRORS DETECTED

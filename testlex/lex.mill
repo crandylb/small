@@ -2,17 +2,25 @@
 ** Testing, CRB, Oct 24, 2012
 ** Restoring State matrix to original, CRB, Oct 30, 2012
 ** Fix end of line detection, CRB, Jan 13, 2014
+** Rewrite, CRB, Apr 2,2014
+** More mods, CRB, Apr 14, 2014
+** Distinguish between LKIND (lexical) and TKIND (token) CRB, May 15, 2014
 *
-*    BEGIN LEX;
+*  BEGIN LEX;
  BEGIN
-*    ENTRY LEX;
+*  ENTRY LEX;
  ENT  LEX
-*    EXTERN BUFF;
+*  EXTERN BUFF;                  * input line passed as global
  EXT  BUFF
+*  EXT PROC A2B40L;
+ EXT P A2B40L
+*  EXT PROC LOOKS;
+ EXT P LOOKS
+*  SET PRIM18=61;                * 18th prime used to hash ASCII chars
 *
 ** character type codes
 ** T array is indexed by 7-bit ASCII character code using zero indexing
-*      DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 space
+*  DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 space
  SECT DATA
  LABEL T
  CONST  1
@@ -31,7 +39,7 @@
  CONST  1
  CONST  1
  CONST  1
-*      DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alphabetic
+*  DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alphabetic
  SECT DATA
  LABEL T2
  CONST  1
@@ -50,7 +58,7 @@
  CONST  1
  CONST  1
  CONST  1
-*      DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digit
+*  DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digit
  SECT DATA
  LABEL T3
  CONST  1
@@ -69,7 +77,7 @@
  CONST  5
  CONST  5
  CONST  5
-*      DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quote mark
+*  DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quote mark
  SECT DATA
  LABEL T4
  CONST  3
@@ -88,7 +96,7 @@
  CONST  5
  CONST  5
  CONST  5
-*      DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 other
+*  DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 other
  SECT DATA
  LABEL T5
  CONST  5
@@ -107,7 +115,7 @@
  CONST  2
  CONST  2
  CONST  2
-*      DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5); 
+*  DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5); 
  SECT DATA
  LABEL T6
  CONST  2
@@ -126,7 +134,7 @@
  CONST  5
  CONST  5
  CONST  5
-*      DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); 
+*  DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); 
  SECT DATA
  LABEL T7
  CONST  5
@@ -145,7 +153,7 @@
  CONST  2
  CONST  2
  CONST  2
-*      DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);
+*  DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);
  SECT DATA
  LABEL T8
  CONST  2
@@ -165,11 +173,11 @@
  CONST  5
  CONST  5
 *
-*    DCL S=30;                   * S(0) contains size
+*  DCL S=30;                   * S(0) contains size
  SECT DATA
  LABEL S
  CONST  30
-*      DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces
+*    DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces
  SECT DATA
  LABEL S1
  CONST  1
@@ -177,7 +185,7 @@
  CONST  3
  CONST  4
  CONST  6
-*      DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name
+*    DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name
  SECT DATA
  LABEL S2
  CONST  -1
@@ -185,7 +193,7 @@
  CONST  2
  CONST  -1
  CONST  -1
-*      DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer
+*    DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer
  SECT DATA
  LABEL S3
  CONST  -2
@@ -193,7 +201,7 @@
  CONST  3
  CONST  -2
  CONST  -2
-*      DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string
+*    DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string
  SECT DATA
  LABEL S4
  CONST  4
@@ -201,7 +209,7 @@
  CONST  4
  CONST  5
  CONST  4
-*      DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other
+*    DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other
  SECT DATA
  LABEL S5
  CONST  -3
@@ -209,7 +217,7 @@
  CONST  -3
  CONST  4
  CONST  -3
-*      DCL S6=(-4,-4,-4,-4,-4);  * offset 25
+*    DCL S6=(-4,-4,-4,-4,-4);  * offset 25
  SECT DATA
  LABEL S6
  CONST  -4
@@ -217,7 +225,7 @@
  CONST  -4
  CONST  -4
  CONST  -4
-*    DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector
+*  DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector
  SECT DATA
  LABEL SROW
  CONST  6
@@ -228,60 +236,90 @@
  CONST  20
  CONST  25
 *
-*    DCL CTYPE;     * type of character
+*  DCL CTYPE;     * type of character
  SECT DATA
  LABEL CTYPE
  SPACE  1
-*    DCL STATE;     * state variable
+*  DCL STATE;     * state variable
  SECT DATA
  LABEL STATE
  SPACE  1
-*    DCL KIND;      * kind of token 1: name, 2: int, 3: string, 4, spc
+*  DCL LKIND;     * lexical kind 1: name, 2: int, 3: string, 4, special
  SECT DATA
- LABEL KIND
+ LABEL LKIND
  SPACE  1
-*    DCL I;         * local character index in BUFF
+*  DCL TKIND;     * token kind 0..7 for operators and keywords in initable
+ SECT DATA
+ LABEL TKIND
+ SPACE  1
+*  DCL I;         * local character index in BUFF
  SECT DATA
  LABEL I
  SPACE  1
-*    DCL CHAR;      * current local character
+*  DCL CHAR;      * current local character
  SECT DATA
  LABEL CHAR
  SPACE  1
-*    DCL J;         * index output character in LEXEME
+*  DCL ANCHOR;    * anchor start of token non-blank characters
  SECT DATA
- LABEL J
+ LABEL ANCHOR
  SPACE  1
+*  DCL NUM;       * integer value
+ SECT DATA
+ LABEL NUM
+ SPACE  1
+*  DCL INDEX,WORDS;
+ SECT DATA
+ LABEL INDEX
+ SPACE  1
+ LABEL WORDS
+ SPACE  1
+*  DCL VAL,TAG;
+ SECT DATA
+ LABEL VAL
+ SPACE  1
+ LABEL TAG
+ SPACE  1
+*
 **---------------
-*    PROC LEX(INEXT,LEXEME);
+*  PROC LEX(INEXT,LEXEME);
  SECT CODE
  SUBR P LEX
  NPARS  2
  PAR  INEXT
  PAR  LEXEME
  PEND
-*      STATE=1;     * initialize current state
+*    STATE=1;     * initialize current state
 *.GEN =STATE,=1,.BNST,
  L  =1
  ST  STATE
-*      I=INEXT;
+*    I=INEXT;     * local index in BUFF
 *.GEN =I,INEXT,.BNST,
  L D INEXT
  ST  I
-*      J=1;
-*.GEN =J,=1,.BNST,
- L  =1
- ST  J
-*      REPEAT 
+*    ANCHOR=0;    * initialize no anchor
+*.GEN =ANCHOR,=0,.BNST,
+ L  =0
+ ST  ANCHOR
+*    NUM=0;       * integer value of token
+*.GEN =NUM,=0,.BNST,
+ L  =0
+ ST  NUM
+*
+*    DO WHILE 1;  * process current token in BUFF
  LABEL LJ1
-*        CHAR=BUFF(I);
+*.GEN =1,=0,.BN-,
+ L  =1
+ -  =0
+ JEQ  LJ2
+*      CHAR=BUFF(I);
 *.GEN =CHAR,=BUFF,I,=2,.BNSHL,.BC+,.UA,.BNST,
  L  I
  SHL  =2
  +  =BUFF
  L  *.AC
  ST  CHAR
-*        IF CHAR EQ -1; THEN     * end of line
+*      IF CHAR EQ -1; THEN       * exit at end of line
 *.GEN CHAR,=1,.U-,.BN-,
  L  =1
  -
@@ -289,23 +327,18 @@
  L  CHAR
  -  T1Z
  JNE  LJ3
-*          LEXEME=J-1;
-*.GEN =LEXEME,J,=1,.BN-,.BNST,
- L  J
- -  =1
- ST D LEXEME
-*          EXIT
+*        EXIT
  J  LJ2
-*        ENDIF
+*      ENDIF
  LABEL LJ3
-*        CTYPE=T(CHAR);  * get character type
+*      CTYPE=T(CHAR);  * get character type
 *.GEN =CTYPE,=T,CHAR,=2,.BNSHL,.BC+,.UA,.BNST,
  L  CHAR
  SHL  =2
  +  =T
  L  *.AC
  ST  CTYPE
-*        STATE=S(SROW(STATE)+CTYPE);
+*      STATE=S(SROW(STATE)+CTYPE);
 *.GEN =STATE,=S,=SROW,STATE,=2,.BNSHL,.BC+,.UA,CTYPE,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  L  STATE
  SHL  =2
@@ -316,68 +349,200 @@
  +  =S
  L  *.AC
  ST  STATE
-*        IF STATE LT 0; THEN 
-*.GEN STATE,=0,.BN-,
- L  STATE
- -  =0
- JGE  LJ4
-*          LEXEME=J-1;   * set length of lexeme string
-*.GEN =LEXEME,J,=1,.BN-,.BNST,
- L  J
- -  =1
- ST D LEXEME
-*          EXIT 
- J  LJ2
-*        ELSE 
- J  LJ5
- LABEL LJ4
-*          IF STATE NE 1; THEN   * skip white space
+*      IF STATE NE 1; THEN       * stop skipping white space
 *.GEN STATE,=1,.BN-,
  L  STATE
  -  =1
- JEQ  LJ6
-*            LEXEME(J)=CHAR;
-*.GEN =LEXEME,J,=2,.BNSHL,.BC+,CHAR,.BNST,
- L  J
- SHL  =2
- + D =LEXEME
- ST  T1Z
- L  CHAR
- ST  *T1Z
-*            J=J+1;
-*.GEN =J,J,=1,.BC+,.BNST,
- L  J
- +  =1
- ST  J
-*          ENDIF
- LABEL LJ6
+ JEQ  LJ4
+*        IF ANCHOR EQ 0; THEN 
+*.GEN ANCHOR,=0,.BN-,
+ L  ANCHOR
+ -  =0
+ JNE  LJ5
+*          ANCHOR=I;             * drop anchor
+*.GEN =ANCHOR,I,.BNST,
+ L  I
+ ST  ANCHOR
 *        ENDIF
  LABEL LJ5
-*        I=I+1;
+*      ENDIF
+ LABEL LJ4
+*      IF STATE EQ 3; THEN       * integer
+*.GEN STATE,=3,.BN-,
+ L  STATE
+ -  =3
+ JNE  LJ6
+*        NUM=10*NUM-'0'+CHAR;    * accumulate value
+*.GEN =NUM,=10,NUM,.BC*,=48,.BN-,CHAR,.BC+,.BNST,
+ L  =10
+ *  NUM
+ -  =48
+ +  CHAR
+ ST  NUM
+*      ENDIF
+ LABEL LJ6
+*      IF STATE LT 0; THEN       * if reached terminal state
+*.GEN STATE,=0,.BN-,
+ L  STATE
+ -  =0
+ JGE  LJ7
+*        EXIT                    * drop out of loop
+ J  LJ2
+*      ENDIF
+ LABEL LJ7
+*      I=I+1;                    * advance to next character
 *.GEN =I,I,=1,.BC+,.BNST,
  L  I
  +  =1
  ST  I
-*      UNTIL STATE LT 0;
-*.GEN STATE,=0,.BN-,
- L  STATE
- -  =0
- JGE  LJ1
+*    ENDDO
+ J  LJ1
  LABEL LJ2
-*      INEXT=I;
+*
+*    INEXT=I;                    * return start index for next token
 *.GEN =INEXT,I,.BNST,
  L  I
  ST D INEXT
-*      KIND=-STATE;
-*.GEN =KIND,STATE,.U-,.BNST,
+*    LKIND=-STATE;               * return lexical LKIND of this token
+*.GEN =LKIND,STATE,.U-,.BNST,
  L  STATE
  -
- ST  KIND
-*      RETURN KIND;
-*.GEN KIND,
- L  KIND
+ ST  LKIND
+*    LEXEME=(I-ANCHOR) SHL 8 OR ANCHOR; * length and anchor
+*.GEN =LEXEME,I,ANCHOR,.BN-,=8,.BNSHL,ANCHOR,.BCOR,.BNST,
+ L  I
+ -  ANCHOR
+ SHL  =8
+ OR  ANCHOR
+ ST D LEXEME
+*
+*    IF LKIND EQ 1; THEN         * name token
+*.GEN LKIND,=1,.BN-,
+ L  LKIND
+ -  =1
+ JNE  LJ8
+*      WORDS=A2B40L(LEXEME,BUFF);
+*.GEN =WORDS,(LEXEME,BUFF),.UFA2B40L,.BNST,
+ ARGT D LEXEME
+ SCALL P A2B40L
+ NARGS  2
+ ARG D LEXEME
+ ARG  BUFF
+ CEND
+ ST  WORDS
+*      INDEX=LOOKS(WORDS,VAL,TAG);
+*.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
+ SCALL P LOOKS
+ NARGS  3
+ ARG  WORDS
+ ARG  VAL
+ ARG  TAG
+ CEND
+ ST  INDEX
+*      LEXEME(1)=INDEX;
+*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,INDEX,.BNST,
+ L  =1
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  INDEX
+ ST  *T1Z
+*      LEXEME(2)=VAL;
+*.GEN =LEXEME,=2,=2,.BNSHL,.BC+,VAL,.BNST,
+ L  =2
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  VAL
+ ST  *T1Z
+*      LEXEME(3)=TAG;
+*.GEN =LEXEME,=3,=2,.BNSHL,.BC+,TAG,.BNST,
+ L  =3
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  TAG
+ ST  *T1Z
+*    ELSE IF LKIND EQ 2; THEN    * integer token
+ J  LJ11
+ LABEL LJ8
+*.GEN LKIND,=2,.BN-,
+ L  LKIND
+ -  =2
+ JNE  LJ12
+*      LEXEME(1)=NUM;            * return its binary value
+*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,NUM,.BNST,
+ L  =1
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  NUM
+ ST  *T1Z
+*    ELSE IF LKIND EQ 4; THEN    * special character token
+ J  LJ13
+ LABEL LJ12
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ14
+*      WORDS=BUFF(ANCHOR+1)*PRIM18;
+*.GEN =WORDS,=BUFF,ANCHOR,=1,.BC+,=2,.BNSHL,.BC+,.UA,PRIM18,.BC*,.BNST,
+ L  ANCHOR
+ +  =1
+ SHL  =2
+ +  =BUFF
+ L  *.AC
+ * 61 PRIM18
+ ST  WORDS
+*      INDEX=LOOKS(WORDS,VAL,TAG);
+*.GEN =INDEX,(WORDS,VAL,TAG),.UFLOOKS,.BNST,
+ SCALL P LOOKS
+ NARGS  3
+ ARG  WORDS
+ ARG  VAL
+ ARG  TAG
+ CEND
+ ST  INDEX
+*      LEXEME(1)=INDEX;
+*.GEN =LEXEME,=1,=2,.BNSHL,.BC+,INDEX,.BNST,
+ L  =1
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  INDEX
+ ST  *T1Z
+*      LEXEME(2)=VAL;
+*.GEN =LEXEME,=2,=2,.BNSHL,.BC+,VAL,.BNST,
+ L  =2
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  VAL
+ ST  *T1Z
+*      LEXEME(3)=TAG;
+*.GEN =LEXEME,=3,=2,.BNSHL,.BC+,TAG,.BNST,
+ L  =3
+ SHL  =2
+ + D =LEXEME
+ ST  T1Z
+ L  TAG
+ ST  *T1Z
+*      ENDIF ENDIF ENDIF
+ LABEL LJ14
+ LABEL LJ13
+ LABEL LJ11
+*
+*    LEXEME=LKIND SHL 28 OR LEXEME; * use lexical LKIND from final STATE
+*.GEN =LEXEME,LKIND,=28,.BNSHL,LEXEME,.BCOR,.BNST,
+ L  LKIND
+ SHL  =28
+ OR D LEXEME
+ ST D LEXEME
+*    RETURN LKIND;               * return lexical LKIND 1..4
+*.GEN LKIND,
+ L  LKIND
  RETN  LEX,2
-*    ENDPROC
+*  ENDPROC
  SECT DATA
  LABEL T1Z
  SPACE  2

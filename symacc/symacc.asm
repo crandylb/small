@@ -1,5 +1,8 @@
 ;* SYMACC.S1 -- Symbol Table Access Module for Small, CRB, Feb 9, 2014
 ;* 03/14/2014 CRB Add COLLS collision counter
+;* 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
+;* 03/29/2014 CRB Add A2B40L for use with LEX
+;* 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
 ;
 ;BEGIN SYMACC;
  global progr
@@ -15,11 +18,14 @@
  global  GETS
  global  PUTS
  global  GETWRD
-;  ENTRY A2B40,B402A;            * ASCII, B40 conversion
+;  ENTRY A2B40,A2B40L,B402A;     * ASCII, B40 conversion
  global  A2B40
+ global  A2B40L
  global  B402A
 ;  ENTRY COLLS;                  * Collision counter
  global  COLLS
+;  ENTRY MASKV;
+ global  MASKV
 ;
 ;  SET TABSIZ=8191;              * prime < 2^13
 ;  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
@@ -48,11 +54,14 @@ MASKE:
 ;  DCL MASKV=65535;              * mask for low 16 bits
 MASKV:
  dd  -1
-;  DCL COLFLG,COLLS=0;           * collision counter on instertion only
+;  DCL COLFLG,COLLS=0;           * collision counter on insertion only
 COLFLG:
  times 1 dd 0
 COLLS:
  dd  0
+;  DCL ANC;                      * anchor
+ANC:
+ times 1 dd 0
 ;
 ;* Convert ASCII STR to base 40 CODE packing 6 characters in 32 bit word
 ;* Only upper case letters and decimal digits are allowed
@@ -168,6 +177,130 @@ LJ3:
  ret
 ;  ENDPROC
 ;
+;* Use this version to grab a token from a substring
+;* SUBSTR contains length SHL 8 and anchor starting index
+;******************************
+;PROC A2B40L(SUBSTR,STR);        * convert ASCII string to base 40
+; SUBR  A2B40L
+A2B40L:
+ push EBP
+ mov  EBP,ESP
+; NPARS  2
+; PAR  SUBSTR
+; PAR  STR
+; PEND
+;  ANC=SUBSTR AND 255;           * get anchor starting index
+;.GEN =ANC,SUBSTR,=255,.BCAND,.BNST,
+; L D SUBSTR
+ mov EBX,[EBP+12] ; SUBSTR
+ mov EAX,[EBX]
+ and EAX,255
+ mov [ANC],EAX
+;  LEN=SUBSTR SHR 8 AND 255;     * get length of string
+;.GEN =LEN,SUBSTR,=8,.BNSHR,=255,.BCAND,.BNST,
+; L D SUBSTR
+ mov EBX,[EBP+12] ; SUBSTR
+ mov EAX,[EBX]
+ sar EAX,8
+ and EAX,255
+ mov [LEN],EAX
+;  IF LEN GT 6; THEN 
+;.GEN LEN,=6,.BN-,
+ mov EAX,[LEN]
+ sub EAX,6
+ jle LJ9
+;    LEN=6;                      * truncate length to 6
+;.GEN =LEN,=6,.BNST,
+ mov EAX,6
+ mov [LEN],EAX
+;    ENDIF
+LJ9:
+;  I=ANC+LEN-1;                    * start at end of token string
+;.GEN =I,ANC,LEN,.BC+,=1,.BN-,.BNST,
+ mov EAX,[ANC]
+ add EAX,[LEN]
+ dec EAX
+ mov [I],EAX
+;  CODE=0;                       * init B40 code
+;.GEN =CODE,=0,.BNST,
+ mov EAX,0
+ mov [CODE],EAX
+;  DO WHILE I GE ANC;
+LJ10:
+;.GEN I,ANC,.BN-,
+ mov EAX,[I]
+ sub EAX,[ANC]
+ jl LJ11
+;    CHAR=STR(I);                * read charaters in reverse order
+;.GEN =CHAR,=STR,I,=2,.BNSHL,.BC+,.UA,.BNST,
+ mov EAX,[I]
+ sal EAX,2
+; + D =STR
+ mov EBX,[EBP+8] ; STR
+ add EAX,EBX
+ mov EAX,[EAX]
+ mov [CHAR],EAX
+;    IF CHAR LE 57; THEN 
+;.GEN CHAR,=57,.BN-,
+ mov EAX,[CHAR]
+ sub EAX,57
+ jg LJ12
+;      B=CHAR-21;                * digits 0..9 -> 27..36
+;.GEN =B,CHAR,=21,.BN-,.BNST,
+ mov EAX,[CHAR]
+ sub EAX,21
+ mov [B],EAX
+;    ELSE IF CHAR LE 90; THEN 
+ jmp LJ13
+LJ12:
+;.GEN CHAR,=90,.BN-,
+ mov EAX,[CHAR]
+ sub EAX,90
+ jg LJ14
+;      B=CHAR-64;                * upper case A..Z -> 1..26
+;.GEN =B,CHAR,=64,.BN-,.BNST,
+ mov EAX,[CHAR]
+ sub EAX,64
+ mov [B],EAX
+;    ELSE IF CHAR LE 122; THEN 
+ jmp LJ15
+LJ14:
+;.GEN CHAR,=122,.BN-,
+ mov EAX,[CHAR]
+ sub EAX,122
+ jg LJ16
+;      B=CHAR-96;                * lower case a..z -> 1..26
+;.GEN =B,CHAR,=96,.BN-,.BNST,
+ mov EAX,[CHAR]
+ sub EAX,96
+ mov [B],EAX
+;      ENDIF ENDIF ENDIF
+LJ16:
+LJ15:
+LJ13:
+;    CODE=40*CODE+B;             * calculate base 40 code
+;.GEN =CODE,=40,CODE,.BC*,B,.BC+,.BNST,
+ mov EAX,40
+ imul dword [CODE]
+ add EAX,[B]
+ mov [CODE],EAX
+;    I=I-1;                      * decrement I for next character
+;.GEN =I,I,=1,.BN-,.BNST,
+ mov EAX,[I]
+ dec EAX
+ mov [I],EAX
+;    ENDDO
+ jmp LJ10
+LJ11:
+;  RETURN CODE;                  * return accumulated base 40 code
+;.GEN CODE,
+ mov EAX,[CODE]
+; RETN  A2B40L,2
+ mov ESP,EBP
+ pop EBP
+ ret
+;  ENDPROC
+;
 ;* Convert base 40 code to ASCII in NAME
 ;* No return value
 ;*****************
@@ -191,11 +324,11 @@ B402A:
  mov EAX,0
  mov [I],EAX
 ;  DO WHILE I LT 6;
-LJ9:
+LJ17:
 ;.GEN I,=6,.BN-,
  mov EAX,[I]
  sub EAX,6
- jge LJ10
+ jge LJ18
 ;    I=I+1;
 ;.GEN =I,I,=1,.BC+,.BNST,
  mov EAX,[I]
@@ -221,29 +354,29 @@ LJ9:
  mov EAX,[CHAR]
  or EAX,EAX
 ;      THEN EXIT
- jne LJ11
- jmp LJ10
+ jne LJ19
+ jmp LJ18
 ;      ENDIF
-LJ11:
+LJ19:
 ;    IF CHAR LE 26;
 ;.GEN CHAR,=26,.BN-,
  mov EAX,[CHAR]
  sub EAX,26
 ;      THEN CHAR=CHAR+64;        * upper case letter
- jg LJ12
+ jg LJ20
 ;.GEN =CHAR,CHAR,=64,.BC+,.BNST,
  mov EAX,[CHAR]
  add EAX,64
  mov [CHAR],EAX
 ;      ELSE CHAR=CHAR+21;        * decimal digit
- jmp LJ13
-LJ12:
+ jmp LJ21
+LJ20:
 ;.GEN =CHAR,CHAR,=21,.BC+,.BNST,
  mov EAX,[CHAR]
  add EAX,21
  mov [CHAR],EAX
 ;      ENDIF
-LJ13:
+LJ21:
 ;     NAME(I)=CHAR;              * put character in name string
 ;.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
  mov EAX,[I]
@@ -251,14 +384,14 @@ LJ13:
 ; + D =NAME
  mov EBX,[EBP+8] ; NAME
  add EAX,EBX
- mov [T3Z],EAX
+ mov [T5Z],EAX
  mov EAX,[CHAR]
  mov EDX,EAX
- mov EAX,[T3Z]
+ mov EAX,[T5Z]
  mov [EAX],EDX
 ;     ENDDO
- jmp LJ9
-LJ10:
+ jmp LJ17
+LJ18:
 ;  NAME=I;                       * set string length
 ;.GEN =NAME,I,.BNST,
  mov EAX,[I]
@@ -272,7 +405,7 @@ LJ10:
  ret
 ;  ENDPROC
  section .data
-T3Z:
+T5Z:
  times 2 dd 0
  section .text
 ;
@@ -292,12 +425,7 @@ LOOKS:
 ; PAR  VAL
 ; PAR  TAG
 ; PEND
-;  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
-;.GEN =MASKV,=32767,=1,.BNSHL,=1,.BCOR,.BNST,
- mov EAX,32767
- sal EAX,1
- or EAX,1
- mov [MASKV],EAX
+;*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
 ;  COLFLG=0;                     * reset collision flag
 ;.GEN =COLFLG,=0,.BNST,
  mov EAX,0
@@ -323,7 +451,7 @@ LOOKS:
  mov EAX,[I]
  mov [J],EAX
 ;  REPEAT 
-LJ14:
+LJ22:
 ;    IF TABLE(I) EQ 0;           * found empty slot
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,=0,.BN-,
  mov EAX,[I]
@@ -332,17 +460,17 @@ LJ14:
  mov EAX,[EAX]
  or EAX,EAX
 ;      THEN TABLE(I)=WORDS;      * insert symbol
- jne LJ16
+ jne LJ24
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  mov EAX,[I]
  sal EAX,2
  add EAX,TABLE
- mov [T5Z],EAX
+ mov [T7Z],EAX
 ; L D WORDS
  mov EBX,[EBP+16] ; WORDS
  mov EAX,[EBX]
  mov EDX,EAX
- mov EAX,[T5Z]
+ mov EAX,[T7Z]
  mov [EAX],EDX
 ;        TABLE(I+1)=(TAG SHL 16) OR VAL;
 ;.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
@@ -350,7 +478,7 @@ LJ14:
  inc EAX
  sal EAX,2
  add EAX,TABLE
- mov [T5Z1],EAX
+ mov [T7Z1],EAX
 ; L D TAG
  mov EBX,[EBP+8] ; TAG
  mov EAX,[EBX]
@@ -359,20 +487,20 @@ LJ14:
  mov EBX,[EBP+12] ; VAL
  or EAX,[EBX]
  mov EDX,EAX
- mov EAX,[T5Z1]
+ mov EAX,[T7Z1]
  mov [EAX],EDX
 ;        IF COLFLG; THEN         * if collision flag on then
 ;.GEN COLFLG,=0,.BN-,
  mov EAX,[COLFLG]
  or EAX,EAX
- jz LJ17
+ jz LJ25
 ;          COLLS=COLLS+1;        * count collisions on insertion
 ;.GEN =COLLS,COLLS,=1,.BC+,.BNST,
  mov EAX,[COLLS]
  inc EAX
  mov [COLLS],EAX
 ;          ENDIF
-LJ17:
+LJ25:
 ;        RETURN I;
 ;.GEN I,
  mov EAX,[I]
@@ -381,8 +509,8 @@ LJ17:
  pop EBP
  ret
 ;      ELSE IF TABLE(I) EQ WORDS; * found match
- jmp LJ18
-LJ16:
+ jmp LJ26
+LJ24:
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  mov EAX,[I]
  sal EAX,2
@@ -392,7 +520,7 @@ LJ16:
  mov EBX,[EBP+16] ; WORDS
  sub EAX,[EBX]
 ;      THEN B=TABLE(I+1);        * retrieve VAL and TAG
- jne LJ19
+ jne LJ27
 ;.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
  inc EAX
@@ -423,8 +551,8 @@ LJ16:
  pop EBP
  ret
 ;      ENDIF ENDIF
-LJ19:
-LJ18:
+LJ27:
+LJ26:
 ;    I=I+2;                      * try next slot
 ;.GEN =I,I,=2,.BC+,.BNST,
  mov EAX,[I]
@@ -439,19 +567,19 @@ LJ18:
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
 ;      THEN I=I-TABSIZ;
- jle LJ20
+ jle LJ28
 ;.GEN =I,I,TABSIZ,.BN-,.BNST,
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
  mov [I],EAX
 ;      ENDIF
-LJ20:
+LJ28:
 ;    UNTIL I EQ J;               * check for wrap to starting position
 ;.GEN I,J,.BN-,
  mov EAX,[I]
  sub EAX,[J]
- jne LJ14
-LJ15:
+ jne LJ22
+LJ23:
 ;  RETURN -1;                    * table full
 ;.GEN =1,.U-,
  mov EAX,1
@@ -462,11 +590,11 @@ LJ15:
  ret
 ;  ENDPROC
  section .data
-T5Z:
+T7Z:
  times 2 dd 0
  section .text
  section .data
-T5Z1:
+T7Z1:
  times 1 dd 0
  section .text
 ;
@@ -518,25 +646,25 @@ GETS:
 ;* Put new VAL and TAG for this INDEX in TABLE
 ;* No return value
 ;*****************
-;PROC PUTS(PINDEX,VAL,TAG);      * put VAL and TAG at INDEX
+;PROC PUTS(INDEX,VAL,TAG);       * put VAL and TAG at INDEX
 ; SUBR  PUTS
 PUTS:
  push EBP
  mov  EBP,ESP
 ; NPARS  3
-; PAR  PINDEX
+; PAR  INDEX
 ; PAR  VAL
 ; PAR  TAG
 ; PEND
-;  TABLE(PINDEX+1)=(TAG SHL 16) OR VAL;
-;.GEN =TABLE,PINDEX,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
-; L D PINDEX
- mov EBX,[EBP+16] ; PINDEX
+;  TABLE(INDEX+1)=(TAG SHL 16) OR VAL;
+;.GEN =TABLE,INDEX,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
+; L D INDEX
+ mov EBX,[EBP+16] ; INDEX
  mov EAX,[EBX]
  inc EAX
  sal EAX,2
  add EAX,TABLE
- mov [T9Z1],EAX
+ mov [T11Z1],EAX
 ; L D TAG
  mov EBX,[EBP+8] ; TAG
  mov EAX,[EBX]
@@ -545,7 +673,7 @@ PUTS:
  mov EBX,[EBP+12] ; VAL
  or EAX,[EBX]
  mov EDX,EAX
- mov EAX,[T9Z1]
+ mov EAX,[T11Z1]
  mov [EAX],EDX
 ;  RETURN
 ; RETN  PUTS,3
@@ -554,14 +682,14 @@ PUTS:
  ret
 ;  ENDPROC
  section .data
-T9Z1:
+T11Z1:
  times 1 dd 0
  section .text
 ;
 ;* Get packed symbol (WDS) for this index in TABLE
 ;* No return value
 ;*****************
-;PROC GETWRD(INDEX,WDS);        * get base 40 code at INDEX
+;PROC GETWRD(INDEX,WDS);         * get base 40 code at INDEX
 ; SUBR  GETWRD
 GETWRD:
  push EBP

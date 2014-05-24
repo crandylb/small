@@ -2,63 +2,97 @@
 * Testing, CRB, Oct 24, 2012
 * Restoring State matrix to original, CRB, Oct 30, 2012
 * Fix end of line detection, CRB, Jan 13, 2014
+* Rewrite, CRB, Apr 2,2014
+* More mods, CRB, Apr 14, 2014
+* Distinguish between LKIND (lexical) and TKIND (token) CRB, May 15, 2014
 
-    BEGIN LEX;
-    ENTRY LEX;
-    EXTERN BUFF;
+  BEGIN LEX;
+  ENTRY LEX;
+  EXTERN BUFF;                  * input line passed as global
+  EXT PROC A2B40L;
+  EXT PROC LOOKS;
+  SET PRIM18=61;                * 18th prime used to hash ASCII chars
 
 * character type codes
 * T array is indexed by 7-bit ASCII character code using zero indexing
-      DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 space
-      DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alphabetic
-      DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digit
-      DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quote mark
-      DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 other
-      DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5); 
-      DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); 
-      DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);
+  DCL  T=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 1 space
+  DCL T2=( 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1); * 2 alphabetic
+  DCL T3=( 1, 5, 5, 5, 5, 5, 5, 4, 5, 5, 5, 5, 5, 5, 5, 5); * 3 digit
+  DCL T4=( 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 5, 5, 5, 5); * 4 quote mark
+  DCL T5=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); * 5 other
+  DCL T6=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5); 
+  DCL T7=( 5, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2); 
+  DCL T8=( 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 5, 5, 5, 5, 5);
 
-    DCL S=30;                   * S(0) contains size
-      DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces
-      DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name
-      DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer
-      DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string
-      DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other
-      DCL S6=(-4,-4,-4,-4,-4);  * offset 25
-    DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector
+  DCL S=30;                   * S(0) contains size
+    DCL S1=( 1, 2, 3, 4, 6);  * offset 0    1 spaces
+    DCL S2=(-1, 2, 2,-1,-1);  * offset 5    2 name
+    DCL S3=(-2,-2, 3,-2,-2);  * offset 10   3 integer
+    DCL S4=( 4, 4, 4, 5, 4);  * offset 15   4 quoted string
+    DCL S5=(-3,-3,-3, 4,-3);  * offset 20   5 other
+    DCL S6=(-4,-4,-4,-4,-4);  * offset 25
+  DCL SROW=( 6, 0, 5,10,15,20,25); * aux offset vector
 
-    DCL CTYPE;     * type of character
-    DCL STATE;     * state variable
-    DCL KIND;      * kind of token 1: name, 2: int, 3: string, 4, spc
-    DCL I;         * local character index in BUFF
-    DCL CHAR;      * current local character
-    DCL J;         * index output character in LEXEME
+  DCL CTYPE;     * type of character
+  DCL STATE;     * state variable
+  DCL LKIND;     * lexical kind 1: name, 2: int, 3: string, 4, special
+  DCL TKIND;     * token kind 0..7 for operators and keywords in initable
+  DCL I;         * local character index in BUFF
+  DCL CHAR;      * current local character
+  DCL ANCHOR;    * anchor start of token non-blank characters
+  DCL NUM;       * integer value
+  DCL INDEX,WORDS;
+  DCL VAL,TAG;
+
 *---------------
-    PROC LEX(INEXT,LEXEME);
-      STATE=1;     * initialize current state
-      I=INEXT;
-      J=1;
-      REPEAT 
-        CHAR=BUFF(I);
-        IF CHAR EQ -1; THEN     * end of line
-          LEXEME=J-1;
-          EXIT
+  PROC LEX(INEXT,LEXEME);
+    STATE=1;     * initialize current state
+    I=INEXT;     * local index in BUFF
+    ANCHOR=0;    * initialize no anchor
+    NUM=0;       * integer value of token
+
+    DO WHILE 1;  * process current token in BUFF
+      CHAR=BUFF(I);
+      IF CHAR EQ -1; THEN       * exit at end of line
+        EXIT
+      ENDIF
+      CTYPE=T(CHAR);  * get character type
+      STATE=S(SROW(STATE)+CTYPE);
+      IF STATE NE 1; THEN       * stop skipping white space
+        IF ANCHOR EQ 0; THEN 
+          ANCHOR=I;             * drop anchor
         ENDIF
-        CTYPE=T(CHAR);  * get character type
-        STATE=S(SROW(STATE)+CTYPE);
-        IF STATE LT 0; THEN 
-          LEXEME=J-1;   * set length of lexeme string
-          EXIT 
-        ELSE 
-          IF STATE NE 1; THEN   * skip white space
-            LEXEME(J)=CHAR;
-            J=J+1;
-          ENDIF
-        ENDIF
-        I=I+1;
-      UNTIL STATE LT 0;
-      INEXT=I;
-      KIND=-STATE;
-      RETURN KIND;
-    ENDPROC
+      ENDIF
+      IF STATE EQ 3; THEN       * integer
+        NUM=10*NUM-'0'+CHAR;    * accumulate value
+      ENDIF
+      IF STATE LT 0; THEN       * if reached terminal state
+        EXIT                    * drop out of loop
+      ENDIF
+      I=I+1;                    * advance to next character
+    ENDDO
+
+    INEXT=I;                    * return start index for next token
+    LKIND=-STATE;               * return lexical LKIND of this token
+    LEXEME=(I-ANCHOR) SHL 8 OR ANCHOR; * length and anchor
+
+    IF LKIND EQ 1; THEN         * name token
+      WORDS=A2B40L(LEXEME,BUFF);
+      INDEX=LOOKS(WORDS,VAL,TAG);
+      LEXEME(1)=INDEX;
+      LEXEME(2)=VAL;
+      LEXEME(3)=TAG;
+    ELSE IF LKIND EQ 2; THEN    * integer token
+      LEXEME(1)=NUM;            * return its binary value
+    ELSE IF LKIND EQ 4; THEN    * special character token
+      WORDS=BUFF(ANCHOR+1)*PRIM18;
+      INDEX=LOOKS(WORDS,VAL,TAG);
+      LEXEME(1)=INDEX;
+      LEXEME(2)=VAL;
+      LEXEME(3)=TAG;
+      ENDIF ENDIF ENDIF
+
+    LEXEME=LKIND SHL 28 OR LEXEME; * use lexical LKIND from final STATE
+    RETURN LKIND;               * return lexical LKIND 1..4
+  ENDPROC
   END

@@ -241,6 +241,14 @@ _ mov EAX,EDX\
 .GETP `10\
 _ mov [EBX],EAX\
 \
+. ARGT D `\                     ARG transfer CRB 04/15/2014
+; ARGT D `10\
+.GETP `10\
+\
+. ARG D `\                      complete ARG transfer CRB 04/15/2014
+; ARG D `10\
+_ push EBX\
+\
 .GETP `\			get parameter CRB 07/13/2013
 *OFF`76\
 *NPAR`86\
