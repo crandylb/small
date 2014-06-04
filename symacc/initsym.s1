@@ -2,13 +2,13 @@
 * 03/14/2014 CRB Add COLLS collision counter and token KIND
 * 03/18/2014 CRB Randomize single char ops, add INDEX output
 * 04/03/2014 CRB Use integer value from LEX in LEXEME(1)
-* 05/10/2014 CRB Ude INDEX from LEXEME(1) to set VAL and TAG with PUTS
+* 05/10/2014 CRB Use INDEX from LEXEME(1) to set VAL and TAG with PUTS
+* 05/26/2014 CRB Remove TESTINIT into its own module
 
 BEGIN INITSYM;
 ENT INITSYM;
 ENT DMPLIST;
 ENT BUFF;
-START INIT;
 
 EXT PROC READ,WRITE;
 EXT PROC LEX;
@@ -33,11 +33,7 @@ MSG COLLISIONS='Collisions: ';
 SET PRIM18=61;                  * prime # 18
 DCL ANC;                        * anchor
 
-LABEL INIT;
-  CALL INITSYM;
-  CALL DMPLIST;
-RETURN
-
+* Initialize the symbol table with data from initable.dat file 
 PROC INITSYM;
   MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
   STATUS=READ(SCRCH,BUFF);      * read first line from chan 2
@@ -81,6 +77,7 @@ PROC INITSYM;
   RETURN
 ENDPROC
 
+* Dump contents of symbol table to verify initialization
 PROC DMPLIST;
   I=1;
   DO WHILE I LE COUNT;
