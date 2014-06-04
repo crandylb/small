@@ -9,6 +9,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 03/20/2014 CRB Minor updates to symacc and initsym
 05/18/2014 CRB Add cat3 and libsrc
 05/23/2014 CRB Update mill2yasm, testlex, and symacc
+06/04/2014 CRB Move testinit to own module
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -159,6 +160,18 @@ module. Input tokens are scanned using lex and properties are eturned in a
 LEXEME array for parsing and any other further evaluation. This module also
 includes an initialization phase to predefine keywords and alphabetic
 operators. 
+
+Update 06/04/2014 Move testinit to own module
+The initsym module has been separated into two separate modules: testinit and
+initsym so that initsym can be used as symbol table initialization as part of
+the Small compiler/interpreter without an embedded test program. In other
+words, the test program driver is now moved into its own testinit module. The
+makefile has been modified accordingly so that:
+     make testinit
+builds the initialization test program, and:
+     make test
+runs the test and generates the initsym.out file to verify the
+initialization. 
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including
