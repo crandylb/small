@@ -10,6 +10,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 05/18/2014 CRB Add cat3 and libsrc
 05/23/2014 CRB Update mill2yasm, testlex, and symacc
 06/04/2014 CRB Move testinit to own module
+06/05/2014 CRB Add runoff subdirectory
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -34,6 +35,7 @@ Test Programs:   Directories containing test programs written in Small
 lib              a library for Small programs
 libsrc		 source files for lib
 symacc           symbol table access module
+runoff	         paper and listings for 1981 Small Runoff 
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
 SmallPocketGuide.pdf This version may be easier to print in landscape
@@ -172,6 +174,13 @@ builds the initialization test program, and:
      make test
 runs the test and generates the initsym.out file to verify the
 initialization. 
+
+runoff
+This subdirectory contains the 1981 version of Small Runoff, the program used
+to format my 1982 thesis describing Small. The file smallrunoffpaper.pdf is a
+paper originally by Joe Felsenstein that describes the Runoff program. The
+version of the paper here was rewritten by me to describe the version of the
+program written in Small.
 
 SmallPocketGuide.odt and .pdf
 This quick reference guide contains a summary of Small and Mill, including
