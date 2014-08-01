@@ -11,6 +11,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 05/23/2014 CRB Update mill2yasm, testlex, and symacc
 06/04/2014 CRB Move testinit to own module
 06/05/2014 CRB Add runoff subdirectory
+08/01/2013 CRB Bug fixes for mill2yasm, cat3
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -66,6 +67,8 @@ implementation notes.
 Update 05/23/2014 Added ". ARGT D" macro to transfer a formal parameter used
 as an actual parameter in anothed procedure call. This still needs work to be
 able to handle more that one such eaxample in a single call.
+Update 08/01/2014 Fixed one character typo that prevented CASE statement from
+working properly.
 
 smallio.c
 This C program interfaces I/O in Small to the conventions used in the grandios
@@ -123,11 +126,13 @@ modules. The makefile shows how the library is made using ar. The library is
 used by gcc with -L defining the path to the library, and -ls1 to link any
 needed modules. Note that only "s1" is given to the -l option, and "lib" and
 ".a" will be assumed automatically.
+Update 08/01/2014 CRB Fixed off-by-one bug in cat3.
 
 libsrc
 This directory contains the source files written in Small for the s1 library
 in the lib subdirectory, except for grandios and smallio which contain source
 files written in C in their own subdirectories.
+Update 08/01/2014 CRB Fixed off-by-one bug in cat3.
 
 symacc
 This directory contains an implementation of the symbol table access module,
