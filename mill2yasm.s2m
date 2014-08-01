@@ -123,7 +123,7 @@ _ sal  EAX,2\
 _ add  EAX,LC`01\
 _ mov  EAX,[EAX]\
 _ jmp  EAX\
-_ SECT DATA\
+. SECT DATA\                    _ --> . TYPO crb 7/22/2014
 _LC`01:\
 \
 . JC  `\			case label CRB 1/31/2014

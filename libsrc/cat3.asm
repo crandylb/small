@@ -1,4 +1,5 @@
 ;* cat3.s1 -- CAT version for substring capture, CRB, Mar 29, 2014
+;* 07/25/2014 CRB Fix off-by-one error
 ;
 ;  BEGIN CAT3;
  global progr
@@ -15,7 +16,7 @@ J:
 LEN:
  times 1 dd 0
 ;
-;* Append substring from BUFF into DEST
+;* Append substring from SRC into DEST
 ;PROC CAT3(DEST,LA,SRC);
  section .text
 ; SUBR  CAT3
@@ -27,7 +28,7 @@ CAT3:
 ; PAR  LA
 ; PAR  SRC
 ; PEND
-;  LEN=LA SHR 8;
+;  LEN=LA SHR 8;                 * extract length of substring
 ;.GEN =LEN,LA,=8,.BNSHR,.BNST,
 ; L D LA
  mov EBX,[EBP+12] ; LA
@@ -41,11 +42,12 @@ CAT3:
  mov EAX,[EBX]
  and EAX,255
  mov [I],EAX
-;  J=DEST;
-;.GEN =J,DEST,.BNST,
+;  J=DEST+1;                     * CRB 07/25/2014 fixed obo bug
+;.GEN =J,DEST,=1,.BC+,.BNST,
 ; L D DEST
  mov EBX,[EBP+16] ; DEST
  mov EAX,[EBX]
+ inc EAX
  mov [J],EAX
 ;  DEST=DEST+LEN;
 ;.GEN =DEST,DEST,LEN,.BC+,.BNST,
