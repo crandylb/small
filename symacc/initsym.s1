@@ -4,6 +4,8 @@
 * 04/03/2014 CRB Use integer value from LEX in LEXEME(1)
 * 05/10/2014 CRB Use INDEX from LEXEME(1) to set VAL and TAG with PUTS
 * 05/26/2014 CRB Remove TESTINIT into its own module
+* 07/22/2014 CRB Expanding DMPLIST, add HEADER
+* 08/05/2014 CRB Distinguish LKIND and TKIND
 
 BEGIN INITSYM;
 ENT INITSYM;
@@ -22,7 +24,7 @@ DCL I,J,EOF=0,STATUS;
 DCL BUFF(127);
 DCL INCH=1,SCRCH=2,OUTCH=3;
 DCL LEXEME(4);
-DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
+DCL INDEX,WORDS,LKIND,TTYPE,TAG,TAGS,VAL,ATTR,OP;
 DCL COUNT=0,LIST(60);
 DCL STAR=('*');
 DCL DOT=('.');
@@ -42,7 +44,7 @@ PROC INITSYM;
       THEN 
       I=1;
 
-      KIND=LEX(I,LEXEME);       * get a symbol
+      LKIND=LEX(I,LEXEME);      * get a symbol
       ANC=LEXEME AND 255;       * extract the anchor from LEXEME(0)
       IF BUFF(ANC) EQ QUOTE; THEN 
           WORDS=BUFF(ANC+1)*PRIM18; * use ASCII code
@@ -54,17 +56,17 @@ PROC INITSYM;
           INDEX=LEXEME(1);      * save INDEX returned from LEX
         ENDIF
 
-      KIND=LEX(I,LEXEME);       * get the TTYPE code
+      LKIND=LEX(I,LEXEME);      * get the TTYPE code
       TTYPE=LEXEME(1);
 
-      KIND=LEX(I,LEXEME);       * get VAL for this keyword
+      LKIND=LEX(I,LEXEME);      * get VAL for this keyword
       VAL=LEXEME(1);
 
-      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
-      KIND=LEXEME(1);
-      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
+      LKIND=LEX(I,LEXEME);      * get the VALE token LKIND code
+      LKIND=LEXEME(1);
+      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR LKIND; * set TAG word parts
 
-      KIND=LEX(I,LEXEME);       * get the ATTR bits
+      LKIND=LEX(I,LEXEME);      * get the ATTR bits
       ATTR=LEXEME(1);
       VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB
 
@@ -77,16 +79,25 @@ PROC INITSYM;
   RETURN
 ENDPROC
 
+MSG HEADER='Symbol       Index       VAL       TAG';
+DCL HEAD1(40);
+MSG HEAD2='     TTYPE      TAGS        OP     TKIND';
+DCL TKIND;                      * token kind code
+
 * Dump contents of symbol table to verify initialization
 PROC DMPLIST;
+  CALL CAT2(HEADER,HEAD2);
+  CALL WRITE(OUTCH,HEADER);
   I=1;
   DO WHILE I LE COUNT;
     INDEX=LIST(I);
     CALL GETWRD(INDEX,WORDS);   * get coded symbol from table
     CALL GETS(INDEX,VAL,TAG);   * also get VAL and TAG
+    TKIND=TAG AND 255;          * get token kind from TAG
     TTYPE=TAG SHR 8;            * get the type and TAGS field
     TAGS=TTYPE SHR 4;           * extract the TAGS bits
     TTYPE=TTYPE AND 15;         * isolate the type number
+    OP=VAL AND 255;             * get OP ID of this token
     BUFF=0;
     CALL CAT2(BUFF,BLANKS);     * clear BUFF
     BUFF=0;
@@ -96,23 +107,31 @@ PROC DMPLIST;
         CALL B402A(WORDS,BUFF); * decode symbol into BUFF
       ENDIF
     BUFF=8;
+    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+    CALL CAT2(BUFF,SCRATCH);
     CALL IFORM(VAL,SCRATCH);    * insert VAL in BUFF
     CALL CAT2(BUFF,SCRATCH);
     CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF
     CALL CAT2(BUFF,SCRATCH);
-
-    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+    CALL IFORM(TTYPE,SCRATCH);  * insert token type
+    CALL CAT2(BUFF,SCRATCH);
+    CALL IFORM(TAGS,SCRATCH);   * insert TAGS field
+    CALL CAT2(BUFF,SCRATCH);
+    CALL IFORM(OP,SCRATCH);     * insert OP ID
+    CALL CAT2(BUFF,SCRATCH);
+    CALL IFORM(TKIND,SCRATCH);	* insert token kind
     CALL CAT2(BUFF,SCRATCH);
     CALL WRITE(OUTCH,BUFF);
 
     I=I+1;
     ENDDO
 
-    CALL IFORM(COLLS,SCRATCH);
-    BUFF=0;
-    CALL CAT2(BUFF,COLLISIONS);
-    CALL CAT2(BUFF,SCRATCH);
-    CALL WRITE(OUTCH,BUFF);
+  CALL IFORM(COLLS,SCRATCH);
+  BUFF=0;
+  CALL CAT2(BUFF,COLLISIONS);
+  CALL CAT2(BUFF,SCRATCH);
+  CALL WRITE(OUTCH,BUFF);
+
   RETURN
   ENDPROC
 END

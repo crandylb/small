@@ -1,0 +1,13 @@
+1       * testinit.s1 -- Test program for initsym, CRB, May 26, 2014            
+2                                                                               
+3       BEGIN TESTINIT;                                                         
+4                                                                               
+5       START INIT;                                                             
+6       EXT PROC INITSYM,PROC DMPLIST;                                          
+7                                                                               
+8       LABEL INIT;                                                             
+9         CALL INITSYM;           * initialize symbol table from initable.dat   
+10        CALL DMPLIST;           * dump contents of table for verification     
+11      RETURN                                                                  
+12      END                                                                     
+ NO ERRORS DETECTED

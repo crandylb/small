@@ -2,7 +2,10 @@
 ;* 03/14/2014 CRB Add COLLS collision counter and token KIND
 ;* 03/18/2014 CRB Randomize single char ops, add INDEX output
 ;* 04/03/2014 CRB Use integer value from LEX in LEXEME(1)
-;* 05/10/2014 CRB Ude INDEX from LEXEME(1) to set VAL and TAG with PUTS
+;* 05/10/2014 CRB Use INDEX from LEXEME(1) to set VAL and TAG with PUTS
+;* 05/26/2014 CRB Remove TESTINIT into its own module
+;* 07/22/2014 CRB Expanding DMPLIST, add HEADER
+;* 08/05/2014 CRB Distinguish LKIND and TKIND
 ;
 ;BEGIN INITSYM;
  global progr
@@ -13,13 +16,6 @@
  global  DMPLIST
 ;ENT BUFF;
  global  BUFF
-;START INIT;
- global  INIT
- section .text
-progr:
- push EBP
- mov  EBP,ESP
- jmp INIT
 ;
 ;EXT PROC READ,WRITE;
  extern READ
@@ -67,12 +63,12 @@ OUTCH:
 ;DCL LEXEME(4);
 LEXEME:
  times 5 dd 0
-;DCL INDEX,WORDS,KIND,TTYPE,TAG,TAGS,VAL,ATTR;
+;DCL INDEX,WORDS,LKIND,TTYPE,TAG,TAGS,VAL,ATTR,OP;
 INDEX:
  times 1 dd 0
 WORDS:
  times 1 dd 0
-KIND:
+LKIND:
  times 1 dd 0
 TTYPE:
  times 1 dd 0
@@ -83,6 +79,8 @@ TAGS:
 VAL:
  times 1 dd 0
 ATTR:
+ times 1 dd 0
+OP:
  times 1 dd 0
 ;DCL COUNT=0,LIST(60);
 COUNT:
@@ -144,22 +142,9 @@ COLLISIONS:
 ANC:
  times 1 dd 0
 ;
-;LABEL INIT;
- section .text
-INIT:
-;  CALL INITSYM;
-; NARGS  0
- call INITSYM
-;  CALL DMPLIST;
-; NARGS  0
- call DMPLIST
-;RETURN
-; RETN  ,
- mov ESP,EBP
- pop EBP
- ret
-;
+;* Initialize the symbol table with data from initable.dat file 
 ;PROC INITSYM;
+ section .text
 ; SUBR  INITSYM
 INITSYM:
  push EBP
@@ -200,14 +185,14 @@ LJ2:
  mov EAX,1
  mov [I],EAX
 ;
-;      KIND=LEX(I,LEXEME);       * get a symbol
-;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+;      LKIND=LEX(I,LEXEME);      * get a symbol
+;.GEN =LKIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
  push I
  push LEXEME
  call LEX
  add  ESP,4*2
- mov [KIND],EAX
+ mov [LKIND],EAX
 ;      ANC=LEXEME AND 255;       * extract the anchor from LEXEME(0)
 ;.GEN =ANC,LEXEME,=255,.BCAND,.BNST,
  mov EAX,[LEXEME]
@@ -268,14 +253,14 @@ LJ6:
 ;        ENDIF
 LJ8:
 ;
-;      KIND=LEX(I,LEXEME);       * get the TTYPE code
-;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+;      LKIND=LEX(I,LEXEME);      * get the TTYPE code
+;.GEN =LKIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
  push I
  push LEXEME
  call LEX
  add  ESP,4*2
- mov [KIND],EAX
+ mov [LKIND],EAX
 ;      TTYPE=LEXEME(1);
 ;.GEN =TTYPE,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
@@ -284,14 +269,14 @@ LJ8:
  mov EAX,[EAX]
  mov [TTYPE],EAX
 ;
-;      KIND=LEX(I,LEXEME);       * get VAL for this keyword
-;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+;      LKIND=LEX(I,LEXEME);      * get VAL for this keyword
+;.GEN =LKIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
  push I
  push LEXEME
  call LEX
  add  ESP,4*2
- mov [KIND],EAX
+ mov [LKIND],EAX
 ;      VAL=LEXEME(1);
 ;.GEN =VAL,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
@@ -300,38 +285,38 @@ LJ8:
  mov EAX,[EAX]
  mov [VAL],EAX
 ;
-;      KIND=LEX(I,LEXEME);       * get the VALE token KIND code
-;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+;      LKIND=LEX(I,LEXEME);      * get the VALE token LKIND code
+;.GEN =LKIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
  push I
  push LEXEME
  call LEX
  add  ESP,4*2
- mov [KIND],EAX
-;      KIND=LEXEME(1);
-;.GEN =KIND,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
+ mov [LKIND],EAX
+;      LKIND=LEXEME(1);
+;.GEN =LKIND,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
  sal EAX,2
  add EAX,LEXEME
  mov EAX,[EAX]
- mov [KIND],EAX
-;      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR KIND; * set TAG word parts
-;.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,KIND,.BCOR,.BNST,
+ mov [LKIND],EAX
+;      TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR LKIND; * set TAG word parts
+;.GEN =TAG,TAGS,=4,.BNSHL,TTYPE,.BCOR,=8,.BNSHL,LKIND,.BCOR,.BNST,
  mov EAX,[TAGS]
  sal EAX,4
  or EAX,[TTYPE]
  sal EAX,8
- or EAX,[KIND]
+ or EAX,[LKIND]
  mov [TAG],EAX
 ;
-;      KIND=LEX(I,LEXEME);       * get the ATTR bits
-;.GEN =KIND,(I,LEXEME),.UFLEX,.BNST,
+;      LKIND=LEX(I,LEXEME);      * get the ATTR bits
+;.GEN =LKIND,(I,LEXEME),.UFLEX,.BNST,
 ; NARGS  2
  push I
  push LEXEME
  call LEX
  add  ESP,4*2
- mov [KIND],EAX
+ mov [LKIND],EAX
 ;      ATTR=LEXEME(1);
 ;.GEN =ATTR,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,1
@@ -392,23 +377,129 @@ T1Z:
  times 2 dd 0
  section .text
 ;
+;MSG HEADER='Symbol       Index       VAL       TAG';
+ section .data
+HEADER:
+ dd  38
+ dd  83
+ dd  121
+ dd  109
+ dd  98
+ dd  111
+ dd  108
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  73
+ dd  110
+ dd  100
+ dd  101
+ dd  120
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  86
+ dd  65
+ dd  76
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  84
+ dd  65
+ dd  71
+;DCL HEAD1(40);
+HEAD1:
+ times 41 dd 0
+;MSG HEAD2='     TTYPE      TAGS        OP     TKIND';
+HEAD2:
+ dd  40
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  84
+ dd  84
+ dd  89
+ dd  80
+ dd  69
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  84
+ dd  65
+ dd  71
+ dd  83
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  79
+ dd  80
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  32
+ dd  84
+ dd  75
+ dd  73
+ dd  78
+ dd  68
+;DCL TKIND;                      * token kind code
+TKIND:
+ times 1 dd 0
+;
+;* Dump contents of symbol table to verify initialization
 ;PROC DMPLIST;
+ section .text
 ; SUBR  DMPLIST
 DMPLIST:
  push EBP
  mov  EBP,ESP
 ; NPARS  0
 ; PEND
+;  CALL CAT2(HEADER,HEAD2);
+; NARGS  2
+ push HEADER
+ push HEAD2
+ call CAT2
+ add  ESP,4*2
+;  CALL WRITE(OUTCH,HEADER);
+; NARGS  2
+ push OUTCH
+ push HEADER
+ call WRITE
+ add  ESP,4*2
 ;  I=1;
 ;.GEN =I,=1,.BNST,
  mov EAX,1
  mov [I],EAX
 ;  DO WHILE I LE COUNT;
-LJ16:
+LJ18:
 ;.GEN I,COUNT,.BN-,
  mov EAX,[I]
  sub EAX,[COUNT]
- jg LJ17
+ jg LJ19
 ;    INDEX=LIST(I);
 ;.GEN =INDEX,=LIST,I,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
@@ -429,6 +520,11 @@ LJ16:
  push TAG
  call GETS
  add  ESP,4*3
+;    TKIND=TAG AND 255;          * get token kind from TAG
+;.GEN =TKIND,TAG,=255,.BCAND,.BNST,
+ mov EAX,[TAG]
+ and EAX,255
+ mov [TKIND],EAX
 ;    TTYPE=TAG SHR 8;            * get the type and TAGS field
 ;.GEN =TTYPE,TAG,=8,.BNSHR,.BNST,
  mov EAX,[TAG]
@@ -444,6 +540,11 @@ LJ16:
  mov EAX,[TTYPE]
  and EAX,15
  mov [TTYPE],EAX
+;    OP=VAL AND 255;             * get OP ID of this token
+;.GEN =OP,VAL,=255,.BCAND,.BNST,
+ mov EAX,[VAL]
+ and EAX,255
+ mov [OP],EAX
 ;    BUFF=0;
 ;.GEN =BUFF,=0,.BNST,
  mov EAX,0
@@ -463,7 +564,7 @@ LJ16:
  mov EAX,[TAGS]
  and EAX,1
  or EAX,EAX
- jz LJ21
+ jz LJ23
 ;        BUFF(1)=WORDS/PRIM18;   * if single character use ASCII
 ;.GEN =BUFF,=1,=2,.BNSHL,.BC+,WORDS,PRIM18,.BN/,.BNST,
  mov EAX,1
@@ -479,8 +580,8 @@ LJ16:
  mov EAX,[T3Z1]
  mov [EAX],EDX
 ;      ELSE 
- jmp LJ22
-LJ21:
+ jmp LJ24
+LJ23:
 ;        CALL B402A(WORDS,BUFF); * decode symbol into BUFF
 ; NARGS  2
  push WORDS
@@ -488,11 +589,23 @@ LJ21:
  call B402A
  add  ESP,4*2
 ;      ENDIF
-LJ22:
+LJ24:
 ;    BUFF=8;
 ;.GEN =BUFF,=8,.BNST,
  mov EAX,8
  mov [BUFF],EAX
+;    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+; NARGS  2
+ push INDEX
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
 ;    CALL IFORM(VAL,SCRATCH);    * insert VAL in BUFF
 ; NARGS  2
  push VAL
@@ -517,10 +630,45 @@ LJ22:
  push SCRATCH
  call CAT2
  add  ESP,4*2
-;
-;    CALL IFORM(INDEX,SCRATCH);  * show INDEX
+;    CALL IFORM(TTYPE,SCRATCH);  * insert token type
 ; NARGS  2
- push INDEX
+ push TTYPE
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
+;    CALL IFORM(TAGS,SCRATCH);   * insert TAGS field
+; NARGS  2
+ push TAGS
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
+;    CALL IFORM(OP,SCRATCH);     * insert OP ID
+; NARGS  2
+ push OP
+ push SCRATCH
+ call IFORM
+ add  ESP,4*2
+;    CALL CAT2(BUFF,SCRATCH);
+; NARGS  2
+ push BUFF
+ push SCRATCH
+ call CAT2
+ add  ESP,4*2
+;    CALL IFORM(TKIND,SCRATCH);	* insert token kind
+; NARGS  2
+ push TKIND
  push SCRATCH
  call IFORM
  add  ESP,4*2
@@ -543,37 +691,38 @@ LJ22:
  inc EAX
  mov [I],EAX
 ;    ENDDO
- jmp LJ16
-LJ17:
+ jmp LJ18
+LJ19:
 ;
-;    CALL IFORM(COLLS,SCRATCH);
+;  CALL IFORM(COLLS,SCRATCH);
 ; NARGS  2
  push COLLS
  push SCRATCH
  call IFORM
  add  ESP,4*2
-;    BUFF=0;
+;  BUFF=0;
 ;.GEN =BUFF,=0,.BNST,
  mov EAX,0
  mov [BUFF],EAX
-;    CALL CAT2(BUFF,COLLISIONS);
+;  CALL CAT2(BUFF,COLLISIONS);
 ; NARGS  2
  push BUFF
  push COLLISIONS
  call CAT2
  add  ESP,4*2
-;    CALL CAT2(BUFF,SCRATCH);
+;  CALL CAT2(BUFF,SCRATCH);
 ; NARGS  2
  push BUFF
  push SCRATCH
  call CAT2
  add  ESP,4*2
-;    CALL WRITE(OUTCH,BUFF);
+;  CALL WRITE(OUTCH,BUFF);
 ; NARGS  2
  push OUTCH
  push BUFF
  call WRITE
  add  ESP,4*2
+;
 ;  RETURN
 ; RETN  DMPLIST,0
  mov ESP,EBP
