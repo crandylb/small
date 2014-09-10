@@ -11,7 +11,8 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 05/23/2014 CRB Update mill2yasm, testlex, and symacc
 06/04/2014 CRB Move testinit to own module
 06/05/2014 CRB Add runoff subdirectory
-08/01/2013 CRB Bug fixes for mill2yasm, cat3
+08/01/2014 CRB Bug fixes for mill2yasm, cat3
+09/10/2014 CRB Update initsym with TKIND
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -179,6 +180,12 @@ builds the initialization test program, and:
      make test
 runs the test and generates the initsym.out file to verify the
 initialization. 
+
+Update 09/10/2014 Update initsym with TKIND
+The initsym module has been updated to add TKIND, the kind of token that has
+been found in the symbol table. TKIND is different from LKIND, which is the
+lexical kind returned from the lexical scanner. Token kind is useful for
+parsing.
 
 runoff
 This subdirectory contains the 1981 version of Small Runoff, the program used
