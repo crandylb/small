@@ -13,6 +13,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 06/05/2014 CRB Add runoff subdirectory
 08/01/2014 CRB Bug fixes for mill2yasm, cat3
 09/10/2014 CRB Update initsym with TKIND
+12/06/2014 CRB Fix two obo bugs in testlex: lex.s1, testlex.s1
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -108,6 +109,9 @@ Update 05/23/2014 Modified to work with symacc as a compiler/interpreter
 module. Alphanumeric tokens are looked up using symacc and properties are
 returned in the LEXEME array. Numeric tokens are evaluated as scanned and
 value returned in LEXEME(1).
+
+Update 12/06/2014 Fix two off-by-one bugs. In testlex add one char space for
+end-of-line marker (-1). In lex fix addressing of single character token.
 
 testcase
 This directory tests the CASE statement. The case label list is zero indexed
