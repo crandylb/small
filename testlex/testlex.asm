@@ -1,6 +1,7 @@
 ;* testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014
 ;* CRB 03/27/2014 Changed for revised lex
 ;* CRB 04/15/2014 Revise for changed LEX and LEXEME
+;* CRB 12/03/2014 Fix obo bug
 ;
 ;  ENTRY TESTLEX;
  global  TESTLEX
@@ -176,6 +177,11 @@ LJ6:
  push BUFF
  call CAT3
  add  ESP,4*3
+;      SCRATCH=SCRATCH+1;          * fix obo CRB 12/03/2014
+;.GEN =SCRATCH,SCRATCH,=1,.BC+,.BNST,
+ mov EAX,[SCRATCH]
+ inc EAX
+ mov [SCRATCH],EAX
 ;      SCRATCH(SCRATCH)=-1;        * insert EOL
 ;.GEN =SCRATCH,SCRATCH,=2,.BNSHL,.BC+,=1,.U-,.BNST,
  mov EAX,[SCRATCH]

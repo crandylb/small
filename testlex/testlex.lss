@@ -1,45 +1,47 @@
 1       * testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014                          
 2       * CRB 03/27/2014 Changed for revised lex                                
 3       * CRB 04/15/2014 Revise for changed LEX and LEXEME                      
-4                                                                               
-5         ENTRY TESTLEX;                                                        
-6         BEGIN TESTLEX;                                                        
-7         START TESTLEX;                                                        
-8         ENTRY BUFF;                   * make BUFF buffer global for LEX       
-9                                                                               
-10        EXTERNAL PROC READ,WRITE;                                             
-11        EXTERNAL PROC LEX,CAT2;                                               
-12        EXTERNAL PROC CAT3;                                                   
-13                                                                              
-14        DCL BUFF(128),SCRATCH(128);                                           
-15        DCL INCH=1,OUTCH=3,STATUS;                                            
-16        DCL EOF=0;                                                            
-17        DCL LEXEME(4);                                                        
-18        MSG GREET='Begin Small LEX Test';                                     
-19        DCL KIND,LENANC;                                                      
-20        DCL ICHAR;                                                            
-21        DCL MASKV;                    * mask for low 16 bits                  
-22                                                                              
-23      LABEL TESTLEX;                                                          
-24        CALL WRITE(OUTCH,GREET);                                              
-25        MASKV=32767 SHL 1 OR 1;                                               
-26        REPEAT                                                                
-27   1      STATUS=READ(INCH,BUFF);                                             
-28   1      CALL WRITE(OUTCH,BUFF);                                             
-29   1      ICHAR=1;                                                            
-30   1      DO WHILE ICHAR LE BUFF;       * until end of line                   
-31   2        KIND=LEX(ICHAR,LEXEME);                                           
-32   2        SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit        
-33   2        SCRATCH(2)=' ';             * follow with space                   
-34   2        SCRATCH(3)=' ';             * terminate line                      
-35   2        SCRATCH=3;                  * number of characters                
-36   2        LENANC=LEXEME AND MASKV;                                          
-37   2        CALL CAT3(SCRATCH,LENANC,BUFF);  * concatenate                    
-38   2        SCRATCH(SCRATCH)=-1;        * insert EOL                          
-39   2        CALL WRITE(OUTCH,SCRATCH);                                        
-40   2        ENDDO                                                             
-41   1      UNTIL STATUS EQ EOF;                                                
-42   0    RETURN                                                                
-43   0                                                                          
-44   0  END                                                                     
+4       * CRB 12/03/2014 Fix obo bug                                            
+5                                                                               
+6         ENTRY TESTLEX;                                                        
+7         BEGIN TESTLEX;                                                        
+8         START TESTLEX;                                                        
+9         ENTRY BUFF;                   * make BUFF buffer global for LEX       
+10                                                                              
+11        EXTERNAL PROC READ,WRITE;                                             
+12        EXTERNAL PROC LEX,CAT2;                                               
+13        EXTERNAL PROC CAT3;                                                   
+14                                                                              
+15        DCL BUFF(128),SCRATCH(128);                                           
+16        DCL INCH=1,OUTCH=3,STATUS;                                            
+17        DCL EOF=0;                                                            
+18        DCL LEXEME(4);                                                        
+19        MSG GREET='Begin Small LEX Test';                                     
+20        DCL KIND,LENANC;                                                      
+21        DCL ICHAR;                                                            
+22        DCL MASKV;                    * mask for low 16 bits                  
+23                                                                              
+24      LABEL TESTLEX;                                                          
+25        CALL WRITE(OUTCH,GREET);                                              
+26        MASKV=32767 SHL 1 OR 1;                                               
+27        REPEAT                                                                
+28   1      STATUS=READ(INCH,BUFF);                                             
+29   1      CALL WRITE(OUTCH,BUFF);                                             
+30   1      ICHAR=1;                                                            
+31   1      DO WHILE ICHAR LE BUFF;       * until end of line                   
+32   2        KIND=LEX(ICHAR,LEXEME);                                           
+33   2        SCRATCH(1)=KIND+'0';        * insert KIND as decimal digit        
+34   2        SCRATCH(2)=' ';             * follow with space                   
+35   2        SCRATCH(3)=' ';             * terminate line                      
+36   2        SCRATCH=3;                  * number of characters                
+37   2        LENANC=LEXEME AND MASKV;                                          
+38   2        CALL CAT3(SCRATCH,LENANC,BUFF);  * concatenate                    
+39   2        SCRATCH=SCRATCH+1;          * fix obo CRB 12/03/2014              
+40   2        SCRATCH(SCRATCH)=-1;        * insert EOL                          
+41   2        CALL WRITE(OUTCH,SCRATCH);                                        
+42   2        ENDDO                                                             
+43   1      UNTIL STATUS EQ EOF;                                                
+44   0    RETURN                                                                
+45   0                                                                          
+46   0  END                                                                     
  NO ERRORS DETECTED

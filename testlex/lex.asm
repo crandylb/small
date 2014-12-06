@@ -5,6 +5,7 @@
 ;* Rewrite, CRB, Apr 2,2014
 ;* More mods, CRB, Apr 14, 2014
 ;* Distinguish between LKIND (lexical) and TKIND (token) CRB, May 15, 2014
+;* Fix obo error in single character token CRB, Dec 3, 2014
 ;
 ;  BEGIN LEX;
  global progr
@@ -488,10 +489,10 @@ LJ12:
  mov EAX,[LKIND]
  sub EAX,4
  jne LJ14
-;      WORDS=BUFF(ANCHOR+1)*PRIM18;
-;.GEN =WORDS,=BUFF,ANCHOR,=1,.BC+,=2,.BNSHL,.BC+,.UA,PRIM18,.BC*,.BNST,
+;*      WORDS=BUFF(ANCHOR+1)*PRIM18;
+;      WORDS=BUFF(ANCHOR)*PRIM18; * fix obo error CRB 12/03/2014
+;.GEN =WORDS,=BUFF,ANCHOR,=2,.BNSHL,.BC+,.UA,PRIM18,.BC*,.BNST,
  mov EAX,[ANCHOR]
- inc EAX
  sal EAX,2
  add EAX,BUFF
  mov EAX,[EAX]
