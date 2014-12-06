@@ -1,6 +1,7 @@
 * testlex.s1 -- Test LEX.S1, CRB, Jan 14, 2014
 * CRB 03/27/2014 Changed for revised lex
 * CRB 04/15/2014 Revise for changed LEX and LEXEME
+* CRB 12/03/2014 Fix obo bug
 
   ENTRY TESTLEX;
   BEGIN TESTLEX;
@@ -35,6 +36,7 @@ LABEL TESTLEX;
       SCRATCH=3;                  * number of characters
       LENANC=LEXEME AND MASKV;
       CALL CAT3(SCRATCH,LENANC,BUFF);  * concatenate
+      SCRATCH=SCRATCH+1;          * fix obo CRB 12/03/2014
       SCRATCH(SCRATCH)=-1;        * insert EOL
       CALL WRITE(OUTCH,SCRATCH);
       ENDDO

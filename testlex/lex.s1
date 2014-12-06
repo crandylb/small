@@ -5,6 +5,7 @@
 * Rewrite, CRB, Apr 2,2014
 * More mods, CRB, Apr 14, 2014
 * Distinguish between LKIND (lexical) and TKIND (token) CRB, May 15, 2014
+* Fix obo error in single character token CRB, Dec 3, 2014
 
   BEGIN LEX;
   ENTRY LEX;
@@ -85,7 +86,8 @@
     ELSE IF LKIND EQ 2; THEN    * integer token
       LEXEME(1)=NUM;            * return its binary value
     ELSE IF LKIND EQ 4; THEN    * special character token
-      WORDS=BUFF(ANCHOR+1)*PRIM18;
+*      WORDS=BUFF(ANCHOR+1)*PRIM18;
+      WORDS=BUFF(ANCHOR)*PRIM18; * fix obo error CRB 12/03/2014
       INDEX=LOOKS(WORDS,VAL,TAG);
       LEXEME(1)=INDEX;
       LEXEME(2)=VAL;
