@@ -15,9 +15,10 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 09/10/2014 CRB Update initsym with TKIND
 12/06/2014 CRB Fix two obo bugs in testlex: lex.s1, testlex.s1
 02/28/2015 CRB Many updates and additions for testscan
+03/01/2015 CRB Corrected some typos
 
-The purpose of this directory is to contain files presenting my language
-Small.
+This directory contains files presenting my language Small and development of
+a compiler written in Small.
 
 Contents of this directory:
 README.txt       this file
@@ -38,7 +39,8 @@ Test Programs:   Directories containing test programs written in Small
   scan           testing prescan with libs1 and lex
   testscan       comprehensive test of lex, symacc, initsym and scan
 lib              a library for Small programs
-libsrc		 source files for lib
+libsc            a library of modules for the Small compiler
+libsrc		 source files for lib and libsc
 symacc           symbol table access module
 runoff	         paper and listings for 1981 Small Runoff 
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
@@ -60,8 +62,8 @@ small.s2m
 The Stage 2 macros in this file translate a program written in Small to the
 Mill, machine independent low level language. Mill is intended to be easily
 mapped into an actual assembly language by a second pass using Stage 2. See
-thesis for information on Mill, and the test directories for makefile to
-comiple and run Small programs.
+thesis for information on Mill, and the test directories. Each source code
+directory contains a makefile to compile and run Small programs.
 
 mill2yasm.s2m
 This set of macros translates Mill to yasm, an x86 assembler used here to
@@ -79,7 +81,7 @@ This C program interfaces I/O in Small to the conventions used in the grandios
 module, the I/O system used in the implementation of Stage 2.
 
 thesis.pdf
-This is a reporoduction of my masters thesis that was originally written on
+This is a reproduction of my masters thesis that was originally written on
 an early personal computer and formatted by Small Runoff, a text formatter
 written in Small, and printed from the computer on an electronically
 controlled IBM Selectric typewriter.
