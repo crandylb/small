@@ -3,6 +3,13 @@
 * 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
 * 03/29/2014 CRB Add A2B40L for use with LEX
 * 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
+* 11/30/2014 CRB Correct comment in DCL TABLE
+* 12/06/2014 CRB Add MASKW initialized in initsym
+* 12/08/2014 CRB Further adjustment for negative packed characters
+* 12/10/2014 CRB Add MOD40K = 53687091
+* 12/12/2014 CRB Initialize VAL and TAG to 0 for new name
+* 12/16/2014 CRB Adjust B402A for negative packed name
+* 02/17/2015 CRB Clean up blank line at139
 
 BEGIN SYMACC;
 * Symbols are stored in an array called TABLE that is indexed by a hash
@@ -14,14 +21,16 @@ BEGIN SYMACC;
   ENTRY LOOKS,GETS,PUTS,GETWRD; * symbol table acces procedures
   ENTRY A2B40,A2B40L,B402A;     * ASCII, B40 conversion
   ENTRY COLLS;                  * Collision counter
-  ENTRY MASKV;
+  ENTRY MASKV,MASKW,MOD40K;
 
   SET TABSIZ=8191;              * prime < 2^13
-  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
+  DCL TABLE(TABSIZ);            * table < 2^15 bytes, 4094 symbols
   DCL STRING(6);                * space to hold converted ASCII string
   DCL I,J,CHAR,LEN,B,CODE;      * local variables
   DCL MASKE=-2;                 * mask for even number
   DCL MASKV=65535;              * mask for low 16 bits
+  DCL MASKW;                    * mask for signed 32 bits (init in initsym)
+  DCL MOD40K;                   * use for negative mod 40: 53617091
   DCL COLFLG,COLLS=0;           * collision counter on insertion only
   DCL ANC;                      * anchor
 
@@ -82,21 +91,29 @@ PROC A2B40L(SUBSTR,STR);        * convert ASCII string to base 40
 *****************
 PROC B402A(B40,NAME);           * convert base 40 to ASCII string
   B=B40;
-  I=0;
-  DO WHILE I LT 6;
+  IF B LT 0; THEN               * adjust for negative base 40 code
+      B=(B AND MASKW)+8;
+      CHAR=B MOD 40;
+      B=B/40+MOD40K;
+    ELSE 
+      CHAR=B MOD 40;
+      B=B/40;
+    ENDIF
+  I=1;
+  REPEAT 
+    IF CHAR LE 26;
+      THEN CHAR=CHAR+64;        * upper case letter
+      ELSE CHAR=CHAR+21;        * decimal digit
+      ENDIF
+    NAME(I)=CHAR;               * put character in name string
     I=I+1;
     CHAR=B MOD 40;
     B=B/40;
     IF CHAR EQ 0;
       THEN EXIT
       ENDIF
-    IF CHAR LE 26;
-      THEN CHAR=CHAR+64;        * upper case letter
-      ELSE CHAR=CHAR+21;        * decimal digit
-      ENDIF
-     NAME(I)=CHAR;              * put character in name string
-     ENDDO
-  NAME=I;                       * set string length
+    UNTIL I GT 6;
+  NAME=I-1;                     * set string length
   RETURN
   ENDPROC
 
@@ -107,15 +124,20 @@ PROC B402A(B40,NAME);           * convert base 40 to ASCII string
 * Return value is index of entry in TABLE
 *****************************************
 PROC LOOKS(WORDS,VAL,TAG);      * look up or insert symbol
-*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
   COLFLG=0;                     * reset collision flag
-  I=WORDS MOD TABSIZ;
-  I=I AND MASKE;                * use only even index
+  J=WORDS;
+  IF J LT 0; THEN               * fix problem with negative WORDS
+      J=(J AND MASKW)+32;       * remove sign bit, adjust remainder
+    ENDIF
+  I=(J MOD TABSIZ) AND MASKE;   * use only even index
   J=I;                          * save starting position
   REPEAT 
     IF TABLE(I) EQ 0;           * found empty slot
       THEN TABLE(I)=WORDS;      * insert symbol
-        TABLE(I+1)=(TAG SHL 16) OR VAL;
+        IF TAG;                 * new symbol name if TAG is zero
+          THEN TABLE(I+1)=TAG SHL 16 OR VAL; * pack VAL and TAG
+          ELSE TABLE(I+1)=0;    * set VAL and TAG to 0 for new name
+          ENDIF
         IF COLFLG; THEN         * if collision flag on then
           COLLS=COLLS+1;        * count collisions on insertion
           ENDIF

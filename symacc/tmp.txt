@@ -1,0 +1,30 @@
+* Convert base 40 code to ASCII in NAME
+* No return value
+*****************
+PROC B402A(B40,NAME);           * convert base 40 to ASCII string
+  B=B40;
+  IF B LT 0; THEN               * adjust for negative base 40 code
+      B=(B AND MASKW)+8;
+      CHAR=B MOD 40;
+      B=B+MOD40K;
+    ELSE 
+      CHAR=B MOD 40;
+      B=B/40;
+    ENDIF
+  I=1;
+  REPEAT 
+    IF CHAR LE 26;
+      THEN CHAR=CHAR+64;        * upper case letter
+      ELSE CHAR=CHAR+21;        * decimal digit
+      ENDIF
+    NAME(I)=CHAR;               * put character in name string
+    I=I+1;
+    CHAR=B MOD 40;
+    B=B/40;
+    IF CHAR EQ 0;
+      THEN EXIT
+      ENDIF
+    UNTIL I GT 6;
+  NAME=I-1;                     * set string length
+  RETURN
+  ENDPROC

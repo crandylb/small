@@ -3,6 +3,13 @@
 ** 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
 ** 03/29/2014 CRB Add A2B40L for use with LEX
 ** 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
+** 11/30/2014 CRB Correct comment in DCL TABLE
+** 12/06/2014 CRB Add MASKW initialized in initsym
+** 12/08/2014 CRB Further adjustment for negative packed characters
+** 12/10/2014 CRB Add MOD40K = 53687091
+** 12/12/2014 CRB Initialize VAL and TAG to 0 for new name
+** 12/16/2014 CRB Adjust B402A for negative packed name
+** 02/17/2015 CRB Clean up blank line at139
 *
 *BEGIN SYMACC;
  BEGIN
@@ -23,11 +30,13 @@
  ENT  B402A
 *  ENTRY COLLS;                  * Collision counter
  ENT  COLLS
-*  ENTRY MASKV;
+*  ENTRY MASKV,MASKW,MOD40K;
  ENT  MASKV
+ ENT  MASKW
+ ENT  MOD40K
 *
 *  SET TABSIZ=8191;              * prime < 2^13
-*  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
+*  DCL TABLE(TABSIZ);            * table < 2^15 bytes, 4094 symbols
  SECT DATA
  LABEL TABLE
  SPACE  8192
@@ -57,6 +66,14 @@
  SECT DATA
  LABEL MASKV
  CONST  -1
+*  DCL MASKW;                    * mask for signed 32 bits (init in initsym)
+ SECT DATA
+ LABEL MASKW
+ SPACE  1
+*  DCL MOD40K;                   * use for negative mod 40: 53617091
+ SECT DATA
+ LABEL MOD40K
+ SPACE  1
 *  DCL COLFLG,COLLS=0;           * collision counter on insertion only
  SECT DATA
  LABEL COLFLG
@@ -299,16 +316,76 @@
 *.GEN =B,B40,.BNST,
  L D B40
  ST  B
-*  I=0;
-*.GEN =I,=0,.BNST,
- L  =0
- ST  I
-*  DO WHILE I LT 6;
+*  IF B LT 0; THEN               * adjust for negative base 40 code
+*.GEN B,=0,.BN-,
+ L  B
+ -  =0
+ JGE  LJ17
+*      B=(B AND MASKW)+8;
+*.GEN =B,B,MASKW,.BCAND,=8,.BC+,.BNST,
+ L  B
+ AND  MASKW
+ +  =8
+ ST  B
+*      CHAR=B MOD 40;
+*.GEN =CHAR,B,=40,.BNMOD,.BNST,
+ L  B
+ MOD  =40
+ ST  CHAR
+*      B=B/40+MOD40K;
+*.GEN =B,B,=40,.BN/,MOD40K,.BC+,.BNST,
+ L  B
+ /  =40
+ +  MOD40K
+ ST  B
+*    ELSE 
+ J  LJ18
  LABEL LJ17
-*.GEN I,=6,.BN-,
+*      CHAR=B MOD 40;
+*.GEN =CHAR,B,=40,.BNMOD,.BNST,
+ L  B
+ MOD  =40
+ ST  CHAR
+*      B=B/40;
+*.GEN =B,B,=40,.BN/,.BNST,
+ L  B
+ /  =40
+ ST  B
+*    ENDIF
+ LABEL LJ18
+*  I=1;
+*.GEN =I,=1,.BNST,
+ L  =1
+ ST  I
+*  REPEAT 
+ LABEL LJ19
+*    IF CHAR LE 26;
+*.GEN CHAR,=26,.BN-,
+ L  CHAR
+ -  =26
+*      THEN CHAR=CHAR+64;        * upper case letter
+ JGT  LJ21
+*.GEN =CHAR,CHAR,=64,.BC+,.BNST,
+ L  CHAR
+ +  =64
+ ST  CHAR
+*      ELSE CHAR=CHAR+21;        * decimal digit
+ J  LJ22
+ LABEL LJ21
+*.GEN =CHAR,CHAR,=21,.BC+,.BNST,
+ L  CHAR
+ +  =21
+ ST  CHAR
+*      ENDIF
+ LABEL LJ22
+*    NAME(I)=CHAR;               * put character in name string
+*.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
  L  I
- -  =6
- JGE  LJ18
+ SHL  =2
+ + D =NAME
+ ST  T5Z
+ L  CHAR
+ ST  *T5Z
 *    I=I+1;
 *.GEN =I,I,=1,.BC+,.BNST,
  L  I
@@ -329,43 +406,20 @@
  L  CHAR
  -  =0
 *      THEN EXIT
- JNE  LJ19
- J  LJ18
+ JNE  LJ23
+ J  LJ20
 *      ENDIF
- LABEL LJ19
-*    IF CHAR LE 26;
-*.GEN CHAR,=26,.BN-,
- L  CHAR
- -  =26
-*      THEN CHAR=CHAR+64;        * upper case letter
- JGT  LJ20
-*.GEN =CHAR,CHAR,=64,.BC+,.BNST,
- L  CHAR
- +  =64
- ST  CHAR
-*      ELSE CHAR=CHAR+21;        * decimal digit
- J  LJ21
+ LABEL LJ23
+*    UNTIL I GT 6;
+*.GEN I,=6,.BN-,
+ L  I
+ -  =6
+ JLE  LJ19
  LABEL LJ20
-*.GEN =CHAR,CHAR,=21,.BC+,.BNST,
- L  CHAR
- +  =21
- ST  CHAR
-*      ENDIF
- LABEL LJ21
-*     NAME(I)=CHAR;              * put character in name string
-*.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
+*  NAME=I-1;                     * set string length
+*.GEN =NAME,I,=1,.BN-,.BNST,
  L  I
- SHL  =2
- + D =NAME
- ST  T5Z
- L  CHAR
- ST  *T5Z
-*     ENDDO
- J  LJ17
- LABEL LJ18
-*  NAME=I;                       * set string length
-*.GEN =NAME,I,.BNST,
- L  I
+ -  =1
  ST D NAME
 *  RETURN
  RETN  B402A,2
@@ -389,19 +443,31 @@
  PAR  VAL
  PAR  TAG
  PEND
-**  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
 *  COLFLG=0;                     * reset collision flag
 *.GEN =COLFLG,=0,.BNST,
  L  =0
  ST  COLFLG
-*  I=WORDS MOD TABSIZ;
-*.GEN =I,WORDS,TABSIZ,.BNMOD,.BNST,
+*  J=WORDS;
+*.GEN =J,WORDS,.BNST,
  L D WORDS
+ ST  J
+*  IF J LT 0; THEN               * fix problem with negative WORDS
+*.GEN J,=0,.BN-,
+ L  J
+ -  =0
+ JGE  LJ24
+*      J=(J AND MASKW)+32;       * remove sign bit, adjust remainder
+*.GEN =J,J,MASKW,.BCAND,=32,.BC+,.BNST,
+ L  J
+ AND  MASKW
+ +  =32
+ ST  J
+*    ENDIF
+ LABEL LJ24
+*  I=(J MOD TABSIZ) AND MASKE;   * use only even index
+*.GEN =I,J,TABSIZ,.BNMOD,MASKE,.BCAND,.BNST,
+ L  J
  MOD 8191 TABSIZ
- ST  I
-*  I=I AND MASKE;                * use only even index
-*.GEN =I,I,MASKE,.BCAND,.BNST,
- L  I
  AND  MASKE
  ST  I
 *  J=I;                          * save starting position
@@ -409,7 +475,7 @@
  L  I
  ST  J
 *  REPEAT 
- LABEL LJ22
+ LABEL LJ25
 *    IF TABLE(I) EQ 0;           * found empty slot
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,=0,.BN-,
  L  I
@@ -418,7 +484,7 @@
  L  *.AC
  -  =0
 *      THEN TABLE(I)=WORDS;      * insert symbol
- JNE  LJ24
+ JNE  LJ27
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  L  I
  SHL  =2
@@ -426,7 +492,12 @@
  ST  T7Z
  L D WORDS
  ST  *T7Z
-*        TABLE(I+1)=(TAG SHL 16) OR VAL;
+*        IF TAG;                 * new symbol name if TAG is zero
+*.GEN TAG,=0,.BN-,
+ L D TAG
+ -  =0
+*          THEN TABLE(I+1)=TAG SHL 16 OR VAL; * pack VAL and TAG
+ JEQ  LJ28
 *.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
  L  I
  +  =1
@@ -437,25 +508,38 @@
  SHL  =16
  OR D VAL
  ST  *T7Z1
+*          ELSE TABLE(I+1)=0;    * set VAL and TAG to 0 for new name
+ J  LJ29
+ LABEL LJ28
+*.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,=0,.BNST,
+ L  I
+ +  =1
+ SHL  =2
+ +  =TABLE
+ ST  T7Z
+ L  =0
+ ST  *T7Z
+*          ENDIF
+ LABEL LJ29
 *        IF COLFLG; THEN         * if collision flag on then
 *.GEN COLFLG,=0,.BN-,
  L  COLFLG
  -  =0
- JEQ  LJ25
+ JEQ  LJ30
 *          COLLS=COLLS+1;        * count collisions on insertion
 *.GEN =COLLS,COLLS,=1,.BC+,.BNST,
  L  COLLS
  +  =1
  ST  COLLS
 *          ENDIF
- LABEL LJ25
+ LABEL LJ30
 *        RETURN I;
 *.GEN I,
  L  I
  RETN  LOOKS,3
 *      ELSE IF TABLE(I) EQ WORDS; * found match
- J  LJ26
- LABEL LJ24
+ J  LJ31
+ LABEL LJ27
 *.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  L  I
  SHL  =2
@@ -463,7 +547,7 @@
  L  *.AC
  - D WORDS
 *      THEN B=TABLE(I+1);        * retrieve VAL and TAG
- JNE  LJ27
+ JNE  LJ32
 *.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  L  I
  +  =1
@@ -487,8 +571,8 @@
  L  I
  RETN  LOOKS,3
 *      ENDIF ENDIF
- LABEL LJ27
- LABEL LJ26
+ LABEL LJ32
+ LABEL LJ31
 *    I=I+2;                      * try next slot
 *.GEN =I,I,=2,.BC+,.BNST,
  L  I
@@ -503,19 +587,19 @@
  L  I
  - 8191 TABSIZ
 *      THEN I=I-TABSIZ;
- JLE  LJ28
+ JLE  LJ33
 *.GEN =I,I,TABSIZ,.BN-,.BNST,
  L  I
  - 8191 TABSIZ
  ST  I
 *      ENDIF
- LABEL LJ28
+ LABEL LJ33
 *    UNTIL I EQ J;               * check for wrap to starting position
 *.GEN I,J,.BN-,
  L  I
  -  J
- JNE  LJ22
- LABEL LJ23
+ JNE  LJ25
+ LABEL LJ26
 *  RETURN -1;                    * table full
 *.GEN =1,.U-,
  L  =1

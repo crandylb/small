@@ -14,6 +14,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 08/01/2014 CRB Bug fixes for mill2yasm, cat3
 09/10/2014 CRB Update initsym with TKIND
 12/06/2014 CRB Fix two obo bugs in testlex: lex.s1, testlex.s1
+02/28/2015 CRB Many updates and additions for testscan
 
 The purpose of this directory is to contain files presenting my language
 Small.
@@ -35,6 +36,7 @@ Test Programs:   Directories containing test programs written in Small
   testlex        testing LEX lexical scanner
   testcase       testing CASE statement
   scan           testing prescan with libs1 and lex
+  testscan       comprehensive test of lex, symacc, initsym and scan
 lib              a library for Small programs
 libsrc		 source files for lib
 symacc           symbol table access module
@@ -113,6 +115,8 @@ value returned in LEXEME(1).
 Update 12/06/2014 Fix two off-by-one bugs. In testlex add one char space for
 end-of-line marker (-1). In lex fix addressing of single character token.
 
+Update 02/28/2015 Update to lex for testscan.
+
 testcase
 This directory tests the CASE statement. The case label list is zero indexed
 by the value of the case expression. Each case skips to the end of the case
@@ -124,6 +128,9 @@ input through lex, the lexical scanner (see testlex). The output file scan.out
 shows the result of processing the scan.s1 source file. See the makefile for
 an example of using the libs1.a library.
 
+Update 02/28/2015 Added comprehensive testscan test program and numerous
+updates to scan, lex, and symacc.
+
 lib
 This directory contains libs1.a, a library for Small programs. The library
 contains the grandios.o, smallio.o, cat2.o, iform.o, and iread.o object
@@ -131,13 +138,21 @@ modules. The makefile shows how the library is made using ar. The library is
 used by gcc with -L defining the path to the library, and -ls1 to link any
 needed modules. Note that only "s1" is given to the -l option, and "lib" and
 ".a" will be assumed automatically.
+
 Update 08/01/2014 CRB Fixed off-by-one bug in cat3.
+Update 02/28/2015 Added show.o.
+
+libsc (Added 02/28/2015)
+This directory contains the modules of the small compiler, currently including
+lex.o, symacc.o, initsym.o, scan.o, and shotoks.o.
 
 libsrc
 This directory contains the source files written in Small for the s1 library
 in the lib subdirectory, except for grandios and smallio which contain source
 files written in C in their own subdirectories.
 Update 08/01/2014 CRB Fixed off-by-one bug in cat3.
+Update 02/28/2015 Added source files lib and libsc including show, lex,
+symacc, initsym, scan, and shotoks.
 
 symacc
 This directory contains an implementation of the symbol table access module,
@@ -190,6 +205,8 @@ The initsym module has been updated to add TKIND, the kind of token that has
 been found in the symbol table. TKIND is different from LKIND, which is the
 lexical kind returned from the lexical scanner. Token kind is useful for
 parsing.
+
+Update 02/28/2015 Updates for testscan.
 
 runoff
 This subdirectory contains the 1981 version of Small Runoff, the program used

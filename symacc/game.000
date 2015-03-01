@@ -1,0 +1,12 @@
+[Event ""]
+[Site ""]
+[Date "2014.09.03"]
+[Round ""]
+[White "randyl"]
+[Black "GNU Chess 6.0.2"]
+[WhiteELO "0"]
+[BlackELO "0"]
+[Result "*"]
+
+e5 * {xboard exit}
+

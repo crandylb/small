@@ -1,0 +1,77 @@
+1       * SHOTOKS.S1 -- Show tokens for current line, CRB, Nov 18, 2014         
+2       * 12/01/2014 CRB Moved from scan module                                 
+3       * 12/14/2014 CRB Add unpacked user name                                 
+4       * 12/22/2014 CRB Adding comments                                        
+5       * 12/27/2014 CRB Hacking                                                
+6       * 02/17/2015 CRB Fix seg fault from integer tokens                      
+7                                                                               
+8         BEGIN SHOTOKS;                                                        
+9         ENT SHOTOKS;                                                          
+10                                                                              
+11        EXT TOKENS;                                                           
+12        EXT PROC WRITE,IFORM;                                                 
+13        EXT PROC CAT2,CAT3;                                                   
+14        EXT PROC B402A,GETWRD;                                                
+15        EXT BUFF;                       * use BUFF in initsym                 
+16        EXT MASKV;                                                            
+17                                                                              
+18        SET MAXTOK=127;                 * maximum number of tokens in a line  
+19        DCL OUTCH=3;                                                          
+20        DCL LKIND;                      * lexical KIND code                   
+21        DCL TOKNUM;                     * current token index                 
+22        DCL TOKEN;                                                            
+23        DCL SUBSTR,OP;                                                        
+24        DCL DEBUG(MAXTOK),TMP(31);                                            
+25        MSG SPACES='                   ';                                     
+26        DCL B40;                                                              
+27        SET PRIM18=61;                                                        
+28                                                                              
+29      PROC SHOTOKS;                     * show tokens for current line        
+30   1    TOKNUM=1;                                                             
+31   1    DO WHILE TOKNUM LE 4*TOKENS;                                          
+32   2      TOKEN=TOKENS(TOKNUM);                                               
+33   2      LKIND=(TOKEN SHR 28) AND 15;                                        
+34   2      DEBUG(1)=LKIND+'0';                                                 
+35   2      DEBUG(2)=' ';                                                       
+36   2      DEBUG(3)=' ';                                                       
+37   2      DEBUG=3;                                                            
+38   2      SUBSTR=TOKEN AND MASKV;                                             
+39   2      CALL CAT3(DEBUG,SUBSTR,BUFF);                                       
+40   2      CALL CAT2(DEBUG,SPACES);                                            
+41   2      DEBUG=14;                                                           
+42   2                                                                          
+43   2      TMP=10;                       * set size of TMP                     
+44   2      CASE LKIND-1; OF SL1,SL2,SL3,SL4;                                   
+45   3  LABEL SL1; GO TO SL4;             * symbol                              
+46   3  LABEL SL2;                        * integer                             
+47   3        TOKEN=TOKENS(TOKNUM+1);     * get integer's value                 
+48   3  LABEL SL3;                        * quote string                        
+49   3        TOKEN=BUFF(TOKEN AND 255);  * extract first char                  
+50   3  LABEL SL4;                        * single character token              
+51   3        TOKEN=TOKENS(TOKNUM+1);     * INDEX of user symbol                
+52   3      ENDCASE                                                             
+53   2                                                                          
+54   2      CALL IFORM(TOKEN,TMP);        * VAL, OP or INDEX                    
+55   2      CALL CAT2(DEBUG,TMP);                                               
+56   2      DEBUG=DEBUG+1;                * add one more space                  
+57   2      DEBUG(DEBUG)=' ';             * for a blank separator               
+58   2      IF LKIND EQ 1; THEN                                                 
+59   3          CALL GETWRD(TOKEN,B40);   * get base 40 name code               
+60   3          TMP=0;                                                          
+61   3          CALL B402A(B40,TMP);      * convert B40 code to ASCII           
+62   3        ELSE IF LKIND EQ 4; THEN                                          
+63   4          CALL GETWRD(TOKEN,B40);   * get hash base code special char     
+64   4          TMP=1;                                                          
+65   4          TMP(1)=B40/PRIM18;        * convert special char to ASCII       
+66   4        ELSE GO TO SL5;                                                   
+67   4        ENDIF ENDIF                                                       
+68   2      CALL CAT2(DEBUG,TMP);                                               
+69   2  LABEL SL5;                                                              
+70   2      CALL WRITE(OUTCH,DEBUG);                                            
+71   2      TOKNUM=TOKNUM+4;                                                    
+72   2    ENDDO                                                                 
+73   1    RETURN                                                                
+74   1  ENDPROC                                                                 
+75   0                                                                          
+76   0  END                                                                     
+ NO ERRORS DETECTED

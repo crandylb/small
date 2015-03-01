@@ -3,6 +3,13 @@
 ;* 03/20/2014 CRB Move MASKV initialization to initsym, other corrections
 ;* 03/29/2014 CRB Add A2B40L for use with LEX
 ;* 04/28/2014 CRB Fix bug in A2B40L and use MASKV for LEN
+;* 11/30/2014 CRB Correct comment in DCL TABLE
+;* 12/06/2014 CRB Add MASKW initialized in initsym
+;* 12/08/2014 CRB Further adjustment for negative packed characters
+;* 12/10/2014 CRB Add MOD40K = 53687091
+;* 12/12/2014 CRB Initialize VAL and TAG to 0 for new name
+;* 12/16/2014 CRB Adjust B402A for negative packed name
+;* 02/17/2015 CRB Clean up blank line at139
 ;
 ;BEGIN SYMACC;
  global progr
@@ -24,11 +31,13 @@
  global  B402A
 ;  ENTRY COLLS;                  * Collision counter
  global  COLLS
-;  ENTRY MASKV;
+;  ENTRY MASKV,MASKW,MOD40K;
  global  MASKV
+ global  MASKW
+ global  MOD40K
 ;
 ;  SET TABSIZ=8191;              * prime < 2^13
-;  DCL TABLE(TABSIZ);            * table < 2^16 bytes, 4094 symbols
+;  DCL TABLE(TABSIZ);            * table < 2^15 bytes, 4094 symbols
  section .data
 TABLE:
  times 8192 dd 0
@@ -54,6 +63,12 @@ MASKE:
 ;  DCL MASKV=65535;              * mask for low 16 bits
 MASKV:
  dd  -1
+;  DCL MASKW;                    * mask for signed 32 bits (init in initsym)
+MASKW:
+ times 1 dd 0
+;  DCL MOD40K;                   * use for negative mod 40: 53617091
+MOD40K:
+ times 1 dd 0
 ;  DCL COLFLG,COLLS=0;           * collision counter on insertion only
 COLFLG:
  times 1 dd 0
@@ -319,16 +334,90 @@ B402A:
  mov EBX,[EBP+12] ; B40
  mov EAX,[EBX]
  mov [B],EAX
-;  I=0;
-;.GEN =I,=0,.BNST,
- mov EAX,0
- mov [I],EAX
-;  DO WHILE I LT 6;
+;  IF B LT 0; THEN               * adjust for negative base 40 code
+;.GEN B,=0,.BN-,
+ mov EAX,[B]
+ or EAX,EAX
+ jge LJ17
+;      B=(B AND MASKW)+8;
+;.GEN =B,B,MASKW,.BCAND,=8,.BC+,.BNST,
+ mov EAX,[B]
+ and EAX,[MASKW]
+ add EAX,8
+ mov [B],EAX
+;      CHAR=B MOD 40;
+;.GEN =CHAR,B,=40,.BNMOD,.BNST,
+ mov EAX,[B]
+ cdq
+ mov  ECX,40
+ idiv dword ECX
+ mov  EAX,EDX
+ mov [CHAR],EAX
+;      B=B/40+MOD40K;
+;.GEN =B,B,=40,.BN/,MOD40K,.BC+,.BNST,
+ mov EAX,[B]
+ cdq
+ mov  ECX,40
+ idiv dword ECX
+ add EAX,[MOD40K]
+ mov [B],EAX
+;    ELSE 
+ jmp LJ18
 LJ17:
-;.GEN I,=6,.BN-,
+;      CHAR=B MOD 40;
+;.GEN =CHAR,B,=40,.BNMOD,.BNST,
+ mov EAX,[B]
+ cdq
+ mov  ECX,40
+ idiv dword ECX
+ mov  EAX,EDX
+ mov [CHAR],EAX
+;      B=B/40;
+;.GEN =B,B,=40,.BN/,.BNST,
+ mov EAX,[B]
+ cdq
+ mov  ECX,40
+ idiv dword ECX
+ mov [B],EAX
+;    ENDIF
+LJ18:
+;  I=1;
+;.GEN =I,=1,.BNST,
+ mov EAX,1
+ mov [I],EAX
+;  REPEAT 
+LJ19:
+;    IF CHAR LE 26;
+;.GEN CHAR,=26,.BN-,
+ mov EAX,[CHAR]
+ sub EAX,26
+;      THEN CHAR=CHAR+64;        * upper case letter
+ jg LJ21
+;.GEN =CHAR,CHAR,=64,.BC+,.BNST,
+ mov EAX,[CHAR]
+ add EAX,64
+ mov [CHAR],EAX
+;      ELSE CHAR=CHAR+21;        * decimal digit
+ jmp LJ22
+LJ21:
+;.GEN =CHAR,CHAR,=21,.BC+,.BNST,
+ mov EAX,[CHAR]
+ add EAX,21
+ mov [CHAR],EAX
+;      ENDIF
+LJ22:
+;    NAME(I)=CHAR;               * put character in name string
+;.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
  mov EAX,[I]
- sub EAX,6
- jge LJ18
+ sal EAX,2
+; + D =NAME
+ mov EBX,[EBP+8] ; NAME
+ add EAX,EBX
+ mov [T5Z],EAX
+ mov EAX,[CHAR]
+ mov EDX,EAX
+ mov EAX,[T5Z]
+ mov [EAX],EDX
 ;    I=I+1;
 ;.GEN =I,I,=1,.BC+,.BNST,
  mov EAX,[I]
@@ -354,47 +443,20 @@ LJ17:
  mov EAX,[CHAR]
  or EAX,EAX
 ;      THEN EXIT
- jne LJ19
- jmp LJ18
+ jne LJ23
+ jmp LJ20
 ;      ENDIF
-LJ19:
-;    IF CHAR LE 26;
-;.GEN CHAR,=26,.BN-,
- mov EAX,[CHAR]
- sub EAX,26
-;      THEN CHAR=CHAR+64;        * upper case letter
- jg LJ20
-;.GEN =CHAR,CHAR,=64,.BC+,.BNST,
- mov EAX,[CHAR]
- add EAX,64
- mov [CHAR],EAX
-;      ELSE CHAR=CHAR+21;        * decimal digit
- jmp LJ21
+LJ23:
+;    UNTIL I GT 6;
+;.GEN I,=6,.BN-,
+ mov EAX,[I]
+ sub EAX,6
+ jle LJ19
 LJ20:
-;.GEN =CHAR,CHAR,=21,.BC+,.BNST,
- mov EAX,[CHAR]
- add EAX,21
- mov [CHAR],EAX
-;      ENDIF
-LJ21:
-;     NAME(I)=CHAR;              * put character in name string
-;.GEN =NAME,I,=2,.BNSHL,.BC+,CHAR,.BNST,
+;  NAME=I-1;                     * set string length
+;.GEN =NAME,I,=1,.BN-,.BNST,
  mov EAX,[I]
- sal EAX,2
-; + D =NAME
- mov EBX,[EBP+8] ; NAME
- add EAX,EBX
- mov [T5Z],EAX
- mov EAX,[CHAR]
- mov EDX,EAX
- mov EAX,[T5Z]
- mov [EAX],EDX
-;     ENDDO
- jmp LJ17
-LJ18:
-;  NAME=I;                       * set string length
-;.GEN =NAME,I,.BNST,
- mov EAX,[I]
+ dec EAX
 ; ST D NAME
  mov EBX,[EBP+8] ; NAME
  mov [EBX],EAX
@@ -425,25 +487,37 @@ LOOKS:
 ; PAR  VAL
 ; PAR  TAG
 ; PEND
-;*  MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask
 ;  COLFLG=0;                     * reset collision flag
 ;.GEN =COLFLG,=0,.BNST,
  mov EAX,0
  mov [COLFLG],EAX
-;  I=WORDS MOD TABSIZ;
-;.GEN =I,WORDS,TABSIZ,.BNMOD,.BNST,
+;  J=WORDS;
+;.GEN =J,WORDS,.BNST,
 ; L D WORDS
  mov EBX,[EBP+16] ; WORDS
  mov EAX,[EBX]
+ mov [J],EAX
+;  IF J LT 0; THEN               * fix problem with negative WORDS
+;.GEN J,=0,.BN-,
+ mov EAX,[J]
+ or EAX,EAX
+ jge LJ24
+;      J=(J AND MASKW)+32;       * remove sign bit, adjust remainder
+;.GEN =J,J,MASKW,.BCAND,=32,.BC+,.BNST,
+ mov EAX,[J]
+ and EAX,[MASKW]
+ add EAX,32
+ mov [J],EAX
+;    ENDIF
+LJ24:
+;  I=(J MOD TABSIZ) AND MASKE;   * use only even index
+;.GEN =I,J,TABSIZ,.BNMOD,MASKE,.BCAND,.BNST,
+ mov EAX,[J]
 ; MOD 8191 TABSIZ
  cdq
  mov  ECX,8191
  idiv dword ECX
  mov  EAX,EDX
- mov [I],EAX
-;  I=I AND MASKE;                * use only even index
-;.GEN =I,I,MASKE,.BCAND,.BNST,
- mov EAX,[I]
  and EAX,[MASKE]
  mov [I],EAX
 ;  J=I;                          * save starting position
@@ -451,7 +525,7 @@ LOOKS:
  mov EAX,[I]
  mov [J],EAX
 ;  REPEAT 
-LJ22:
+LJ25:
 ;    IF TABLE(I) EQ 0;           * found empty slot
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,=0,.BN-,
  mov EAX,[I]
@@ -460,7 +534,7 @@ LJ22:
  mov EAX,[EAX]
  or EAX,EAX
 ;      THEN TABLE(I)=WORDS;      * insert symbol
- jne LJ24
+ jne LJ27
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,WORDS,.BNST,
  mov EAX,[I]
  sal EAX,2
@@ -472,7 +546,14 @@ LJ22:
  mov EDX,EAX
  mov EAX,[T7Z]
  mov [EAX],EDX
-;        TABLE(I+1)=(TAG SHL 16) OR VAL;
+;        IF TAG;                 * new symbol name if TAG is zero
+;.GEN TAG,=0,.BN-,
+; L D TAG
+ mov EBX,[EBP+8] ; TAG
+ mov EAX,[EBX]
+ or EAX,EAX
+;          THEN TABLE(I+1)=TAG SHL 16 OR VAL; * pack VAL and TAG
+ jz LJ28
 ;.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,TAG,=16,.BNSHL,VAL,.BCOR,.BNST,
  mov EAX,[I]
  inc EAX
@@ -489,18 +570,33 @@ LJ22:
  mov EDX,EAX
  mov EAX,[T7Z1]
  mov [EAX],EDX
+;          ELSE TABLE(I+1)=0;    * set VAL and TAG to 0 for new name
+ jmp LJ29
+LJ28:
+;.GEN =TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,=0,.BNST,
+ mov EAX,[I]
+ inc EAX
+ sal EAX,2
+ add EAX,TABLE
+ mov [T7Z],EAX
+ mov EAX,0
+ mov EDX,EAX
+ mov EAX,[T7Z]
+ mov [EAX],EDX
+;          ENDIF
+LJ29:
 ;        IF COLFLG; THEN         * if collision flag on then
 ;.GEN COLFLG,=0,.BN-,
  mov EAX,[COLFLG]
  or EAX,EAX
- jz LJ25
+ jz LJ30
 ;          COLLS=COLLS+1;        * count collisions on insertion
 ;.GEN =COLLS,COLLS,=1,.BC+,.BNST,
  mov EAX,[COLLS]
  inc EAX
  mov [COLLS],EAX
 ;          ENDIF
-LJ25:
+LJ30:
 ;        RETURN I;
 ;.GEN I,
  mov EAX,[I]
@@ -509,8 +605,8 @@ LJ25:
  pop EBP
  ret
 ;      ELSE IF TABLE(I) EQ WORDS; * found match
- jmp LJ26
-LJ24:
+ jmp LJ31
+LJ27:
 ;.GEN =TABLE,I,=2,.BNSHL,.BC+,.UA,WORDS,.BN-,
  mov EAX,[I]
  sal EAX,2
@@ -520,7 +616,7 @@ LJ24:
  mov EBX,[EBP+16] ; WORDS
  sub EAX,[EBX]
 ;      THEN B=TABLE(I+1);        * retrieve VAL and TAG
- jne LJ27
+ jne LJ32
 ;.GEN =B,=TABLE,I,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  mov EAX,[I]
  inc EAX
@@ -551,8 +647,8 @@ LJ24:
  pop EBP
  ret
 ;      ENDIF ENDIF
-LJ27:
-LJ26:
+LJ32:
+LJ31:
 ;    I=I+2;                      * try next slot
 ;.GEN =I,I,=2,.BC+,.BNST,
  mov EAX,[I]
@@ -567,19 +663,19 @@ LJ26:
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
 ;      THEN I=I-TABSIZ;
- jle LJ28
+ jle LJ33
 ;.GEN =I,I,TABSIZ,.BN-,.BNST,
  mov EAX,[I]
  sub EAX,8191   ; TABSIZ
  mov [I],EAX
 ;      ENDIF
-LJ28:
+LJ33:
 ;    UNTIL I EQ J;               * check for wrap to starting position
 ;.GEN I,J,.BN-,
  mov EAX,[I]
  sub EAX,[J]
- jne LJ22
-LJ23:
+ jne LJ25
+LJ26:
 ;  RETURN -1;                    * table full
 ;.GEN =1,.U-,
  mov EAX,1

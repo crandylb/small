@@ -1,0 +1,358 @@
+     1                                 %line 1+1 shotoks.asm
+     2                                 
+     3                                 
+     4                                 
+     5                                 
+     6                                 
+     7                                 
+     8                                 
+     9                                 
+    10                                 [global progr]
+    11                                 [extern exit]
+    12                                 
+    13                                 [global SHOTOKS]
+    14                                 
+    15                                 
+    16                                 [extern TOKENS]
+    17                                 
+    18                                 [extern WRITE]
+    19                                 [extern IFORM]
+    20                                 
+    21                                 [extern CAT2]
+    22                                 [extern CAT3]
+    23                                 
+    24                                 [extern B402A]
+    25                                 [extern GETWRD]
+    26                                 
+    27                                 [extern BUFF]
+    28                                 
+    29                                 [extern MASKV]
+    30                                 
+    31                                 
+    32                                 
+    33                                 [section .data]
+    34                                 OUTCH:
+    35 00000000 03000000                dd 3
+    36                                 
+    37                                 LKIND:
+    38 00000004 00000000                times 1 dd 0
+    39                                 
+    40                                 TOKNUM:
+    41 00000008 00000000                times 1 dd 0
+    42                                 
+    43                                 TOKEN:
+    44 0000000C 00000000                times 1 dd 0
+    45                                 
+    46                                 SUBSTR:
+    47 00000010 00000000                times 1 dd 0
+    48                                 OP:
+    49 00000014 00000000                times 1 dd 0
+    50                                 
+    51                                 DEBUG:
+    52 00000018 00000000<rept>          times 128 dd 0
+    53                                 TMP:
+    54 00000218 00000000<rept>          times 32 dd 0
+    55                                 
+    56                                 SPACES:
+    57 00000298 13000000                dd 19
+    58 0000029C 20000000                dd 32
+    59 000002A0 20000000                dd 32
+    60 000002A4 20000000                dd 32
+    61 000002A8 20000000                dd 32
+    62 000002AC 20000000                dd 32
+    63 000002B0 20000000                dd 32
+    64 000002B4 20000000                dd 32
+    65 000002B8 20000000                dd 32
+    66 000002BC 20000000                dd 32
+    67 000002C0 20000000                dd 32
+    68 000002C4 20000000                dd 32
+    69 000002C8 20000000                dd 32
+    70 000002CC 20000000                dd 32
+    71 000002D0 20000000                dd 32
+    72 000002D4 20000000                dd 32
+    73 000002D8 20000000                dd 32
+    74 000002DC 20000000                dd 32
+    75 000002E0 20000000                dd 32
+    76 000002E4 20000000                dd 32
+    77                                 
+    78                                 B40:
+    79 000002E8 00000000                times 1 dd 0
+    80                                 
+    81                                 
+    82                                 
+    83                                 [section .text]
+    84                                 
+    85                                 SHOTOKS:
+    86 00000000 55                      push EBP
+    87 00000001 89E5                    mov EBP,ESP
+    88                                 
+    89                                 
+    90                                 
+    91                                 
+    92 00000003 B801000000              mov EAX,1
+    93 00000008 A3[00000000]            mov [TOKNUM],EAX
+    94                                 
+    95                                 LJ1:
+    96                                 
+    97 0000000D B804000000              mov EAX,4
+    98 00000012 F72D[00000000]          imul dword [TOKENS]
+    99 00000018 A3[00000000]            mov [T1Z],EAX
+   100 0000001D A1[00000000]            mov EAX,[TOKNUM]
+   101 00000022 2B05[00000000]          sub EAX,[T1Z]
+   102 00000028 0F8F48020000            jg LJ2
+   103                                 
+   104                                 
+   105 0000002E A1[00000000]            mov EAX,[TOKNUM]
+   106 00000033 C1E002                  sal EAX,2
+   107 00000036 05[00000000]            add EAX,TOKENS
+   108 0000003B 8B00                    mov EAX,[EAX]
+   109 0000003D A3[00000000]            mov [TOKEN],EAX
+   110                                 
+   111                                 
+   112 00000042 A1[00000000]            mov EAX,[TOKEN]
+   113 00000047 C1F81C                  sar EAX,28
+   114 0000004A 83E00F                  and EAX,15
+   115 0000004D A3[00000000]            mov [LKIND],EAX
+   116                                 
+   117                                 
+   118 00000052 B801000000              mov EAX,1
+   119 00000057 C1E002                  sal EAX,2
+   120 0000005A 05[00000000]            add EAX,DEBUG
+   121 0000005F A3[00000000]            mov [T1Z1],EAX
+   122 00000064 A1[00000000]            mov EAX,[LKIND]
+   123 00000069 83C030                  add EAX,48
+   124 0000006C 89C2                    mov EDX,EAX
+   125 0000006E A1[00000000]            mov EAX,[T1Z1]
+   126 00000073 8910                    mov [EAX],EDX
+   127                                 
+   128                                 
+   129 00000075 B802000000              mov EAX,2
+   130 0000007A C1E002                  sal EAX,2
+   131 0000007D 05[00000000]            add EAX,DEBUG
+   132 00000082 A3[00000000]            mov [T1Z],EAX
+   133 00000087 B820000000              mov EAX,32
+   134 0000008C 89C2                    mov EDX,EAX
+   135 0000008E A1[00000000]            mov EAX,[T1Z]
+   136 00000093 8910                    mov [EAX],EDX
+   137                                 
+   138                                 
+   139 00000095 B803000000              mov EAX,3
+   140 0000009A C1E002                  sal EAX,2
+   141 0000009D 05[00000000]            add EAX,DEBUG
+   142 000000A2 A3[00000000]            mov [T1Z],EAX
+   143 000000A7 B820000000              mov EAX,32
+   144 000000AC 89C2                    mov EDX,EAX
+   145 000000AE A1[00000000]            mov EAX,[T1Z]
+   146 000000B3 8910                    mov [EAX],EDX
+   147                                 
+   148                                 
+   149 000000B5 B803000000              mov EAX,3
+   150 000000BA A3[00000000]            mov [DEBUG],EAX
+   151                                 
+   152                                 
+   153 000000BF A1[00000000]            mov EAX,[TOKEN]
+   154 000000C4 2305[00000000]          and EAX,[MASKV]
+   155 000000CA A3[00000000]            mov [SUBSTR],EAX
+   156                                 
+   157                                 
+   158 000000CF 68[00000000]            push DEBUG
+   159 000000D4 68[00000000]            push SUBSTR
+   160 000000D9 68[00000000]            push BUFF
+   161 000000DE E8(F6FFFFFF)            call CAT3
+   162 000000E3 83C40C                  add ESP,4*3
+   163                                 
+   164                                 
+   165 000000E6 68[00000000]            push DEBUG
+   166 000000EB 68[00000000]            push SPACES
+   167 000000F0 E8(F6FFFFFF)            call CAT2
+   168 000000F5 83C408                  add ESP,4*2
+   169                                 
+   170                                 
+   171 000000F8 B80E000000              mov EAX,14
+   172 000000FD A3[00000000]            mov [DEBUG],EAX
+   173                                 
+   174                                 
+   175                                 
+   176 00000102 B80A000000              mov EAX,10
+   177 00000107 A3[00000000]            mov [TMP],EAX
+   178                                 
+   179                                 
+   180 0000010C A1[00000000]            mov EAX,[LKIND]
+   181 00000111 48                      dec EAX
+   182 00000112 09C0                    or EAX,EAX
+   183 00000114 C1E002                  sal EAX,2
+   184 00000117 05[00000000]            add EAX,LC1
+   185 0000011C 8B00                    mov EAX,[EAX]
+   186 0000011E FFE0                    jmp EAX
+   187                                 [section .data]
+   188                                 LC1:
+   189 000002EC [00000000]              dd SL1
+   190 000002F0 [00000000]              dd SL2
+   191 000002F4 [00000000]              dd SL3
+   192 000002F8 [00000000]              dd SL4
+   193                                 
+   194                                 [section .text]
+   195 00000120 EB49                    jmp LJ5
+   196                                 SL1:
+   197 00000122 EB32                    jmp SL4
+   198                                 
+   199 00000124 EB45                    jmp LJ5
+   200                                 SL2:
+   201                                 
+   202                                 
+   203 00000126 A1[00000000]            mov EAX,[TOKNUM]
+   204 0000012B 40                      inc EAX
+   205 0000012C C1E002                  sal EAX,2
+   206 0000012F 05[00000000]            add EAX,TOKENS
+   207 00000134 8B00                    mov EAX,[EAX]
+   208 00000136 A3[00000000]            mov [TOKEN],EAX
+   209                                 
+   210 0000013B EB2E                    jmp LJ5
+   211                                 SL3:
+   212                                 
+   213                                 
+   214 0000013D A1[00000000]            mov EAX,[TOKEN]
+   215 00000142 25FF000000              and EAX,255
+   216 00000147 C1E002                  sal EAX,2
+   217 0000014A 05[00000000]            add EAX,BUFF
+   218 0000014F 8B00                    mov EAX,[EAX]
+   219 00000151 A3[00000000]            mov [TOKEN],EAX
+   220                                 
+   221 00000156 EB13                    jmp LJ5
+   222                                 SL4:
+   223                                 
+   224                                 
+   225 00000158 A1[00000000]            mov EAX,[TOKNUM]
+   226 0000015D 40                      inc EAX
+   227 0000015E C1E002                  sal EAX,2
+   228 00000161 05[00000000]            add EAX,TOKENS
+   229 00000166 8B00                    mov EAX,[EAX]
+   230 00000168 A3[00000000]            mov [TOKEN],EAX
+   231                                 
+   232                                 LJ5:
+   233                                 
+   234                                 
+   235                                 
+   236 0000016D 68[00000000]            push TOKEN
+   237 00000172 68[00000000]            push TMP
+   238 00000177 E8(F6FFFFFF)            call IFORM
+   239 0000017C 83C408                  add ESP,4*2
+   240                                 
+   241                                 
+   242 0000017F 68[00000000]            push DEBUG
+   243 00000184 68[00000000]            push TMP
+   244 00000189 E8(F6FFFFFF)            call CAT2
+   245 0000018E 83C408                  add ESP,4*2
+   246                                 
+   247                                 
+   248 00000191 A1[00000000]            mov EAX,[DEBUG]
+   249 00000196 40                      inc EAX
+   250 00000197 A3[00000000]            mov [DEBUG],EAX
+   251                                 
+   252                                 
+   253 0000019C A1[00000000]            mov EAX,[DEBUG]
+   254 000001A1 C1E002                  sal EAX,2
+   255 000001A4 05[00000000]            add EAX,DEBUG
+   256 000001A9 A3[00000000]            mov [T1Z],EAX
+   257 000001AE B820000000              mov EAX,32
+   258 000001B3 89C2                    mov EDX,EAX
+   259 000001B5 A1[00000000]            mov EAX,[T1Z]
+   260 000001BA 8910                    mov [EAX],EDX
+   261                                 
+   262                                 
+   263 000001BC A1[00000000]            mov EAX,[LKIND]
+   264 000001C1 48                      dec EAX
+   265 000001C2 752E                    jne LJ8
+   266                                 
+   267                                 
+   268 000001C4 68[00000000]            push TOKEN
+   269 000001C9 68[00000000]            push B40
+   270 000001CE E8(F6FFFFFF)            call GETWRD
+   271 000001D3 83C408                  add ESP,4*2
+   272                                 
+   273                                 
+   274 000001D6 B800000000              mov EAX,0
+   275 000001DB A3[00000000]            mov [TMP],EAX
+   276                                 
+   277                                 
+   278 000001E0 68[00000000]            push B40
+   279 000001E5 68[00000000]            push TMP
+   280 000001EA E8(F6FFFFFF)            call B402A
+   281 000001EF 83C408                  add ESP,4*2
+   282                                 
+   283 000001F2 EB50                    jmp LJ11
+   284                                 LJ8:
+   285                                 
+   286 000001F4 A1[00000000]            mov EAX,[LKIND]
+   287 000001F9 83E804                  sub EAX,4
+   288 000001FC 7544                    jne LJ12
+   289                                 
+   290                                 
+   291 000001FE 68[00000000]            push TOKEN
+   292 00000203 68[00000000]            push B40
+   293 00000208 E8(F6FFFFFF)            call GETWRD
+   294 0000020D 83C408                  add ESP,4*2
+   295                                 
+   296                                 
+   297 00000210 B801000000              mov EAX,1
+   298 00000215 A3[00000000]            mov [TMP],EAX
+   299                                 
+   300                                 
+   301 0000021A B801000000              mov EAX,1
+   302 0000021F C1E002                  sal EAX,2
+   303 00000222 05[00000000]            add EAX,TMP
+   304 00000227 A3[00000000]            mov [T1Z1],EAX
+   305 0000022C A1[00000000]            mov EAX,[B40]
+   306                                 
+   307 00000231 99                      cdq
+   308 00000232 B93D000000              mov ECX,61
+   309 00000237 F7F9                    idiv dword ECX
+   310 00000239 89C2                    mov EDX,EAX
+   311 0000023B A1[00000000]            mov EAX,[T1Z1]
+   312 00000240 8910                    mov [EAX],EDX
+   313                                 
+   314 00000242 EB00                    jmp LJ14
+   315                                 LJ12:
+   316 00000244 EB10                    jmp SL5
+   317                                 
+   318                                 LJ14:
+   319                                 LJ11:
+   320                                 
+   321                                 
+   322 00000246 68[00000000]            push DEBUG
+   323 0000024B 68[00000000]            push TMP
+   324 00000250 E8(F6FFFFFF)            call CAT2
+   325 00000255 83C408                  add ESP,4*2
+   326                                 
+   327                                 SL5:
+   328                                 
+   329                                 
+   330 00000258 68[00000000]            push OUTCH
+   331 0000025D 68[00000000]            push DEBUG
+   332 00000262 E8(F6FFFFFF)            call WRITE
+   333 00000267 83C408                  add ESP,4*2
+   334                                 
+   335                                 
+   336 0000026A A1[00000000]            mov EAX,[TOKNUM]
+   337 0000026F 83C004                  add EAX,4
+   338 00000272 A3[00000000]            mov [TOKNUM],EAX
+   339                                 
+   340 00000277 E98CFDFFFF              jmp LJ1
+   341                                 LJ2:
+   342                                 
+   343                                 
+   344 0000027C 89EC                    mov ESP,EBP
+   345 0000027E 5D                      pop EBP
+   346 0000027F C3                      ret
+   347                                 
+   348                                 [section .data]
+   349                                 T1Z:
+   350 000002FC 00000000<rept>          times 2 dd 0
+   351                                 [section .text]
+   352                                 [section .data]
+   353                                 T1Z1:
+   354 00000304 00000000                times 1 dd 0
+   355                                 [section .text]
+   356                                 
+   357                                 
+   358                                  end

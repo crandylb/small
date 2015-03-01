@@ -1,0 +1,66 @@
+* initable.dat -- Symbol Table Initialization Data, CRB, Mar 11, 2014
+* 03/14/2014 CRB Add '='
+* Keyword TYPE VAL
+START      3    1
+IF         3    2
+DO         3    3
+REPEAT     3    4
+CASE       3    5
+LABEL      3    6
+EXIT       3    7
+GO         3    8
+SET        3    9
+CALL       3    10
+RECURSIVE  3    11
+REC        3    11
+PROCEDURE  3    12
+PROC       3    12
+RETURN     3    13
+ENTRY      3    14
+ENT        3    14
+EXTERNAL   3    15
+EXT        3    15
+DECLARE    3    16
+DCL        3    16
+MESSAGE    3    17
+MSG        3    17
+STOP       3    18
+BEGIN      3    30
+END        3    31
+THEN       3    32
+ELSE       3    33
+ENDIF      3    34
+WHILE      3    35
+ENDDO      3    36
+UNTIL      3    37
+OF         3    38
+ENDCASE    3    39
+TO         3    40
+ENDPROC    3    41
+* Operators
+'+'        3    50
+'-'        3    51
+NOT        3    52
+'*'        3    53
+'/'        3    54
+MOD        3    55
+AND        3    56
+SHL        3    57
+SHR        3    58
+OR         3    59
+XOR        3    60
+* Punctuation
+'.'        7    61
+','        7    62
+';'        7    63
+'('        7    64
+')'        7    65
+''         7    66
+'='        7    67
+* Comparison Operators
+EQ         3    70
+NE         3    71
+LE         3    72
+LT         3    73
+GE         3    74
+GT         3    75
