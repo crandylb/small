@@ -2,11 +2,11 @@
 2       * 06/16/2014 CRB Add initsym                                            
 3       * 07/03/2014 CRB Debugging                                              
 4       * 12/29/2014 CRB Add call to show collision count                       
-5                                                                               
-6         ENTRY TESTSCAN;                                                       
-7         BEGIN TESTSCAN;                                                       
-8         START TESTSCAN;                                                       
-9         ENTRY BUFF;                   * make BUFF buffer global for LEX       
+5       * 03/03/2015 CRB Delete unused BUFF                                     
+6                                                                               
+7         ENTRY TESTSCAN;                                                       
+8         BEGIN TESTSCAN;                                                       
+9         START TESTSCAN;                                                       
 10                                                                              
 11        EXTERNAL PROC WRITE;                                                  
 12        EXT PROC SCAN,INITSYM,DMPLIST,SHOTOKS;                                

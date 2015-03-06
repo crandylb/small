@@ -2,6 +2,7 @@
 ;* 06/16/2014 CRB Add initsym
 ;* 07/03/2014 CRB Debugging
 ;* 12/29/2014 CRB Add call to show collision count
+;* 03/03/2015 CRB Delete unused BUFF
 ;
 ;  ENTRY TESTSCAN;
  global  TESTSCAN
@@ -15,8 +16,6 @@ progr:
  push EBP
  mov  EBP,ESP
  jmp TESTSCAN
-;  ENTRY BUFF;                   * make BUFF buffer global for LEX
- global  BUFF
 ;
 ;  EXTERNAL PROC WRITE;
  extern WRITE
