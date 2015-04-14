@@ -1,0 +1,46 @@
+1       * testeval.s1 -- Test Small scanner using LEX, CRB, Nov 14, 2014        
+2       * 03/03/2015 CRB Delete unused BUFF                                     
+3       * 03/06/2015 CRB Correct initialization of IT                           
+4       * 03/09/2015 CRB Add EVALS eval shell function                          
+5       * 03/11/2015 CRB Use CAT2 instead of CAT3, initialize IT=1              
+6       * 03/12/2015 CRB Use local copy of IT in call to EVAL                   
+7       * 03/20/2015 CRB Clean up dead code                                     
+8                                                                               
+9         ENTRY TESTEVAL;                                                       
+10        BEGIN TESTEVAL;                                                       
+11        START TESTEVAL;                                                       
+12        ENTRY EVALS;                  * eval shell called fron scan           
+13                                                                              
+14        EXTERNAL PROC READ,WRITE;                                             
+15        EXTERNAL PROC LEX,CAT2;                                               
+16        EXT PROC SCAN,INITSYM,DMPLIST,SHOTOKS;                                
+17        EXT PROC EVAL,IFORM,CAT2;                                             
+18        EXT OUTCH;                    * global output channel                 
+19        EXT TOKENS;                   * array of tokens from scan             
+20                                                                              
+21        MSG GREET='Begin Small eval Test';                                    
+22        MSG DONE='ANSWER =                ';                                  
+23        DCL IT,ANSWER;                                                        
+24        DCL LA,TMP(11);                                                       
+25                                                                              
+26      LABEL TESTEVAL;                                                         
+27        CALL WRITE(OUTCH,GREET);                                              
+28        CALL INITSYM;                                                         
+29      *  CALL DMPLIST;                                                        
+30        CALL SCAN;                                                            
+31        RETURN                                                                
+32                                                                              
+33      * eval shell callback function called from scan                         
+34      PROC EVALS(I);                                                          
+35   1    IT=I;                                                                 
+36   1    ANSWER=EVAL(IT);              * use local copy                        
+37   1    TMP=10;                                                               
+38   1    CALL IFORM(ANSWER,TMP);                                               
+39   1    DONE=10;                                                              
+40   1    CALL CAT2(DONE,TMP);                                                  
+41   1    CALL WRITE(OUTCH,DONE);                                               
+42   1    RETURN ANSWER;                                                        
+43   1  ENDPROC                                                                 
+44   0                                                                          
+45   0  END                                                                     
+ NO ERRORS DETECTED

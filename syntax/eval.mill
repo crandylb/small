@@ -1,0 +1,500 @@
+** eval.s1 -- Britten's Archaic Expression Evaluator, CRB, Sep 23, 2014
+** 09/29/2014 CRB tinkered with the coding
+** 10/20/2014 CRB more tinkering
+** 03/09/2015 CRB Add STP reinitialization
+** 03/11/2015 CRB RETURN EXPR after UNTIL ISASEMI
+** 03/15/2015 CRB Delete extraneous PCOUNT after ISAINT
+** 03/15/2015 CRB Add LABB
+** 03/16/2015 CRB Add LABO
+** 03/20/2015 CRB Advance IT after semicolon
+*
+*BEGIN EVAL;
+ BEGIN
+*
+*  ENT EVAL;
+ ENT  EVAL
+*  EXT TOKENS;
+ EXT  TOKENS
+*  EXT PROC ISAINT;
+ EXT P ISAINT
+*  EXT PROC ISAPLU;
+ EXT P ISAPLU
+*  EXT PROC ISAMIN;
+ EXT P ISAMIN
+*  EXT PROC ISAAST;
+ EXT P ISAAST
+*  EXT PROC ISASLA;
+ EXT P ISASLA
+*  EXT PROC ISALP;
+ EXT P ISALP
+*  EXT PROC ISARP;
+ EXT P ISARP
+*  EXT PROC ISASEMI;
+ EXT P ISASEMI
+*
+*  SET PLUS=43;                  * ASCII +
+*  SET MINUS=45;                 * ASCII -
+*  SET STAR=42;                  * ASCII *
+*  SET SLASH=47;                 * ASCII /
+*  SET LPAREN=40;                * ASCII left parenthesis
+*  SET RPAREN=41;                * ASCII right parenthesis
+*
+*  DCL AOP,MOP;                  * add operator, mult operator
+ SECT DATA
+ LABEL AOP
+ SPACE  1
+ LABEL MOP
+ SPACE  1
+*  DCL NUMB,TERM=1,EXPR=0;
+ SECT DATA
+ LABEL NUMB
+ SPACE  1
+ LABEL TERM
+ CONST  1
+ LABEL EXPR
+ CONST  0
+*  DCL PCOUNT;                   * parenthesis level count
+ SECT DATA
+ LABEL PCOUNT
+ SPACE  1
+*  SET STKSIZ=30;                * stack size
+*  DCL STK(STKSIZ);              * push down stack
+ SECT DATA
+ LABEL STK
+ SPACE  31
+*  DCL STP=0;                    * stack pointer
+ SECT DATA
+ LABEL STP
+ CONST  0
+*
+** evaluate infix expression starting at IT in TOKENS array
+*  PROC EVAL(IT);
+ SECT CODE
+ SUBR P EVAL
+ NPARS  1
+ PAR  IT
+ PEND
+*    PCOUNT=0;
+*.GEN =PCOUNT,=0,.BNST,
+ L  =0
+ ST  PCOUNT
+*    STP=0;
+*.GEN =STP,=0,.BNST,
+ L  =0
+ ST  STP
+*LABEL LABA;
+ SECT CODE
+ LABEL LABA
+*    AOP=0;
+*.GEN =AOP,=0,.BNST,
+ L  =0
+ ST  AOP
+*    MOP=0;
+*.GEN =MOP,=0,.BNST,
+ L  =0
+ ST  MOP
+*    TERM=1;
+*.GEN =TERM,=1,.BNST,
+ L  =1
+ ST  TERM
+*    EXPR=0;
+*.GEN =EXPR,=0,.BNST,
+ L  =0
+ ST  EXPR
+** process unary '+' or '-'
+*    IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;
+*.GEN (IT),.UFISAPLU,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAPLU
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ2
+*.GEN =AOP,PLUS,.BNST,
+ L 43 PLUS
+ ST  AOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*      ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4;
+ J  LJ3
+ LABEL LJ2
+*.GEN (IT),.UFISAMIN,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAMIN
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ5
+*.GEN =AOP,MINUS,.BNST,
+ L 45 MINUS
+ ST  AOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*      ENDIF ENDIF
+ LABEL LJ5
+ LABEL LJ3
+*LABEL LABB;
+ SECT CODE
+ LABEL LABB
+*    IF ISALP(IT); THEN 
+*.GEN (IT),.UFISALP,=0,.BN-,
+ ARGT D IT
+ SCALL P ISALP
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ7
+*      IT=IT+4;
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*      PCOUNT=PCOUNT+1;
+*.GEN =PCOUNT,PCOUNT,=1,.BC+,.BNST,
+ L  PCOUNT
+ +  =1
+ ST  PCOUNT
+*      STK(STP)=AOP; STP=STP+1;
+*.GEN =STK,STP,=2,.BNSHL,.BC+,AOP,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ ST  T1Z
+ L  AOP
+ ST  *T1Z
+*.GEN =STP,STP,=1,.BC+,.BNST,
+ L  STP
+ +  =1
+ ST  STP
+*      STK(STP)=MOP; STP=STP+1;
+*.GEN =STK,STP,=2,.BNSHL,.BC+,MOP,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ ST  T1Z
+ L  MOP
+ ST  *T1Z
+*.GEN =STP,STP,=1,.BC+,.BNST,
+ L  STP
+ +  =1
+ ST  STP
+*      STK(STP)=EXPR; STP=STP+1;
+*.GEN =STK,STP,=2,.BNSHL,.BC+,EXPR,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ ST  T1Z
+ L  EXPR
+ ST  *T1Z
+*.GEN =STP,STP,=1,.BC+,.BNST,
+ L  STP
+ +  =1
+ ST  STP
+*      STK(STP)=TERM; STP=STP+1;
+*.GEN =STK,STP,=2,.BNSHL,.BC+,TERM,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ ST  T1Z
+ L  TERM
+ ST  *T1Z
+*.GEN =STP,STP,=1,.BC+,.BNST,
+ L  STP
+ +  =1
+ ST  STP
+*      GO TO LABA;
+ J  LABA
+*      ELSE 
+ J  LJ8
+ LABEL LJ7
+*        IF ISAINT(IT); THEN 
+*.GEN (IT),.UFISAINT,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAINT
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ10
+*          NUMB=TOKENS(IT+1);    * get value of integer
+*.GEN =NUMB,=TOKENS,IT,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
+ L D IT
+ +  =1
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ ST  NUMB
+*          IT=IT+4;
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*          REPEAT 
+ LABEL LJ11
+*LABEL LABO;
+ SECT CODE
+ LABEL LABO
+*            IF MOP EQ STAR; THEN TERM=TERM*NUMB;
+*.GEN MOP,STAR,.BN-,
+ L  MOP
+ - 42 STAR
+ JNE  LJ13
+*.GEN =TERM,TERM,NUMB,.BC*,.BNST,
+ L  TERM
+ *  NUMB
+ ST  TERM
+*              ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;
+ J  LJ14
+ LABEL LJ13
+*.GEN MOP,SLASH,.BN-,
+ L  MOP
+ - 47 SLASH
+ JNE  LJ15
+*.GEN =TERM,TERM,NUMB,.BN/,.BNST,
+ L  TERM
+ /  NUMB
+ ST  TERM
+*              ELSE TERM=NUMB;
+ J  LJ16
+ LABEL LJ15
+*.GEN =TERM,NUMB,.BNST,
+ L  NUMB
+ ST  TERM
+*              ENDIF ENDIF
+ LABEL LJ16
+ LABEL LJ14
+*            MOP=0;
+*.GEN =MOP,=0,.BNST,
+ L  =0
+ ST  MOP
+*            IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;
+*.GEN (IT),.UFISAAST,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAAST
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ18
+*.GEN =MOP,STAR,.BNST,
+ L 42 STAR
+ ST  MOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+ J  LABB
+*              ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;
+ J  LJ19
+ LABEL LJ18
+*.GEN (IT),.UFISASLA,=0,.BN-,
+ ARGT D IT
+ SCALL P ISASLA
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ21
+*.GEN =MOP,SLASH,.BNST,
+ L 47 SLASH
+ ST  MOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+ J  LABB
+*              ENDIF ENDIF
+ LABEL LJ21
+ LABEL LJ19
+*            IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;
+*.GEN AOP,PLUS,.BN-,
+ L  AOP
+ - 43 PLUS
+ JNE  LJ22
+*.GEN =EXPR,EXPR,TERM,.BC+,.BNST,
+ L  EXPR
+ +  TERM
+ ST  EXPR
+*              ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;
+ J  LJ23
+ LABEL LJ22
+*.GEN AOP,MINUS,.BN-,
+ L  AOP
+ - 45 MINUS
+ JNE  LJ24
+*.GEN =EXPR,EXPR,TERM,.BN-,.BNST,
+ L  EXPR
+ -  TERM
+ ST  EXPR
+*              ELSE EXPR=TERM;
+ J  LJ25
+ LABEL LJ24
+*.GEN =EXPR,TERM,.BNST,
+ L  TERM
+ ST  EXPR
+*              ENDIF ENDIF
+ LABEL LJ25
+ LABEL LJ23
+*            AOP=0;
+*.GEN =AOP,=0,.BNST,
+ L  =0
+ ST  AOP
+*            IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;
+*.GEN (IT),.UFISAPLU,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAPLU
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ27
+*.GEN =AOP,PLUS,.BNST,
+ L 43 PLUS
+ ST  AOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+ J  LABB
+*              ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;
+ J  LJ28
+ LABEL LJ27
+*.GEN (IT),.UFISAMIN,=0,.BN-,
+ ARGT D IT
+ SCALL P ISAMIN
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ30
+*.GEN =AOP,MINUS,.BNST,
+ L 45 MINUS
+ ST  AOP
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+ J  LABB
+*              ENDIF ENDIF
+ LABEL LJ30
+ LABEL LJ28
+*            IF ISARP(IT); THEN 
+*.GEN (IT),.UFISARP,=0,.BN-,
+ ARGT D IT
+ SCALL P ISARP
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ32
+*              IT=IT+4;
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*              PCOUNT=PCOUNT-1;
+*.GEN =PCOUNT,PCOUNT,=1,.BN-,.BNST,
+ L  PCOUNT
+ -  =1
+ ST  PCOUNT
+*              NUMB=EXPR;
+*.GEN =NUMB,EXPR,.BNST,
+ L  EXPR
+ ST  NUMB
+*              STP=STP-1; TERM=STK(STP);
+*.GEN =STP,STP,=1,.BN-,.BNST,
+ L  STP
+ -  =1
+ ST  STP
+*.GEN =TERM,=STK,STP,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ L  *.AC
+ ST  TERM
+*              STP=STP-1; EXPR=STK(STP);
+*.GEN =STP,STP,=1,.BN-,.BNST,
+ L  STP
+ -  =1
+ ST  STP
+*.GEN =EXPR,=STK,STP,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ L  *.AC
+ ST  EXPR
+*              STP=STP-1; MOP=STK(STP);
+*.GEN =STP,STP,=1,.BN-,.BNST,
+ L  STP
+ -  =1
+ ST  STP
+*.GEN =MOP,=STK,STP,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ L  *.AC
+ ST  MOP
+*              STP=STP-1; AOP=STK(STP);
+*.GEN =STP,STP,=1,.BN-,.BNST,
+ L  STP
+ -  =1
+ ST  STP
+*.GEN =AOP,=STK,STP,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  STP
+ SHL  =2
+ +  =STK
+ L  *.AC
+ ST  AOP
+*              GO TO LABO;
+ J  LABO
+*              ENDIF
+ LABEL LJ32
+*            ELSE 
+ J  LJ33
+ LABEL LJ12
+*              RETURN EXPR;
+*.GEN EXPR,
+ L  EXPR
+ RETN  EVAL,1
+*            ENDIF
+ LABEL LJ33
+*          UNTIL ISASEMI(IT);
+*.GEN (IT),.UFISASEMI,=0,.BN-,
+ ARGT D IT
+ SCALL P ISASEMI
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ11
+ LABEL LJ10
+*        IT=IT+4;
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*        RETURN EXPR;
+*.GEN EXPR,
+ L  EXPR
+ RETN  EVAL,1
+*      ENDIF
+ LABEL LJ8
+*    RETURN 0;                   * error return, need a flag or summat
+*.GEN =0,
+ L  =0
+ RETN  EVAL,1
+*  ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+*
+*END
+ END

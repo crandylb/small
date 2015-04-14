@@ -1,0 +1,91 @@
+** cat3.s1 -- CAT version for substring capture, CRB, Mar 29, 2014
+** 07/25/2014 CRB Fix off-by-one error
+*
+*  BEGIN CAT3;
+ BEGIN
+*  ENTRY CAT3;
+ ENT  CAT3
+*
+*  DCL I,J,LEN;
+ SECT DATA
+ LABEL I
+ SPACE  1
+ LABEL J
+ SPACE  1
+ LABEL LEN
+ SPACE  1
+*
+** Append substring from SRC into DEST
+*PROC CAT3(DEST,LA,SRC);
+ SECT CODE
+ SUBR P CAT3
+ NPARS  3
+ PAR  DEST
+ PAR  LA
+ PAR  SRC
+ PEND
+*  LEN=LA SHR 8;                 * extract length of substring
+*.GEN =LEN,LA,=8,.BNSHR,.BNST,
+ L D LA
+ SHR  =8
+ ST  LEN
+*  I=LA AND 255;                 * anchor index in SRC
+*.GEN =I,LA,=255,.BCAND,.BNST,
+ L D LA
+ AND  =255
+ ST  I
+*  J=DEST+1;                     * CRB 07/25/2014 fixed obo bug
+*.GEN =J,DEST,=1,.BC+,.BNST,
+ L D DEST
+ +  =1
+ ST  J
+*  DEST=DEST+LEN;
+*.GEN =DEST,DEST,LEN,.BC+,.BNST,
+ L D DEST
+ +  LEN
+ ST D DEST
+*  DO WHILE LEN;
+ LABEL LJ1
+*.GEN LEN,=0,.BN-,
+ L  LEN
+ -  =0
+ JEQ  LJ2
+*    DEST(J)=SRC(I);
+*.GEN =DEST,J,=2,.BNSHL,.BC+,=SRC,I,=2,.BNSHL,.BC+,.UA,.BNST,
+ L  J
+ SHL  =2
+ + D =DEST
+ ST  T1Z1
+ L  I
+ SHL  =2
+ + D =SRC
+ L  *.AC
+ ST  *T1Z1
+*    I=I+1;
+*.GEN =I,I,=1,.BC+,.BNST,
+ L  I
+ +  =1
+ ST  I
+*    J=J+1;
+*.GEN =J,J,=1,.BC+,.BNST,
+ L  J
+ +  =1
+ ST  J
+*    LEN=LEN-1;
+*.GEN =LEN,LEN,=1,.BN-,.BNST,
+ L  LEN
+ -  =1
+ ST  LEN
+*    ENDDO
+ J  LJ1
+ LABEL LJ2
+*  RETURN
+ RETN  CAT3,3
+*  ENDPROC
+ SECT DATA
+ LABEL T1Z1
+ SPACE  1
+ SECT CODE
+*
+*END
+ END

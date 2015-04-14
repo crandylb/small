@@ -1,0 +1,142 @@
+1       * initsym.s1 -- Initialize Symbol Table, CRB, Feb 26, 2014              
+2       * 03/14/2014 CRB Add COLLS collision counter and token KIND             
+3       * 03/18/2014 CRB Randomize single char ops, add INDEX output            
+4       * 04/03/2014 CRB Use integer value from LEX in LEXEME(1)                
+5       * 05/10/2014 CRB Use INDEX from LEXEME(1) to set VAL and TAG with PUTS  
+6       * 05/26/2014 CRB Remove TESTINIT into its own module                    
+7       * 07/22/2014 CRB Expanding DMPLIST, add HEADER                          
+8       * 08/05/2014 CRB Distinguish LKIND and TKIND                            
+9       * 12/06/2014 CRB Initialize MASKW to 7FFFFFFF hex                       
+10      * 12/16/2014 CRB Add MOD40K = 53687091                                  
+11                                                                              
+12      BEGIN INITSYM;                                                          
+13      ENT INITSYM;                                                            
+14      ENT DMPLIST;                                                            
+15      ENT BUFF;                                                               
+16                                                                              
+17      EXT PROC READ,WRITE;                                                    
+18      EXT PROC LEX;                                                           
+19      EXT PROC A2B40,B402A;                                                   
+20      EXT PROC A2B40L;                                                        
+21      EXT PROC LOOKS,GETS,PUTS,GETWRD;                                        
+22      EXT PROC IREAD,IFORM,CAT2;                                              
+23      EXT COLLS,MASKV,MASKW,MOD40K;                                           
+24                                                                              
+25      DCL I,J,EOF=0,STATUS;                                                   
+26      DCL BUFF(127);                                                          
+27      DCL INCH=1,SCRCH=2,OUTCH=3;                                             
+28      DCL LEXEME(4);                                                          
+29      DCL INDEX,WORDS,LKIND,TTYPE,TAG,TAGS,VAL,ATTR,OP;                       
+30      DCL COUNT=0,LIST(60);                                                   
+31      DCL STAR=('*');                                                         
+32      DCL DOT=('.');                                                          
+33      DCL QUOTE=39;                   * ASCII single qoute mark               
+34      MSG BLANKS='          ';                                                
+35      MSG SCRATCH='          ';                                               
+36      MSG COLLISIONS='Collisions: ';                                          
+37      SET PRIM18=61;                  * prime                                 
+38      DCL ANC;                        * anchor                                
+39                                                                              
+40      * Initialize the symbol table with data from initable.dat file          
+41      PROC INITSYM;                                                           
+42   1    MASKV=(32767 SHL 1) OR 1;     * fudge correct value of mask           
+43   1    MASKW=MASKV SHL 15 OR MASKV;  * initialize to 7FFFFFFF hex            
+44   1    MOD40K=5368*10000+7091;       * use for negative mod 40: 53617091     
+45   1    STATUS=READ(SCRCH,BUFF);      * read first line from chan 2           
+46   1    DO WHILE STATUS NE EOF;                                               
+47   2      IF BUFF(1) NE STAR;         * skip comment line                     
+48   3        THEN                                                              
+49   3        I=1;                                                              
+50   3                                                                          
+51   3        LKIND=LEX(I,LEXEME);      * get a symbol to initialize            
+52   3        ANC=LEXEME AND 255;       * extract the anchor from LEXEME(0)     
+53   3        IF BUFF(ANC) EQ QUOTE; THEN                                       
+54   4            WORDS=BUFF(ANC+1)*PRIM18; * use ASCII code                    
+55   4            TAGS=1;               * bit for single ASCII character        
+56   4            INDEX=LOOKS(WORDS,VAL,TAG); * use this INDEX in PUTS below    
+57   4          ELSE                                                            
+58   4            WORDS=A2B40L(LEXEME,BUFF);  * convert to B40                  
+59   4            TAGS=0;               * bit for normal base 40 coding         
+60   4            INDEX=LEXEME(1);      * save INDEX returned from LEX          
+61   4          ENDIF                                                           
+62   3                                                                          
+63   3        LKIND=LEX(I,LEXEME);      * get the TTYPE code                    
+64   3        TTYPE=LEXEME(1);                                                  
+65   3                                                                          
+66   3        LKIND=LEX(I,LEXEME);      * get VAL for this keyword              
+67   3        VAL=LEXEME(1);                                                    
+68   3                                                                          
+69   3        LKIND=LEX(I,LEXEME);      * get the VALE token LKIND code         
+70   3        LKIND=LEXEME(1);                                                  
+71   3        TAG=(TAGS SHL 4 OR TTYPE) SHL 8 OR LKIND; * set TAG word parts    
+72   3                                                                          
+73   3        LKIND=LEX(I,LEXEME);      * get the ATTR bits                     
+74   3        ATTR=LEXEME(1);                                                   
+75   3        VAL=ATTR SHL 8 OR VAL;    * ATTR in MSB, ID number in LSB         
+76   3                                                                          
+77   3        CALL PUTS(INDEX,VAL,TAG); * set VAL and TAG for this symbol       
+78   3        COUNT=COUNT+1;                                                    
+79   3        LIST(COUNT)=INDEX;        * save INDEX of this keyword            
+80   3        ENDIF                                                             
+81   2      STATUS=READ(SCRCH,BUFF);    * read next line                        
+82   2      ENDDO                                                               
+83   1    RETURN                                                                
+84   1  ENDPROC                                                                 
+85   0                                                                          
+86   0  MSG HEADER='Symbol       Index       VAL       TAG';                    
+87   0  DCL HEAD1(40);                                                          
+88   0  MSG HEAD2='     TTYPE      TAGS        OP     TKIND';                   
+89   0  DCL TKIND;                      * token kind code                       
+90   0                                                                          
+91   0  * Dump contents of symbol table to verify initialization                
+92   0  PROC DMPLIST;                                                           
+93   1    CALL CAT2(HEADER,HEAD2);                                              
+94   1    CALL WRITE(OUTCH,HEADER);                                             
+95   1    I=1;                                                                  
+96   1    DO WHILE I LE COUNT;                                                  
+97   2      INDEX=LIST(I);                                                      
+98   2      CALL GETWRD(INDEX,WORDS);   * get coded symbol from table           
+99   2      CALL GETS(INDEX,VAL,TAG);   * also get VAL and TAG                  
+100  2      TKIND=TAG AND 255;          * get token kind from TAG               
+101  2      TTYPE=TAG SHR 8;            * get the type and TAGS field           
+102  2      TAGS=TTYPE SHR 4;           * extract the TAGS bits                 
+103  2      TTYPE=TTYPE AND 15;         * isolate the type number               
+104  2      OP=VAL AND 255;             * get OP ID of this token               
+105  2      BUFF=0;                                                             
+106  2      CALL CAT2(BUFF,BLANKS);     * clear BUFF                            
+107  2      BUFF=0;                                                             
+108  2      IF TAGS AND 1; THEN                                                 
+109  3          BUFF(1)=WORDS/PRIM18;   * if single character use ASCII         
+110  3        ELSE                                                              
+111  3          CALL B402A(WORDS,BUFF); * decode symbol into BUFF               
+112  3        ENDIF                                                             
+113  2      BUFF=8;                                                             
+114  2      CALL IFORM(INDEX,SCRATCH);  * show INDEX                            
+115  2      CALL CAT2(BUFF,SCRATCH);                                            
+116  2      CALL IFORM(VAL,SCRATCH);    * insert VAL in BUFF                    
+117  2      CALL CAT2(BUFF,SCRATCH);                                            
+118  2      CALL IFORM(TAG,SCRATCH);    * insert TAG in BUFF                    
+119  2      CALL CAT2(BUFF,SCRATCH);                                            
+120  2      CALL IFORM(TTYPE,SCRATCH);  * insert token type                     
+121  2      CALL CAT2(BUFF,SCRATCH);                                            
+122  2      CALL IFORM(TAGS,SCRATCH);   * insert TAGS field                     
+123  2      CALL CAT2(BUFF,SCRATCH);                                            
+124  2      CALL IFORM(OP,SCRATCH);     * insert OP ID                          
+125  2      CALL CAT2(BUFF,SCRATCH);                                            
+126  2      CALL IFORM(TKIND,SCRATCH);	* insert token kind                      
+127  2      CALL CAT2(BUFF,SCRATCH);                                            
+128  2      CALL WRITE(OUTCH,BUFF);                                             
+129  2                                                                          
+130  2      I=I+1;                                                              
+131  2      ENDDO                                                               
+132  1                                                                          
+133  1    CALL IFORM(COLLS,SCRATCH);                                            
+134  1    BUFF=0;                                                               
+135  1    CALL CAT2(BUFF,COLLISIONS);                                           
+136  1    CALL CAT2(BUFF,SCRATCH);                                              
+137  1    CALL WRITE(OUTCH,BUFF);                                               
+138  1                                                                          
+139  1    RETURN                                                                
+140  1    ENDPROC                                                               
+141  0  END                                                                     
+ NO ERRORS DETECTED

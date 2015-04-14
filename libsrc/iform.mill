@@ -1,0 +1,169 @@
+** IFORM -- CONVERT INTEGER TO DECIMAL CHARACTER STRING AS IN I FORMAT
+*BEGIN IFORM;                  * CRB OCT 31, 1981
+ BEGIN
+*     ENT IFORM;
+ ENT  IFORM
+*     DCL N,Q;
+ SECT DATA
+ LABEL N
+ SPACE  1
+ LABEL Q
+ SPACE  1
+*     DCL PTR;                 * TEMPORARY STORAGE FOR CONVERSION
+ SECT DATA
+ LABEL PTR
+ SPACE  1
+*     DCL STAR=('*');
+ SECT DATA
+ LABEL STAR
+ CONST  42
+*     DCL MINUS=('-');
+ SECT DATA
+ LABEL MINUS
+ CONST  45
+**---------------
+*PROC IFORM(NUM,BUFF);
+ SECT CODE
+ SUBR P IFORM
+ NPARS  2
+ PAR  NUM
+ PAR  BUFF
+ PEND
+*     N=NUM;                   * GET NUMBER TO BE CONVERTED
+*.GEN =N,NUM,.BNST,
+ L D NUM
+ ST  N
+*     PTR=BUFF;                * POINTER INTO USERS BUFFER
+*.GEN =PTR,BUFF,.BNST,
+ L D BUFF
+ ST  PTR
+*     IF N LT 0; THEN N=-N; ENDIF
+*.GEN N,=0,.BN-,
+ L  N
+ -  =0
+ JGE  LJ1
+*.GEN =N,N,.U-,.BNST,
+ L  N
+ -
+ ST  N
+ LABEL LJ1
+*     REPEAT                   * REPEAT UNTIL N IS CONVERTED
+ LABEL LJ2
+*       IF PTR LE 0; THEN GO TO TOOBIG ENDIF
+*.GEN PTR,=0,.BN-,
+ L  PTR
+ -  =0
+ JGT  LJ4
+ J  TOOBIG
+ LABEL LJ4
+*       Q=N/10;                * GET NEXT QUOTIENT
+*.GEN =Q,N,=10,.BN/,.BNST,
+ L  N
+ /  =10
+ ST  Q
+*       BUFF(PTR)=N-10*Q+'0';  * CONVERT REMAINDER TO CHAR
+*.GEN =BUFF,PTR,=2,.BNSHL,.BC+,N,=10,Q,.BC*,.BN-,=48,.BC+,.BNST,
+ L  PTR
+ SHL  =2
+ + D =BUFF
+ ST  T1Z1
+ L  =10
+ *  Q
+ ST  T1Z
+ L  N
+ -  T1Z
+ +  =48
+ ST  *T1Z1
+*       N=Q;
+*.GEN =N,Q,.BNST,
+ L  Q
+ ST  N
+*       PTR=PTR-1;
+*.GEN =PTR,PTR,=1,.BN-,.BNST,
+ L  PTR
+ -  =1
+ ST  PTR
+*       UNTIL N EQ 0;
+*.GEN N,=0,.BN-,
+ L  N
+ -  =0
+ JNE  LJ2
+ LABEL LJ3
+*     IF NUM LT 0; THEN 
+*.GEN NUM,=0,.BN-,
+ L D NUM
+ -  =0
+ JGE  LJ5
+*       IF PTR LE 0; THEN GO TO TOOBIG;
+*.GEN PTR,=0,.BN-,
+ L  PTR
+ -  =0
+ JGT  LJ6
+ J  TOOBIG
+*       ELSE BUFF(PTR)=MINUS;  * INSERT MINUS SIGN IF IT FITS
+ J  LJ7
+ LABEL LJ6
+*.GEN =BUFF,PTR,=2,.BNSHL,.BC+,MINUS,.BNST,
+ L  PTR
+ SHL  =2
+ + D =BUFF
+ ST  T1Z
+ L  MINUS
+ ST  *T1Z
+*         PTR=PTR-1;
+*.GEN =PTR,PTR,=1,.BN-,.BNST,
+ L  PTR
+ -  =1
+ ST  PTR
+*         ENDIF
+ LABEL LJ7
+*       ENDIF
+ LABEL LJ5
+*     DO WHILE PTR GT 0;       * BLANK OUT ANY UNUSED PART OF BUFF
+ LABEL LJ8
+*.GEN PTR,=0,.BN-,
+ L  PTR
+ -  =0
+ JLE  LJ9
+*       BUFF(PTR)=' ';
+*.GEN =BUFF,PTR,=2,.BNSHL,.BC+,=32,.BNST,
+ L  PTR
+ SHL  =2
+ + D =BUFF
+ ST  T1Z
+ L  =32
+ ST  *T1Z
+*       PTR=PTR-1;
+*.GEN =PTR,PTR,=1,.BN-,.BNST,
+ L  PTR
+ -  =1
+ ST  PTR
+*       ENDDO
+ J  LJ8
+ LABEL LJ9
+*     RETURN
+ RETN  IFORM,2
+*LABEL TOOBIG                  * CONVERTED NUMBER TOO BIG FOR BUFF
+ SECT CODE
+ LABEL TOOBIG
+*     BUFF(1)=STAR;            * SET FIRST CHAR = * TO NOTE ERROR
+*.GEN =BUFF,=1,=2,.BNSHL,.BC+,STAR,.BNST,
+ L  =1
+ SHL  =2
+ + D =BUFF
+ ST  T1Z
+ L  STAR
+ ST  *T1Z
+*     RETURN
+ RETN  IFORM,2
+*   ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+ SECT DATA
+ LABEL T1Z1
+ SPACE  1
+ SECT CODE
+* END IFORM
+ END

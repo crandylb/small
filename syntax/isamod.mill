@@ -1,0 +1,491 @@
+** isamod.s1 -- Module of ISA functions for parsing, CRB, Sep 16, 2014
+** 09/29/2014 CRB Add ISASEMI, ISAEQU
+** 03/06/2015 CRB Add ENTRY for ISASEMI, ISAEQU
+** 03/15/2015 CRB Correct mask for OP
+*
+** Each function returns True (1) or False (0)
+*
+*BEGIN ISAMOD;
+ BEGIN
+*  EXT TOKENS;                       * access tokens array in scan
+ EXT  TOKENS
+*  ENT ISAINT,ISASYM;
+ ENT  ISAINT
+ ENT  ISASYM
+*  ENT ISAPLU,ISAMIN,ISAAST,ISASLA;  * arithmetic operators
+ ENT  ISAPLU
+ ENT  ISAMIN
+ ENT  ISAAST
+ ENT  ISASLA
+*  ENT ISALP,ISARP;                  * parentheses
+ ENT  ISALP
+ ENT  ISARP
+*  ENT ISASEMI,ISAEQU;               * semicolon and equal sign
+ ENT  ISASEMI
+ ENT  ISAEQU
+*
+*  DCL LKIND;                        * lexical kind
+ SECT DATA
+ LABEL LKIND
+ SPACE  1
+*  DCL TTYPE;                        * type code
+ SECT DATA
+ LABEL TTYPE
+ SPACE  1
+*  DCL OP;                           * operator code
+ SECT DATA
+ LABEL OP
+ SPACE  1
+*
+** token is a literal integer evaluated by lex
+*  PROC ISAINT(IT);                  * is an integer
+ SECT CODE
+ SUBR P ISAINT
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    IF LKIND EQ 2; THEN RETURN 1;
+*.GEN LKIND,=2,.BN-,
+ L  LKIND
+ -  =2
+ JNE  LJ1
+*.GEN =1,
+ L  =1
+ RETN  ISAINT,1
+*    ELSE RETURN 0;
+ J  LJ2
+ LABEL LJ1
+*.GEN =0,
+ L  =0
+ RETN  ISAINT,1
+*    ENDIF
+ LABEL LJ2
+*  ENDPROC
+*
+** token is a symbol in symbol table and not a keyword
+*  PROC ISASYM(IT);                  * is a symbol
+ SECT CODE
+ SUBR P ISASYM
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    TTYPE=TOKENS(IT+3) SHR 8 AND 15;
+*.GEN =TTYPE,=TOKENS,IT,=3,.BC+,=2,.BNSHL,.BC+,.UA,=8,.BNSHR,=15,.BCAND,.BNST,
+ L D IT
+ +  =3
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =8
+ AND  =15
+ ST  TTYPE
+*    IF LKIND EQ 1; THEN IF TTYPE NE 3;
+*.GEN LKIND,=1,.BN-,
+ L  LKIND
+ -  =1
+ JNE  LJ3
+*.GEN TTYPE,=3,.BN-,
+ L  TTYPE
+ -  =3
+*      THEN RETURN 1;
+ JEQ  LJ4
+*.GEN =1,
+ L  =1
+ RETN  ISASYM,1
+*    ENDIF ENDIF
+ LABEL LJ4
+ LABEL LJ3
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISASYM,1
+*  ENDPROC
+*
+*  PROC ISAPLU(IT);                  * is a plus sign
+ SECT CODE
+ SUBR P ISAPLU
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 50;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ5
+*.GEN OP,=50,.BN-,
+ L  OP
+ -  =50
+*      THEN RETURN 1;
+ JNE  LJ6
+*.GEN =1,
+ L  =1
+ RETN  ISAPLU,1
+*    ENDIF ENDIF
+ LABEL LJ6
+ LABEL LJ5
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISAPLU,1
+*  ENDPROC
+*
+*  PROC ISAMIN(IT);                  * is a minus sign
+ SECT CODE
+ SUBR P ISAMIN
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 51;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ7
+*.GEN OP,=51,.BN-,
+ L  OP
+ -  =51
+*      THEN RETURN 1;
+ JNE  LJ8
+*.GEN =1,
+ L  =1
+ RETN  ISAMIN,1
+*    ENDIF ENDIF
+ LABEL LJ8
+ LABEL LJ7
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISAMIN,1
+*  ENDPROC
+*
+*  PROC ISAAST(IT);                  * is an asterisk
+ SECT CODE
+ SUBR P ISAAST
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 53;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ9
+*.GEN OP,=53,.BN-,
+ L  OP
+ -  =53
+*      THEN RETURN 1;
+ JNE  LJ10
+*.GEN =1,
+ L  =1
+ RETN  ISAAST,1
+*    ENDIF ENDIF
+ LABEL LJ10
+ LABEL LJ9
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISAAST,1
+*  ENDPROC
+*
+*  PROC ISASLA(IT);                  * is a slash
+ SECT CODE
+ SUBR P ISASLA
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 54;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ11
+*.GEN OP,=54,.BN-,
+ L  OP
+ -  =54
+*      THEN RETURN 1;
+ JNE  LJ12
+*.GEN =1,
+ L  =1
+ RETN  ISASLA,1
+*    ENDIF ENDIF
+ LABEL LJ12
+ LABEL LJ11
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISASLA,1
+*  ENDPROC
+*
+*  PROC ISALP(IT);                  * is a left parenthesis
+ SECT CODE
+ SUBR P ISALP
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 64;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ13
+*.GEN OP,=64,.BN-,
+ L  OP
+ -  =64
+*      THEN RETURN 1;
+ JNE  LJ14
+*.GEN =1,
+ L  =1
+ RETN  ISALP,1
+*    ENDIF ENDIF
+ LABEL LJ14
+ LABEL LJ13
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISALP,1
+*  ENDPROC
+*
+*  PROC ISARP(IT);                  * is a right parenthesis
+ SECT CODE
+ SUBR P ISARP
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 65;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ15
+*.GEN OP,=65,.BN-,
+ L  OP
+ -  =65
+*      THEN RETURN 1;
+ JNE  LJ16
+*.GEN =1,
+ L  =1
+ RETN  ISARP,1
+*    ENDIF ENDIF
+ LABEL LJ16
+ LABEL LJ15
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISARP,1
+*  ENDPROC
+*
+*  PROC ISASEMI(IT);                * is a semicolon
+ SECT CODE
+ SUBR P ISASEMI
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 63;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ17
+*.GEN OP,=63,.BN-,
+ L  OP
+ -  =63
+*      THEN RETURN 1;
+ JNE  LJ18
+*.GEN =1,
+ L  =1
+ RETN  ISASEMI,1
+*    ENDIF ENDIF
+ LABEL LJ18
+ LABEL LJ17
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISASEMI,1
+*  ENDPROC
+*
+*  PROC ISAEQU(IT);                * is an equal sign
+ SECT CODE
+ SUBR P ISAEQU
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    OP=TOKENS(IT+2) AND 255;
+*.GEN =OP,=TOKENS,IT,=2,.BC+,=2,.BNSHL,.BC+,.UA,=255,.BCAND,.BNST,
+ L D IT
+ +  =2
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ ST  OP
+*    IF LKIND EQ 4; THEN IF OP EQ 67;
+*.GEN LKIND,=4,.BN-,
+ L  LKIND
+ -  =4
+ JNE  LJ19
+*.GEN OP,=67,.BN-,
+ L  OP
+ -  =67
+*      THEN RETURN 1;
+ JNE  LJ20
+*.GEN =1,
+ L  =1
+ RETN  ISAEQU,1
+*    ENDIF ENDIF
+ LABEL LJ20
+ LABEL LJ19
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISAEQU,1
+*  ENDPROC
+*
+*END
+ END

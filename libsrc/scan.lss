@@ -1,0 +1,84 @@
+1       * SCAN.S1 -- Frontend scan for Small, CRB, Feb 19, 2014                 
+2       * 04/06/2014 CRB Rewite for new LEX and TOKENS array                    
+3       * 06/22/2014 CRB Use BUFF in initsym                                    
+4       * 07/24/2014 CRB Tinkering                                              
+5       * 11/25/2014 CRB Separate out shotoks                                   
+6       * 12/22/2014 CRB Initialize TOKENS to zero inside loop                  
+7       * 12/31/2014 CRB Handle LKIND=0 at end-of-line                          
+8       * 01/06/2015 CRB Change TOKNUM to TINDEX, more comments                 
+9       * 02/02/2015 CRB Change way TOKENS are counted                          
+10                                                                              
+11        BEGIN SCAN;                                                           
+12        ENTRY SCAN;                                                           
+13        ENTRY TOKENS;                   * make TOKENS global for parsing      
+14        ENT SHOTOKS;                                                          
+15                                                                              
+16        EXT PROC SHOTOKS;               * used only for testing               
+17        EXT PROC READ,WRITE,IFORM;                                            
+18        EXT PROC LEX;                                                         
+19        EXT BUFF;                       * use BUFF in initsym                 
+20        EXT MASKV;                                                            
+21        ENT OUTCH;                                                            
+22                                                                              
+23        SET MAXTOK=127;                 * maximum number of tokens in a line  
+24        DCL INCH=1,OUTCH=3,STATUS;                                            
+25        DCL EOF=0;                                                            
+26        DCL LEXEME(4);                  * attributes for a lexical token      
+27        DCL LKIND;                      * lexical KIND code                   
+28        DCL ICHAR,MODE;                                                       
+29        DCL STAR=('*');                 * asterisk                            
+30        DCL SEMICO=(';');               * semicolon                           
+31        DCL FIRSTC;                     * first character of current token    
+32        DCL TOKENS(MAXTOK*4);           * array of tokens in current line     
+33        DCL TINDEX;                     * current token index                 
+34                                                                              
+35      PROC SCAN;                        * frontend scanner for Small          
+36   1    DO WHILE 1;                                                           
+37   2      TOKENS=0;                     * reinitialize to zero for each loop  
+38   2      MODE=1;                       * MODE 1 allows comments              
+39   2      STATUS=READ(INCH,BUFF);                                             
+40   2      IF STATUS EQ EOF;                                                   
+41   3        THEN RETURN;                                                      
+42   3        ENDIF                                                             
+43   2      CALL WRITE(OUTCH,BUFF);                                             
+44   2      ICHAR=1;                                                            
+45   2      TINDEX=1;                                                           
+46   2      DO WHILE ICHAR LE BUFF;       * until end of line                   
+47   3        LKIND=LEX(ICHAR,LEXEME);    * call LEX, get LKIND and LEXEME      
+48   3  LABEL LEX1;                       * debugging hack                      
+49   3        IF LKIND EQ 0;                                                    
+50   4          THEN GO TO CONTIN; ENDIF                                        
+51   3        FIRSTC=BUFF(LEXEME AND 255); * extract anchor for 1st char of toke
+52   3        IF MODE; THEN                                                     
+53   4          IF FIRSTC EQ STAR;        * if MODE 1 and * skip to next        
+54   5            THEN GO TO CONTIN;      * input line to ignore comment        
+55   5            ELSE MODE=0;            * comments not allowed in MODE 0      
+56   5          ENDIF ENDIF                                                     
+57   3        IF MODE EQ 0; THEN                                                
+58   4          IF FIRSTC EQ SEMICO;      * revert to mode 1 on semicolon       
+59   5             THEN MODE=1;                                                 
+60   5          ENDIF ENDIF                                                     
+61   3                                                                          
+62   3        TOKENS(TINDEX)=LEXEME;      * save current token                  
+63   3        CASE LKIND-1; OF LK1,LK2,LK3,LK4;                                 
+64   4  LABEL LK1; GO TO LK4;             * symbol in TABLE                     
+65   4  LABEL LK2; TOKENS(TINDEX+1)=LEXEME(1); * integer value                  
+66   4  LABEL LK3;                        * quote string                        
+67   4  LABEL LK4;                        * single character token              
+68   4          TOKENS(TINDEX+1)=LEXEME(1);                                     
+69   4          TOKENS(TINDEX+2)=LEXEME(2);                                     
+70   4          TOKENS(TINDEX+3)=LEXEME(3);                                     
+71   4        ENDCASE                                                           
+72   3                                                                          
+73   3        TINDEX=TINDEX+4;            * bump token index                    
+74   3        TOKENS=TOKENS+1;            * count number of tokens              
+75   3        ENDDO                                                             
+76   2                                                                          
+77   2  LABEL CONTIN;                                                           
+78   2      CALL SHOTOKS;                 * used only for testing               
+79   2      ENDDO                                                               
+80   1    RETURN                                                                
+81   1  ENDPROC                                                                 
+82   0                                                                          
+83   0  END                                                                     
+ NO ERRORS DETECTED

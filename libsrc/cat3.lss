@@ -1,0 +1,25 @@
+1       * cat3.s1 -- CAT version for substring capture, CRB, Mar 29, 2014       
+2       * 07/25/2014 CRB Fix off-by-one error                                   
+3                                                                               
+4         BEGIN CAT3;                                                           
+5         ENTRY CAT3;                                                           
+6                                                                               
+7         DCL I,J,LEN;                                                          
+8                                                                               
+9       * Append substring from SRC into DEST                                   
+10      PROC CAT3(DEST,LA,SRC);                                                 
+11   1    LEN=LA SHR 8;                 * extract length of substring           
+12   1    I=LA AND 255;                 * anchor index in SRC                   
+13   1    J=DEST+1;                     * CRB 07/25/2014 fixed obo bug          
+14   1    DEST=DEST+LEN;                                                        
+15   1    DO WHILE LEN;                                                         
+16   2      DEST(J)=SRC(I);                                                     
+17   2      I=I+1;                                                              
+18   2      J=J+1;                                                              
+19   2      LEN=LEN-1;                                                          
+20   2      ENDDO                                                               
+21   1    RETURN                                                                
+22   1    ENDPROC                                                               
+23   0                                                                          
+24   0  END                                                                     
+ NO ERRORS DETECTED

@@ -1,0 +1,103 @@
+1       * eval.s1 -- Britten's Archaic Expression Evaluator, CRB, Sep 23, 2014  
+2       * 09/29/2014 CRB tinkered with the coding                               
+3       * 10/20/2014 CRB more tinkering                                         
+4       * 03/09/2015 CRB Add STP reinitialization                               
+5       * 03/11/2015 CRB RETURN EXPR after UNTIL ISASEMI                        
+6       * 03/15/2015 CRB Delete extraneous PCOUNT after ISAINT                  
+7       * 03/15/2015 CRB Add LABB                                               
+8       * 03/16/2015 CRB Add LABO                                               
+9       * 03/20/2015 CRB Advance IT after semicolon                             
+10                                                                              
+11      BEGIN EVAL;                                                             
+12                                                                              
+13        ENT EVAL;                                                             
+14        EXT TOKENS;                                                           
+15        EXT PROC ISAINT;                                                      
+16        EXT PROC ISAPLU;                                                      
+17        EXT PROC ISAMIN;                                                      
+18        EXT PROC ISAAST;                                                      
+19        EXT PROC ISASLA;                                                      
+20        EXT PROC ISALP;                                                       
+21        EXT PROC ISARP;                                                       
+22        EXT PROC ISASEMI;                                                     
+23                                                                              
+24        SET PLUS=43;                  * ASCII +                               
+25        SET MINUS=45;                 * ASCII -                               
+26        SET STAR=42;                  * ASCII *                               
+27        SET SLASH=47;                 * ASCII /                               
+28        SET LPAREN=40;                * ASCII left parenthesis                
+29        SET RPAREN=41;                * ASCII right parenthesis               
+30                                                                              
+31        DCL AOP,MOP;                  * add operator, mult operator           
+32        DCL NUMB,TERM=1,EXPR=0;                                               
+33        DCL PCOUNT;                   * parenthesis level count               
+34        SET STKSIZ=30;                * stack size                            
+35        DCL STK(STKSIZ);              * push down stack                       
+36        DCL STP=0;                    * stack pointer                         
+37                                                                              
+38      * evaluate infix expression starting at IT in TOKENS array              
+39        PROC EVAL(IT);                                                        
+40   1      PCOUNT=0;                                                           
+41   1      STP=0;                                                              
+42   1  LABEL LABA;                                                             
+43   1      AOP=0;                                                              
+44   1      MOP=0;                                                              
+45   1      TERM=1;                                                             
+46   1      EXPR=0;                                                             
+47   1  * process unary '+' or '-'                                              
+48   1      IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;                              
+49   2        ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4;                      
+50   3        ENDIF ENDIF                                                       
+51   1  LABEL LABB;                                                             
+52   1      IF ISALP(IT); THEN                                                  
+53   2        IT=IT+4;                                                          
+54   2        PCOUNT=PCOUNT+1;                                                  
+55   2        STK(STP)=AOP; STP=STP+1;                                          
+56   2        STK(STP)=MOP; STP=STP+1;                                          
+57   2        STK(STP)=EXPR; STP=STP+1;                                         
+58   2        STK(STP)=TERM; STP=STP+1;                                         
+59   2        GO TO LABA;                                                       
+60   2        ELSE                                                              
+61   2          IF ISAINT(IT); THEN                                             
+62   3            NUMB=TOKENS(IT+1);    * get value of integer                  
+63   3            IT=IT+4;                                                      
+64   3            REPEAT                                                        
+65   4  LABEL LABO;                                                             
+66   4              IF MOP EQ STAR; THEN TERM=TERM*NUMB;                        
+67   5                ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;                
+68   6                ELSE TERM=NUMB;                                           
+69   6                ENDIF ENDIF                                               
+70   4              MOP=0;                                                      
+71   4              IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;          
+72   5                ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;  
+73   6                ENDIF ENDIF                                               
+74   4              IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;                        
+75   5                ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;                
+76   6                ELSE EXPR=TERM;                                           
+77   6                ENDIF ENDIF                                               
+78   4              AOP=0;                                                      
+79   4              IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;          
+80   5                ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;  
+81   6                ENDIF ENDIF                                               
+82   4              IF ISARP(IT); THEN                                          
+83   5                IT=IT+4;                                                  
+84   5                PCOUNT=PCOUNT-1;                                          
+85   5                NUMB=EXPR;                                                
+86   5                STP=STP-1; TERM=STK(STP);                                 
+87   5                STP=STP-1; EXPR=STK(STP);                                 
+88   5                STP=STP-1; MOP=STK(STP);                                  
+89   5                STP=STP-1; AOP=STK(STP);                                  
+90   5                GO TO LABO;                                               
+91   5                ENDIF                                                     
+92   4              ELSE                                                        
+93   4                RETURN EXPR;                                              
+94   4              ENDIF                                                       
+95   3            UNTIL ISASEMI(IT);                                            
+96   2          IT=IT+4;                                                        
+97   2          RETURN EXPR;                                                    
+98   2        ENDIF                                                             
+99   1      RETURN 0;                   * error return, need a flag or summat   
+100  1    ENDPROC                                                               
+101  0                                                                          
+102  0  END                                                                     
+ NO ERRORS DETECTED

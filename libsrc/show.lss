@@ -1,0 +1,20 @@
+1       * show.s1 -- Utility to show a name and value, CRB, Dec 30, 2014        
+2                                                                               
+3       BEGIN SHOW;                                                             
+4                                                                               
+5         ENT SHOW;                                                             
+6         EXT PROC IFORM, CAT2, WRITE;                                          
+7         EXT OUTCH;                    * output channel number                 
+8         DCL BUFFER(31);                                                       
+9                                                                               
+10      PROC SHOW(NAME,VAL);                                                    
+11   1    BUFFER=10;                    * initialize buffer for iform           
+12   1    CALL IFORM(VAL,BUFFER);       * format value into buffer              
+13   1    BUFFER=BUFFER+1;              * bump the character count              
+14   1    BUFFER(BUFFER)=' ';           * append a space to buffer              
+15   1    CALL CAT2(BUFFER,NAME);       * concatenate name into buffer          
+16   1    CALL WRITE(OUTCH,BUFFER);     * write the buffer out                  
+17   1    RETURN;                                                               
+18   1  ENDPROC                                                                 
+19   0  END                                                                     
+ NO ERRORS DETECTED
