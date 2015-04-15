@@ -1,8 +1,0 @@
-README.txt -- For syntax subdirectory, CRB, Apr 6, 2015
-
-Contents of this subdirectory
-eval.s1	    expression evaluator module
-isamod.s1   module of T/F functions for lexical syntax identification
-makefile    make file for modules in this subdirectory
-scan.s1	    main input scan module for small compiler
-testeval.s1 test program for eval module
