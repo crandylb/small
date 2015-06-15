@@ -2,6 +2,7 @@
 ** 09/29/2014 CRB Add ISASEMI, ISAEQU
 ** 03/06/2015 CRB Add ENTRY for ISASEMI, ISAEQU
 ** 03/15/2015 CRB Correct mask for OP
+** 05/30/2015 CRB Add ISASET(IT)
 *
 ** Each function returns True (1) or False (0)
 *
@@ -9,9 +10,10 @@
  BEGIN
 *  EXT TOKENS;                       * access tokens array in scan
  EXT  TOKENS
-*  ENT ISAINT,ISASYM;
+*  ENT ISAINT,ISASYM,ISASET;
  ENT  ISAINT
  ENT  ISASYM
+ ENT  ISASET
 *  ENT ISAPLU,ISAMIN,ISAAST,ISASLA;  * arithmetic operators
  ENT  ISAPLU
  ENT  ISAMIN
@@ -119,6 +121,54 @@
  RETN  ISASYM,1
 *  ENDPROC
 *
+** token is a SET statement symbolic constant
+*  PROC ISASET(IT);                  * is a symbol
+ SECT CODE
+ SUBR P ISASET
+ NPARS  1
+ PAR  IT
+ PEND
+*    LKIND=TOKENS(IT) SHR 28 AND 7;
+*.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =28
+ AND  =7
+ ST  LKIND
+*    TTYPE=TOKENS(IT+3) SHR 8 AND 255;
+*.GEN =TTYPE,=TOKENS,IT,=3,.BC+,=2,.BNSHL,.BC+,.UA,=8,.BNSHR,=255,.BCAND,.BNST,
+ L D IT
+ +  =3
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ SHR  =8
+ AND  =255
+ ST  TTYPE
+*    IF LKIND EQ 1; THEN IF TTYPE EQ 9;
+*.GEN LKIND,=1,.BN-,
+ L  LKIND
+ -  =1
+ JNE  LJ5
+*.GEN TTYPE,=9,.BN-,
+ L  TTYPE
+ -  =9
+*      THEN RETURN 1;
+ JNE  LJ6
+*.GEN =1,
+ L  =1
+ RETN  ISASET,1
+*    ENDIF ENDIF
+ LABEL LJ6
+ LABEL LJ5
+*    RETURN 0;
+*.GEN =0,
+ L  =0
+ RETN  ISASET,1
+*  ENDPROC
+*
 *  PROC ISAPLU(IT);                  * is a plus sign
  SECT CODE
  SUBR P ISAPLU
@@ -147,18 +197,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ5
+ JNE  LJ7
 *.GEN OP,=50,.BN-,
  L  OP
  -  =50
 *      THEN RETURN 1;
- JNE  LJ6
+ JNE  LJ8
 *.GEN =1,
  L  =1
  RETN  ISAPLU,1
 *    ENDIF ENDIF
- LABEL LJ6
- LABEL LJ5
+ LABEL LJ8
+ LABEL LJ7
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -193,18 +243,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ7
+ JNE  LJ9
 *.GEN OP,=51,.BN-,
  L  OP
  -  =51
 *      THEN RETURN 1;
- JNE  LJ8
+ JNE  LJ10
 *.GEN =1,
  L  =1
  RETN  ISAMIN,1
 *    ENDIF ENDIF
- LABEL LJ8
- LABEL LJ7
+ LABEL LJ10
+ LABEL LJ9
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -239,18 +289,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ9
+ JNE  LJ11
 *.GEN OP,=53,.BN-,
  L  OP
  -  =53
 *      THEN RETURN 1;
- JNE  LJ10
+ JNE  LJ12
 *.GEN =1,
  L  =1
  RETN  ISAAST,1
 *    ENDIF ENDIF
- LABEL LJ10
- LABEL LJ9
+ LABEL LJ12
+ LABEL LJ11
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -285,18 +335,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ11
+ JNE  LJ13
 *.GEN OP,=54,.BN-,
  L  OP
  -  =54
 *      THEN RETURN 1;
- JNE  LJ12
+ JNE  LJ14
 *.GEN =1,
  L  =1
  RETN  ISASLA,1
 *    ENDIF ENDIF
- LABEL LJ12
- LABEL LJ11
+ LABEL LJ14
+ LABEL LJ13
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -331,18 +381,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ13
+ JNE  LJ15
 *.GEN OP,=64,.BN-,
  L  OP
  -  =64
 *      THEN RETURN 1;
- JNE  LJ14
+ JNE  LJ16
 *.GEN =1,
  L  =1
  RETN  ISALP,1
 *    ENDIF ENDIF
- LABEL LJ14
- LABEL LJ13
+ LABEL LJ16
+ LABEL LJ15
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -377,18 +427,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ15
+ JNE  LJ17
 *.GEN OP,=65,.BN-,
  L  OP
  -  =65
 *      THEN RETURN 1;
- JNE  LJ16
+ JNE  LJ18
 *.GEN =1,
  L  =1
  RETN  ISARP,1
 *    ENDIF ENDIF
- LABEL LJ16
- LABEL LJ15
+ LABEL LJ18
+ LABEL LJ17
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -423,18 +473,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ17
+ JNE  LJ19
 *.GEN OP,=63,.BN-,
  L  OP
  -  =63
 *      THEN RETURN 1;
- JNE  LJ18
+ JNE  LJ20
 *.GEN =1,
  L  =1
  RETN  ISASEMI,1
 *    ENDIF ENDIF
- LABEL LJ18
- LABEL LJ17
+ LABEL LJ20
+ LABEL LJ19
 *    RETURN 0;
 *.GEN =0,
  L  =0
@@ -469,18 +519,18 @@
 *.GEN LKIND,=4,.BN-,
  L  LKIND
  -  =4
- JNE  LJ19
+ JNE  LJ21
 *.GEN OP,=67,.BN-,
  L  OP
  -  =67
 *      THEN RETURN 1;
- JNE  LJ20
+ JNE  LJ22
 *.GEN =1,
  L  =1
  RETN  ISAEQU,1
 *    ENDIF ENDIF
- LABEL LJ20
- LABEL LJ19
+ LABEL LJ22
+ LABEL LJ21
 *    RETURN 0;
 *.GEN =0,
  L  =0

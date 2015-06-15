@@ -2,109 +2,120 @@
 2       * 09/29/2014 CRB Add ISASEMI, ISAEQU                                    
 3       * 03/06/2015 CRB Add ENTRY for ISASEMI, ISAEQU                          
 4       * 03/15/2015 CRB Correct mask for OP                                    
-5                                                                               
-6       * Each function returns True (1) or False (0)                           
-7                                                                               
-8       BEGIN ISAMOD;                                                           
-9         EXT TOKENS;                       * access tokens array in scan       
-10        ENT ISAINT,ISASYM;                                                    
-11        ENT ISAPLU,ISAMIN,ISAAST,ISASLA;  * arithmetic operators              
-12        ENT ISALP,ISARP;                  * parentheses                       
-13        ENT ISASEMI,ISAEQU;               * semicolon and equal sign          
-14                                                                              
-15        DCL LKIND;                        * lexical kind                      
-16        DCL TTYPE;                        * type code                         
-17        DCL OP;                           * operator code                     
-18                                                                              
-19      * token is a literal integer evaluated by lex                           
-20        PROC ISAINT(IT);                  * is an integer                     
-21   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-22   1      IF LKIND EQ 2; THEN RETURN 1;                                       
-23   2      ELSE RETURN 0;                                                      
-24   2      ENDIF                                                               
-25   1    ENDPROC                                                               
-26   0                                                                          
-27   0  * token is a symbol in symbol table and not a keyword                   
-28   0    PROC ISASYM(IT);                  * is a symbol                       
-29   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-30   1      TTYPE=TOKENS(IT+3) SHR 8 AND 15;                                    
-31   1      IF LKIND EQ 1; THEN IF TTYPE NE 3;                                  
-32   3        THEN RETURN 1;                                                    
-33   3      ENDIF ENDIF                                                         
-34   1      RETURN 0;                                                           
-35   1    ENDPROC                                                               
-36   0                                                                          
-37   0    PROC ISAPLU(IT);                  * is a plus sign                    
-38   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-39   1      OP=TOKENS(IT+2) AND 255;                                            
-40   1      IF LKIND EQ 4; THEN IF OP EQ 50;                                    
-41   3        THEN RETURN 1;                                                    
-42   3      ENDIF ENDIF                                                         
-43   1      RETURN 0;                                                           
-44   1    ENDPROC                                                               
-45   0                                                                          
-46   0    PROC ISAMIN(IT);                  * is a minus sign                   
-47   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-48   1      OP=TOKENS(IT+2) AND 255;                                            
-49   1      IF LKIND EQ 4; THEN IF OP EQ 51;                                    
-50   3        THEN RETURN 1;                                                    
-51   3      ENDIF ENDIF                                                         
-52   1      RETURN 0;                                                           
-53   1    ENDPROC                                                               
-54   0                                                                          
-55   0    PROC ISAAST(IT);                  * is an asterisk                    
-56   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-57   1      OP=TOKENS(IT+2) AND 255;                                            
-58   1      IF LKIND EQ 4; THEN IF OP EQ 53;                                    
-59   3        THEN RETURN 1;                                                    
-60   3      ENDIF ENDIF                                                         
-61   1      RETURN 0;                                                           
-62   1    ENDPROC                                                               
-63   0                                                                          
-64   0    PROC ISASLA(IT);                  * is a slash                        
-65   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-66   1      OP=TOKENS(IT+2) AND 255;                                            
-67   1      IF LKIND EQ 4; THEN IF OP EQ 54;                                    
-68   3        THEN RETURN 1;                                                    
-69   3      ENDIF ENDIF                                                         
-70   1      RETURN 0;                                                           
-71   1    ENDPROC                                                               
-72   0                                                                          
-73   0    PROC ISALP(IT);                  * is a left parenthesis              
-74   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-75   1      OP=TOKENS(IT+2) AND 255;                                            
-76   1      IF LKIND EQ 4; THEN IF OP EQ 64;                                    
-77   3        THEN RETURN 1;                                                    
-78   3      ENDIF ENDIF                                                         
-79   1      RETURN 0;                                                           
-80   1    ENDPROC                                                               
-81   0                                                                          
-82   0    PROC ISARP(IT);                  * is a right parenthesis             
-83   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-84   1      OP=TOKENS(IT+2) AND 255;                                            
-85   1      IF LKIND EQ 4; THEN IF OP EQ 65;                                    
-86   3        THEN RETURN 1;                                                    
-87   3      ENDIF ENDIF                                                         
-88   1      RETURN 0;                                                           
-89   1    ENDPROC                                                               
-90   0                                                                          
-91   0    PROC ISASEMI(IT);                * is a semicolon                     
-92   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-93   1      OP=TOKENS(IT+2) AND 255;                                            
-94   1      IF LKIND EQ 4; THEN IF OP EQ 63;                                    
-95   3        THEN RETURN 1;                                                    
-96   3      ENDIF ENDIF                                                         
-97   1      RETURN 0;                                                           
-98   1    ENDPROC                                                               
-99   0                                                                          
-100  0    PROC ISAEQU(IT);                * is an equal sign                    
-101  1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
-102  1      OP=TOKENS(IT+2) AND 255;                                            
-103  1      IF LKIND EQ 4; THEN IF OP EQ 67;                                    
-104  3        THEN RETURN 1;                                                    
-105  3      ENDIF ENDIF                                                         
-106  1      RETURN 0;                                                           
-107  1    ENDPROC                                                               
-108  0                                                                          
-109  0  END                                                                     
+5       * 05/30/2015 CRB Add ISASET(IT)                                         
+6                                                                               
+7       * Each function returns True (1) or False (0)                           
+8                                                                               
+9       BEGIN ISAMOD;                                                           
+10        EXT TOKENS;                       * access tokens array in scan       
+11        ENT ISAINT,ISASYM,ISASET;                                             
+12        ENT ISAPLU,ISAMIN,ISAAST,ISASLA;  * arithmetic operators              
+13        ENT ISALP,ISARP;                  * parentheses                       
+14        ENT ISASEMI,ISAEQU;               * semicolon and equal sign          
+15                                                                              
+16        DCL LKIND;                        * lexical kind                      
+17        DCL TTYPE;                        * type code                         
+18        DCL OP;                           * operator code                     
+19                                                                              
+20      * token is a literal integer evaluated by lex                           
+21        PROC ISAINT(IT);                  * is an integer                     
+22   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+23   1      IF LKIND EQ 2; THEN RETURN 1;                                       
+24   2      ELSE RETURN 0;                                                      
+25   2      ENDIF                                                               
+26   1    ENDPROC                                                               
+27   0                                                                          
+28   0  * token is a symbol in symbol table and not a keyword                   
+29   0    PROC ISASYM(IT);                  * is a symbol                       
+30   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+31   1      TTYPE=TOKENS(IT+3) SHR 8 AND 15;                                    
+32   1      IF LKIND EQ 1; THEN IF TTYPE NE 3;                                  
+33   3        THEN RETURN 1;                                                    
+34   3      ENDIF ENDIF                                                         
+35   1      RETURN 0;                                                           
+36   1    ENDPROC                                                               
+37   0                                                                          
+38   0  * token is a SET statement symbolic constant                            
+39   0    PROC ISASET(IT);                  * is a symbol                       
+40   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+41   1      TTYPE=TOKENS(IT+3) SHR 8 AND 255;                                   
+42   1      IF LKIND EQ 1; THEN IF TTYPE EQ 9;                                  
+43   3        THEN RETURN 1;                                                    
+44   3      ENDIF ENDIF                                                         
+45   1      RETURN 0;                                                           
+46   1    ENDPROC                                                               
+47   0                                                                          
+48   0    PROC ISAPLU(IT);                  * is a plus sign                    
+49   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+50   1      OP=TOKENS(IT+2) AND 255;                                            
+51   1      IF LKIND EQ 4; THEN IF OP EQ 50;                                    
+52   3        THEN RETURN 1;                                                    
+53   3      ENDIF ENDIF                                                         
+54   1      RETURN 0;                                                           
+55   1    ENDPROC                                                               
+56   0                                                                          
+57   0    PROC ISAMIN(IT);                  * is a minus sign                   
+58   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+59   1      OP=TOKENS(IT+2) AND 255;                                            
+60   1      IF LKIND EQ 4; THEN IF OP EQ 51;                                    
+61   3        THEN RETURN 1;                                                    
+62   3      ENDIF ENDIF                                                         
+63   1      RETURN 0;                                                           
+64   1    ENDPROC                                                               
+65   0                                                                          
+66   0    PROC ISAAST(IT);                  * is an asterisk                    
+67   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+68   1      OP=TOKENS(IT+2) AND 255;                                            
+69   1      IF LKIND EQ 4; THEN IF OP EQ 53;                                    
+70   3        THEN RETURN 1;                                                    
+71   3      ENDIF ENDIF                                                         
+72   1      RETURN 0;                                                           
+73   1    ENDPROC                                                               
+74   0                                                                          
+75   0    PROC ISASLA(IT);                  * is a slash                        
+76   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+77   1      OP=TOKENS(IT+2) AND 255;                                            
+78   1      IF LKIND EQ 4; THEN IF OP EQ 54;                                    
+79   3        THEN RETURN 1;                                                    
+80   3      ENDIF ENDIF                                                         
+81   1      RETURN 0;                                                           
+82   1    ENDPROC                                                               
+83   0                                                                          
+84   0    PROC ISALP(IT);                  * is a left parenthesis              
+85   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+86   1      OP=TOKENS(IT+2) AND 255;                                            
+87   1      IF LKIND EQ 4; THEN IF OP EQ 64;                                    
+88   3        THEN RETURN 1;                                                    
+89   3      ENDIF ENDIF                                                         
+90   1      RETURN 0;                                                           
+91   1    ENDPROC                                                               
+92   0                                                                          
+93   0    PROC ISARP(IT);                  * is a right parenthesis             
+94   1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+95   1      OP=TOKENS(IT+2) AND 255;                                            
+96   1      IF LKIND EQ 4; THEN IF OP EQ 65;                                    
+97   3        THEN RETURN 1;                                                    
+98   3      ENDIF ENDIF                                                         
+99   1      RETURN 0;                                                           
+100  1    ENDPROC                                                               
+101  0                                                                          
+102  0    PROC ISASEMI(IT);                * is a semicolon                     
+103  1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+104  1      OP=TOKENS(IT+2) AND 255;                                            
+105  1      IF LKIND EQ 4; THEN IF OP EQ 63;                                    
+106  3        THEN RETURN 1;                                                    
+107  3      ENDIF ENDIF                                                         
+108  1      RETURN 0;                                                           
+109  1    ENDPROC                                                               
+110  0                                                                          
+111  0    PROC ISAEQU(IT);                * is an equal sign                    
+112  1      LKIND=TOKENS(IT) SHR 28 AND 7;                                      
+113  1      OP=TOKENS(IT+2) AND 255;                                            
+114  1      IF LKIND EQ 4; THEN IF OP EQ 67;                                    
+115  3        THEN RETURN 1;                                                    
+116  3      ENDIF ENDIF                                                         
+117  1      RETURN 0;                                                           
+118  1    ENDPROC                                                               
+119  0                                                                          
+120  0  END                                                                     
  NO ERRORS DETECTED

@@ -7,12 +7,20 @@
 * 03/15/2015 CRB Add LABB
 * 03/16/2015 CRB Add LABO
 * 03/20/2015 CRB Advance IT after semicolon
+* 04/23/2015 CRB Add symbolic operands and error messages
+* 05/03/2015 CRB Fix logical structure error
+* 05/06/2015 CRB Add error messages
+* 05/22/2015 CRB Add another error message
+* 05/31/2015 CRB Use ISASET instead of ISASYM
 
 BEGIN EVAL;
 
   ENT EVAL;
+  EXT ERRCNT;                   * global error counter
   EXT TOKENS;
+  EXT MASKV;
   EXT PROC ISAINT;
+  EXT PROC ISASET;
   EXT PROC ISAPLU;
   EXT PROC ISAMIN;
   EXT PROC ISAAST;
@@ -20,6 +28,8 @@ BEGIN EVAL;
   EXT PROC ISALP;
   EXT PROC ISARP;
   EXT PROC ISASEMI;
+  EXT PROC GETS;
+  EXT PROC ERROR;
 
   SET PLUS=43;                  * ASCII +
   SET MINUS=45;                 * ASCII -
@@ -31,9 +41,15 @@ BEGIN EVAL;
   DCL AOP,MOP;                  * add operator, mult operator
   DCL NUMB,TERM=1,EXPR=0;
   DCL PCOUNT;                   * parenthesis level count
-  SET STKSIZ=30;                * stack size
-  DCL STK(STKSIZ);              * push down stack
+  DCL VAL,TAG;
+  MSG ERROPD=' Operand expected';
+  MSG ERROPR=' Operator expected';
+  MSG ERRMRP=' Missing right paren'; 
+  MSG ERREXP=' Extra right paren';
+  MSG ERRMTR=' Missing terminator';
+  SET STKSIZ=4*30;              * stack size
   DCL STP=0;                    * stack pointer
+  DCL STK(STKSIZ);              * push down stack
 
 * evaluate infix expression starting at IT in TOKENS array
   PROC EVAL(IT);
@@ -44,59 +60,88 @@ LABEL LABA;
     MOP=0;
     TERM=1;
     EXPR=0;
-* process unary '+' or '-'
+* process unary plus or minus
     IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;
       ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4;
       ENDIF ENDIF
 LABEL LABB;
-    IF ISALP(IT); THEN 
+    IF ISALP(IT); THEN          * left parenthesis
       IT=IT+4;
       PCOUNT=PCOUNT+1;
-      STK(STP)=AOP; STP=STP+1;
+      STK(STP)=AOP; STP=STP+1;  * push context
       STK(STP)=MOP; STP=STP+1;
       STK(STP)=EXPR; STP=STP+1;
       STK(STP)=TERM; STP=STP+1;
       GO TO LABA;
-      ELSE 
-        IF ISAINT(IT); THEN 
-          NUMB=TOKENS(IT+1);    * get value of integer
-          IT=IT+4;
-          REPEAT 
-LABEL LABO;
-            IF MOP EQ STAR; THEN TERM=TERM*NUMB;
-              ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;
-              ELSE TERM=NUMB;
-              ENDIF ENDIF
-            MOP=0;
-            IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;
-              ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;
-              ENDIF ENDIF
-            IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;
-              ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;
-              ELSE EXPR=TERM;
-              ENDIF ENDIF
-            AOP=0;
-            IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;
-              ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;
-              ENDIF ENDIF
-            IF ISARP(IT); THEN 
-              IT=IT+4;
-              PCOUNT=PCOUNT-1;
-              NUMB=EXPR;
-              STP=STP-1; TERM=STK(STP);
-              STP=STP-1; EXPR=STK(STP);
-              STP=STP-1; MOP=STK(STP);
-              STP=STP-1; AOP=STK(STP);
-              GO TO LABO;
-              ENDIF
-            ELSE 
-              RETURN EXPR;
-            ENDIF
-          UNTIL ISASEMI(IT);
-        IT=IT+4;
-        RETURN EXPR;
       ENDIF
-    RETURN 0;                   * error return, need a flag or summat
+* process operand [needs rewrite]
+    IF ISAINT(IT); THEN 
+        NUMB=TOKENS(IT+1);      * get value of integer operand
+        IT=IT+4;
+      ELSE IF ISASET(IT); THEN 
+        NUMB=TOKENS(IT+1);      * get value of symbolic operand
+        IT=IT+4;
+        CALL GETS(NUMB,VAL,TAG);
+        NUMB=VAL AND MASKV;
+      ELSE                      * operand expected error
+        ERRCNT=ERRCNT+1;        * bump error count
+        CALL ERROR(IT,ERROPD);
+        GO TO LABP;
+      ENDIF ENDIF
+
+LABEL LABO;                     * operator process loop
+    REPEAT 
+      IF IT/4 GE TOKENS; THEN   * check for end of tokens list
+        ERRCNT=ERRCNT+1;
+        CALL ERROR(IT,ERRMTR);  * missing terminator
+        GO TO LABP;             * error exit
+        ENDIF
+      IF MOP EQ STAR; THEN TERM=TERM*NUMB;              * do multiply
+        ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;      * do divide
+        ELSE TERM=NUMB;
+        ENDIF ENDIF
+      MOP=0;
+* process multiplicative operator
+      IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;
+        ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;
+        ENDIF ENDIF
+      IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;              * do add
+        ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;      * do subtract
+        ELSE EXPR=TERM;
+        ENDIF ENDIF
+      AOP=0;
+* process additive operator
+      IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;
+        ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;
+        ENDIF ENDIF
+      IF ISARP(IT); THEN        * right parenthesis
+        IT=IT+4;
+        PCOUNT=PCOUNT-1;
+        NUMB=EXPR;              * promote result and pop context
+        IF PCOUNT GE 0; THEN    * stack pointer valid
+          STP=STP-1; TERM=STK(STP);
+          STP=STP-1; EXPR=STK(STP);
+          STP=STP-1; MOP=STK(STP);
+          STP=STP-1; AOP=STK(STP);
+          ENDIF
+        GO TO LABO;             * continue operator loop
+        ENDIF
+
+      UNTIL ISASEMI(IT);        * end of expression
+
+    IT=IT+4;
+    IF PCOUNT; THEN ERRCNT=ERRCNT+1;
+      IF PCOUNT GT 0; THEN      * check for balanced parens
+        CALL ERROR(IT,ERRMRP);  * missing right paren
+        GO TO LABP;
+      ELSE 
+        CALL ERROR(IT,ERREXP);  * extra right paren
+        GO TO LABP;
+      ENDIF ENDIF
+    RETURN EXPR;                * return expression value
+
+LABEL LABP;
+    RETURN 0;                   * error return
   ENDPROC
 
 END

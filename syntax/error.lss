@@ -1,0 +1,31 @@
+1       * error.s1 -- Error message handler module for Small compiler, CRB, Apr 
+2       * 04/23/2015 CRB Add RETURN statement                                   
+3       * 04/27/2015 CRB Access anchor for token at error position detected     
+4       * 05/08/2015 CRB Adjust error pointer by -1                             
+5                                                                               
+6       BEGIN ERROR;                                                            
+7                                                                               
+8         ENT ERROR;                                                            
+9         ENT ERRCNT;                                                           
+10                                                                              
+11        EXT PROC WRITE,IFORM,CAT2,CAT3;                                       
+12        EXT OUTCH;                    * output channel                        
+13        EXT TOKENS;                                                           
+14                                                                              
+15        DCL ERRCNT=0;                 * error count                           
+16        MSG ERRPTR='----------------------------------------------------------
+17        MSG PTR='^';                  * error pointer                         
+18        DCL TMP(128);                                                         
+19                                                                              
+20        PROC ERROR(IT,ERRMSG);                                                
+21   1      TMP=0;                                                              
+22   1      * set length of pointer line                                        
+23   1      ERRPTR=(TOKENS(IT) AND 255)-1;  * extract anchor for error token    
+24   1       CALL CAT2(TMP,ERRPTR);      * copy to TMP                          
+25   1      CALL CAT2(TMP,PTR);         * append pointer ^ char                 
+26   1      CALL CAT2(TMP,ERRMSG);      * append error message                  
+27   1      CALL WRITE(OUTCH,TMP);      * print                                 
+28   1      RETURN;                                                             
+29   1    ENDPROC                                                               
+30   0  END                                                                     
+ NO ERRORS DETECTED

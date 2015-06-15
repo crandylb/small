@@ -1,0 +1,30 @@
+* error.s1 -- Error message handler module for Small compiler, CRB, Apr 22, 2015
+* 04/23/2015 CRB Add RETURN statement
+* 04/27/2015 CRB Access anchor for token at error position detected 
+* 05/08/2015 CRB Adjust error pointer by -1
+
+BEGIN ERROR;
+
+  ENT ERROR;
+  ENT ERRCNT;
+
+  EXT PROC WRITE,IFORM,CAT2,CAT3;
+  EXT OUTCH;                    * output channel
+  EXT TOKENS;
+
+  DCL ERRCNT=0;                 * error count
+  MSG ERRPTR='----------------------------------------------------------------';
+  MSG PTR='^';                  * error pointer
+  DCL TMP(128);
+
+  PROC ERROR(IT,ERRMSG);
+    TMP=0;
+    * set length of pointer line
+    ERRPTR=(TOKENS(IT) AND 255)-1;  * extract anchor for error token
+     CALL CAT2(TMP,ERRPTR);      * copy to TMP
+    CALL CAT2(TMP,PTR);         * append pointer ^ char
+    CALL CAT2(TMP,ERRMSG);      * append error message
+    CALL WRITE(OUTCH,TMP);      * print
+    RETURN;
+  ENDPROC
+END

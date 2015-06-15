@@ -7,604 +7,666 @@
      7                                 
      8                                 
      9                                 
-    10                                 [global progr]
-    11                                 [extern exit]
-    12                                 
-    13                                 [extern TOKENS]
-    14                                 
-    15                                 [global ISAINT]
-    16                                 [global ISASYM]
-    17                                 
-    18                                 [global ISAPLU]
-    19                                 [global ISAMIN]
-    20                                 [global ISAAST]
-    21                                 [global ISASLA]
-    22                                 
-    23                                 [global ISALP]
-    24                                 [global ISARP]
-    25                                 
-    26                                 [global ISASEMI]
-    27                                 [global ISAEQU]
-    28                                 
-    29                                 
-    30                                 [section .data]
-    31                                 LKIND:
-    32 00000000 00000000                times 1 dd 0
-    33                                 
-    34                                 TTYPE:
-    35 00000004 00000000                times 1 dd 0
-    36                                 
-    37                                 OP:
-    38 00000008 00000000                times 1 dd 0
-    39                                 
-    40                                 
+    10                                 
+    11                                 [global progr]
+    12                                 [extern exit]
+    13                                 
+    14                                 [extern TOKENS]
+    15                                 
+    16                                 [global ISAINT]
+    17                                 [global ISASYM]
+    18                                 [global ISASET]
+    19                                 
+    20                                 [global ISAPLU]
+    21                                 [global ISAMIN]
+    22                                 [global ISAAST]
+    23                                 [global ISASLA]
+    24                                 
+    25                                 [global ISALP]
+    26                                 [global ISARP]
+    27                                 
+    28                                 [global ISASEMI]
+    29                                 [global ISAEQU]
+    30                                 
+    31                                 
+    32                                 [section .data]
+    33                                 LKIND:
+    34 00000000 00000000                times 1 dd 0
+    35                                 
+    36                                 TTYPE:
+    37 00000004 00000000                times 1 dd 0
+    38                                 
+    39                                 OP:
+    40 00000008 00000000                times 1 dd 0
     41                                 
-    42                                 [section .text]
+    42                                 
     43                                 
-    44                                 ISAINT:
-    45 00000000 55                      push EBP
-    46 00000001 89E5                    mov EBP,ESP
-    47                                 
-    48                                 
+    44                                 [section .text]
+    45                                 
+    46                                 ISAINT:
+    47 00000000 55                      push EBP
+    48 00000001 89E5                    mov EBP,ESP
     49                                 
     50                                 
     51                                 
     52                                 
-    53 00000003 8B5D08                  mov EBX,[EBP+8]
-    54 00000006 8B03                    mov EAX,[EBX]
-    55 00000008 C1E002                  sal EAX,2
-    56 0000000B 05[00000000]            add EAX,TOKENS
-    57 00000010 8B00                    mov EAX,[EAX]
-    58 00000012 C1F81C                  sar EAX,28
-    59 00000015 83E007                  and EAX,7
-    60 00000018 A3[00000000]            mov [LKIND],EAX
-    61                                 
-    62                                 
-    63 0000001D A1[00000000]            mov EAX,[LKIND]
-    64 00000022 83E802                  sub EAX,2
-    65 00000025 7509                    jne LJ1
-    66                                 
-    67 00000027 B801000000              mov EAX,1
+    53                                 
+    54                                 
+    55 00000003 8B5D08                  mov EBX,[EBP+8]
+    56 00000006 8B03                    mov EAX,[EBX]
+    57 00000008 C1E002                  sal EAX,2
+    58 0000000B 05[00000000]            add EAX,TOKENS
+    59 00000010 8B00                    mov EAX,[EAX]
+    60 00000012 C1F81C                  sar EAX,28
+    61 00000015 83E007                  and EAX,7
+    62 00000018 A3[00000000]            mov [LKIND],EAX
+    63                                 
+    64                                 
+    65 0000001D A1[00000000]            mov EAX,[LKIND]
+    66 00000022 83E802                  sub EAX,2
+    67 00000025 7509                    jne LJ1
     68                                 
-    69 0000002C 89EC                    mov ESP,EBP
-    70 0000002E 5D                      pop EBP
-    71 0000002F C3                      ret
-    72                                 
-    73 00000030 EB07                    jmp LJ2
-    74                                 LJ1:
-    75                                 
-    76 00000032 B800000000              mov EAX,0
+    69 00000027 B801000000              mov EAX,1
+    70                                 
+    71 0000002C 89EC                    mov ESP,EBP
+    72 0000002E 5D                      pop EBP
+    73 0000002F C3                      ret
+    74                                 
+    75 00000030 EB07                    jmp LJ2
+    76                                 LJ1:
     77                                 
-    78 00000037 89EC                    mov ESP,EBP
-    79 00000039 5D                      pop EBP
-    80 0000003A C3                      ret
-    81                                 
-    82                                 LJ2:
+    78 00000032 B800000000              mov EAX,0
+    79                                 
+    80 00000037 89EC                    mov ESP,EBP
+    81 00000039 5D                      pop EBP
+    82 0000003A C3                      ret
     83                                 
-    84                                 
+    84                                 LJ2:
     85                                 
     86                                 
     87                                 
-    88                                 ISASYM:
-    89 0000003B 55                      push EBP
-    90 0000003C 89E5                    mov EBP,ESP
-    91                                 
-    92                                 
+    88                                 
+    89                                 
+    90                                 ISASYM:
+    91 0000003B 55                      push EBP
+    92 0000003C 89E5                    mov EBP,ESP
     93                                 
     94                                 
     95                                 
     96                                 
-    97 0000003E 8B5D08                  mov EBX,[EBP+8]
-    98 00000041 8B03                    mov EAX,[EBX]
-    99 00000043 C1E002                  sal EAX,2
-   100 00000046 05[00000000]            add EAX,TOKENS
-   101 0000004B 8B00                    mov EAX,[EAX]
-   102 0000004D C1F81C                  sar EAX,28
-   103 00000050 83E007                  and EAX,7
-   104 00000053 A3[00000000]            mov [LKIND],EAX
-   105                                 
-   106                                 
+    97                                 
+    98                                 
+    99 0000003E 8B5D08                  mov EBX,[EBP+8]
+   100 00000041 8B03                    mov EAX,[EBX]
+   101 00000043 C1E002                  sal EAX,2
+   102 00000046 05[00000000]            add EAX,TOKENS
+   103 0000004B 8B00                    mov EAX,[EAX]
+   104 0000004D C1F81C                  sar EAX,28
+   105 00000050 83E007                  and EAX,7
+   106 00000053 A3[00000000]            mov [LKIND],EAX
    107                                 
-   108 00000058 8B5D08                  mov EBX,[EBP+8]
-   109 0000005B 8B03                    mov EAX,[EBX]
-   110 0000005D 83C003                  add EAX,3
-   111 00000060 C1E002                  sal EAX,2
-   112 00000063 05[00000000]            add EAX,TOKENS
-   113 00000068 8B00                    mov EAX,[EAX]
-   114 0000006A C1F808                  sar EAX,8
-   115 0000006D 83E00F                  and EAX,15
-   116 00000070 A3[00000000]            mov [TTYPE],EAX
-   117                                 
-   118                                 
-   119 00000075 A1[00000000]            mov EAX,[LKIND]
-   120 0000007A 48                      dec EAX
-   121 0000007B 7511                    jne LJ3
-   122                                 
-   123 0000007D A1[00000000]            mov EAX,[TTYPE]
-   124 00000082 83E803                  sub EAX,3
-   125                                 
-   126 00000085 7407                    jz LJ4
+   108                                 
+   109                                 
+   110 00000058 8B5D08                  mov EBX,[EBP+8]
+   111 0000005B 8B03                    mov EAX,[EBX]
+   112 0000005D 83C003                  add EAX,3
+   113 00000060 C1E002                  sal EAX,2
+   114 00000063 05[00000000]            add EAX,TOKENS
+   115 00000068 8B00                    mov EAX,[EAX]
+   116 0000006A C1F808                  sar EAX,8
+   117 0000006D 83E00F                  and EAX,15
+   118 00000070 A3[00000000]            mov [TTYPE],EAX
+   119                                 
+   120                                 
+   121 00000075 A1[00000000]            mov EAX,[LKIND]
+   122 0000007A 48                      dec EAX
+   123 0000007B 7511                    jne LJ3
+   124                                 
+   125 0000007D A1[00000000]            mov EAX,[TTYPE]
+   126 00000082 83E803                  sub EAX,3
    127                                 
-   128 00000087 B801000000              mov EAX,1
+   128 00000085 7407                    jz LJ4
    129                                 
-   130 0000008C 89EC                    mov ESP,EBP
-   131 0000008E 5D                      pop EBP
-   132 0000008F C3                      ret
-   133                                 
-   134                                 LJ4:
-   135                                 LJ3:
-   136                                 
-   137                                 
-   138 00000090 B800000000              mov EAX,0
+   130 00000087 B801000000              mov EAX,1
+   131                                 
+   132 0000008C 89EC                    mov ESP,EBP
+   133 0000008E 5D                      pop EBP
+   134 0000008F C3                      ret
+   135                                 
+   136                                 LJ4:
+   137                                 LJ3:
+   138                                 
    139                                 
-   140 00000095 89EC                    mov ESP,EBP
-   141 00000097 5D                      pop EBP
-   142 00000098 C3                      ret
-   143                                 
-   144                                 
+   140 00000090 B800000000              mov EAX,0
+   141                                 
+   142 00000095 89EC                    mov ESP,EBP
+   143 00000097 5D                      pop EBP
+   144 00000098 C3                      ret
    145                                 
    146                                 
-   147                                 ISAPLU:
-   148 00000099 55                      push EBP
-   149 0000009A 89E5                    mov EBP,ESP
-   150                                 
-   151                                 
-   152                                 
+   147                                 
+   148                                 
+   149                                 
+   150                                 ISASET:
+   151 00000099 55                      push EBP
+   152 0000009A 89E5                    mov EBP,ESP
    153                                 
    154                                 
    155                                 
-   156 0000009C 8B5D08                  mov EBX,[EBP+8]
-   157 0000009F 8B03                    mov EAX,[EBX]
-   158 000000A1 C1E002                  sal EAX,2
-   159 000000A4 05[00000000]            add EAX,TOKENS
-   160 000000A9 8B00                    mov EAX,[EAX]
-   161 000000AB C1F81C                  sar EAX,28
-   162 000000AE 83E007                  and EAX,7
-   163 000000B1 A3[00000000]            mov [LKIND],EAX
-   164                                 
-   165                                 
-   166                                 
-   167 000000B6 8B5D08                  mov EBX,[EBP+8]
-   168 000000B9 8B03                    mov EAX,[EBX]
-   169 000000BB 83C002                  add EAX,2
-   170 000000BE C1E002                  sal EAX,2
-   171 000000C1 05[00000000]            add EAX,TOKENS
-   172 000000C6 8B00                    mov EAX,[EAX]
-   173 000000C8 25FF000000              and EAX,255
-   174 000000CD A3[00000000]            mov [OP],EAX
-   175                                 
-   176                                 
-   177 000000D2 A1[00000000]            mov EAX,[LKIND]
-   178 000000D7 83E804                  sub EAX,4
-   179 000000DA 7511                    jne LJ5
+   156                                 
+   157                                 
+   158                                 
+   159 0000009C 8B5D08                  mov EBX,[EBP+8]
+   160 0000009F 8B03                    mov EAX,[EBX]
+   161 000000A1 C1E002                  sal EAX,2
+   162 000000A4 05[00000000]            add EAX,TOKENS
+   163 000000A9 8B00                    mov EAX,[EAX]
+   164 000000AB C1F81C                  sar EAX,28
+   165 000000AE 83E007                  and EAX,7
+   166 000000B1 A3[00000000]            mov [LKIND],EAX
+   167                                 
+   168                                 
+   169                                 
+   170 000000B6 8B5D08                  mov EBX,[EBP+8]
+   171 000000B9 8B03                    mov EAX,[EBX]
+   172 000000BB 83C003                  add EAX,3
+   173 000000BE C1E002                  sal EAX,2
+   174 000000C1 05[00000000]            add EAX,TOKENS
+   175 000000C6 8B00                    mov EAX,[EAX]
+   176 000000C8 C1F808                  sar EAX,8
+   177 000000CB 25FF000000              and EAX,255
+   178 000000D0 A3[00000000]            mov [TTYPE],EAX
+   179                                 
    180                                 
-   181 000000DC A1[00000000]            mov EAX,[OP]
-   182 000000E1 83E832                  sub EAX,50
-   183                                 
-   184 000000E4 7507                    jne LJ6
-   185                                 
-   186 000000E6 B801000000              mov EAX,1
+   181 000000D5 A1[00000000]            mov EAX,[LKIND]
+   182 000000DA 48                      dec EAX
+   183 000000DB 7511                    jne LJ5
+   184                                 
+   185 000000DD A1[00000000]            mov EAX,[TTYPE]
+   186 000000E2 83E809                  sub EAX,9
    187                                 
-   188 000000EB 89EC                    mov ESP,EBP
-   189 000000ED 5D                      pop EBP
-   190 000000EE C3                      ret
+   188 000000E5 7507                    jne LJ6
+   189                                 
+   190 000000E7 B801000000              mov EAX,1
    191                                 
-   192                                 LJ6:
-   193                                 LJ5:
-   194                                 
+   192 000000EC 89EC                    mov ESP,EBP
+   193 000000EE 5D                      pop EBP
+   194 000000EF C3                      ret
    195                                 
-   196 000000EF B800000000              mov EAX,0
-   197                                 
-   198 000000F4 89EC                    mov ESP,EBP
-   199 000000F6 5D                      pop EBP
-   200 000000F7 C3                      ret
+   196                                 LJ6:
+   197                                 LJ5:
+   198                                 
+   199                                 
+   200 000000F0 B800000000              mov EAX,0
    201                                 
-   202                                 
-   203                                 
-   204                                 
-   205                                 ISAMIN:
-   206 000000F8 55                      push EBP
-   207 000000F9 89E5                    mov EBP,ESP
+   202 000000F5 89EC                    mov ESP,EBP
+   203 000000F7 5D                      pop EBP
+   204 000000F8 C3                      ret
+   205                                 
+   206                                 
+   207                                 
    208                                 
-   209                                 
-   210                                 
-   211                                 
+   209                                 ISAPLU:
+   210 000000F9 55                      push EBP
+   211 000000FA 89E5                    mov EBP,ESP
    212                                 
    213                                 
-   214 000000FB 8B5D08                  mov EBX,[EBP+8]
-   215 000000FE 8B03                    mov EAX,[EBX]
-   216 00000100 C1E002                  sal EAX,2
-   217 00000103 05[00000000]            add EAX,TOKENS
-   218 00000108 8B00                    mov EAX,[EAX]
-   219 0000010A C1F81C                  sar EAX,28
-   220 0000010D 83E007                  and EAX,7
-   221 00000110 A3[00000000]            mov [LKIND],EAX
-   222                                 
-   223                                 
-   224                                 
-   225 00000115 8B5D08                  mov EBX,[EBP+8]
-   226 00000118 8B03                    mov EAX,[EBX]
-   227 0000011A 83C002                  add EAX,2
-   228 0000011D C1E002                  sal EAX,2
-   229 00000120 05[00000000]            add EAX,TOKENS
-   230 00000125 8B00                    mov EAX,[EAX]
-   231 00000127 25FF000000              and EAX,255
-   232 0000012C A3[00000000]            mov [OP],EAX
-   233                                 
-   234                                 
-   235 00000131 A1[00000000]            mov EAX,[LKIND]
-   236 00000136 83E804                  sub EAX,4
-   237 00000139 7511                    jne LJ7
+   214                                 
+   215                                 
+   216                                 
+   217                                 
+   218 000000FC 8B5D08                  mov EBX,[EBP+8]
+   219 000000FF 8B03                    mov EAX,[EBX]
+   220 00000101 C1E002                  sal EAX,2
+   221 00000104 05[00000000]            add EAX,TOKENS
+   222 00000109 8B00                    mov EAX,[EAX]
+   223 0000010B C1F81C                  sar EAX,28
+   224 0000010E 83E007                  and EAX,7
+   225 00000111 A3[00000000]            mov [LKIND],EAX
+   226                                 
+   227                                 
+   228                                 
+   229 00000116 8B5D08                  mov EBX,[EBP+8]
+   230 00000119 8B03                    mov EAX,[EBX]
+   231 0000011B 83C002                  add EAX,2
+   232 0000011E C1E002                  sal EAX,2
+   233 00000121 05[00000000]            add EAX,TOKENS
+   234 00000126 8B00                    mov EAX,[EAX]
+   235 00000128 25FF000000              and EAX,255
+   236 0000012D A3[00000000]            mov [OP],EAX
+   237                                 
    238                                 
-   239 0000013B A1[00000000]            mov EAX,[OP]
-   240 00000140 83E833                  sub EAX,51
-   241                                 
-   242 00000143 7507                    jne LJ8
-   243                                 
-   244 00000145 B801000000              mov EAX,1
+   239 00000132 A1[00000000]            mov EAX,[LKIND]
+   240 00000137 83E804                  sub EAX,4
+   241 0000013A 7511                    jne LJ7
+   242                                 
+   243 0000013C A1[00000000]            mov EAX,[OP]
+   244 00000141 83E832                  sub EAX,50
    245                                 
-   246 0000014A 89EC                    mov ESP,EBP
-   247 0000014C 5D                      pop EBP
-   248 0000014D C3                      ret
+   246 00000144 7507                    jne LJ8
+   247                                 
+   248 00000146 B801000000              mov EAX,1
    249                                 
-   250                                 LJ8:
-   251                                 LJ7:
-   252                                 
+   250 0000014B 89EC                    mov ESP,EBP
+   251 0000014D 5D                      pop EBP
+   252 0000014E C3                      ret
    253                                 
-   254 0000014E B800000000              mov EAX,0
-   255                                 
-   256 00000153 89EC                    mov ESP,EBP
-   257 00000155 5D                      pop EBP
-   258 00000156 C3                      ret
+   254                                 LJ8:
+   255                                 LJ7:
+   256                                 
+   257                                 
+   258 0000014F B800000000              mov EAX,0
    259                                 
-   260                                 
-   261                                 
-   262                                 
-   263                                 ISAAST:
-   264 00000157 55                      push EBP
-   265 00000158 89E5                    mov EBP,ESP
+   260 00000154 89EC                    mov ESP,EBP
+   261 00000156 5D                      pop EBP
+   262 00000157 C3                      ret
+   263                                 
+   264                                 
+   265                                 
    266                                 
-   267                                 
-   268                                 
-   269                                 
+   267                                 ISAMIN:
+   268 00000158 55                      push EBP
+   269 00000159 89E5                    mov EBP,ESP
    270                                 
    271                                 
-   272 0000015A 8B5D08                  mov EBX,[EBP+8]
-   273 0000015D 8B03                    mov EAX,[EBX]
-   274 0000015F C1E002                  sal EAX,2
-   275 00000162 05[00000000]            add EAX,TOKENS
-   276 00000167 8B00                    mov EAX,[EAX]
-   277 00000169 C1F81C                  sar EAX,28
-   278 0000016C 83E007                  and EAX,7
-   279 0000016F A3[00000000]            mov [LKIND],EAX
-   280                                 
-   281                                 
-   282                                 
-   283 00000174 8B5D08                  mov EBX,[EBP+8]
-   284 00000177 8B03                    mov EAX,[EBX]
-   285 00000179 83C002                  add EAX,2
-   286 0000017C C1E002                  sal EAX,2
-   287 0000017F 05[00000000]            add EAX,TOKENS
-   288 00000184 8B00                    mov EAX,[EAX]
-   289 00000186 25FF000000              and EAX,255
-   290 0000018B A3[00000000]            mov [OP],EAX
-   291                                 
-   292                                 
-   293 00000190 A1[00000000]            mov EAX,[LKIND]
-   294 00000195 83E804                  sub EAX,4
-   295 00000198 7511                    jne LJ9
+   272                                 
+   273                                 
+   274                                 
+   275                                 
+   276 0000015B 8B5D08                  mov EBX,[EBP+8]
+   277 0000015E 8B03                    mov EAX,[EBX]
+   278 00000160 C1E002                  sal EAX,2
+   279 00000163 05[00000000]            add EAX,TOKENS
+   280 00000168 8B00                    mov EAX,[EAX]
+   281 0000016A C1F81C                  sar EAX,28
+   282 0000016D 83E007                  and EAX,7
+   283 00000170 A3[00000000]            mov [LKIND],EAX
+   284                                 
+   285                                 
+   286                                 
+   287 00000175 8B5D08                  mov EBX,[EBP+8]
+   288 00000178 8B03                    mov EAX,[EBX]
+   289 0000017A 83C002                  add EAX,2
+   290 0000017D C1E002                  sal EAX,2
+   291 00000180 05[00000000]            add EAX,TOKENS
+   292 00000185 8B00                    mov EAX,[EAX]
+   293 00000187 25FF000000              and EAX,255
+   294 0000018C A3[00000000]            mov [OP],EAX
+   295                                 
    296                                 
-   297 0000019A A1[00000000]            mov EAX,[OP]
-   298 0000019F 83E835                  sub EAX,53
-   299                                 
-   300 000001A2 7507                    jne LJ10
-   301                                 
-   302 000001A4 B801000000              mov EAX,1
+   297 00000191 A1[00000000]            mov EAX,[LKIND]
+   298 00000196 83E804                  sub EAX,4
+   299 00000199 7511                    jne LJ9
+   300                                 
+   301 0000019B A1[00000000]            mov EAX,[OP]
+   302 000001A0 83E833                  sub EAX,51
    303                                 
-   304 000001A9 89EC                    mov ESP,EBP
-   305 000001AB 5D                      pop EBP
-   306 000001AC C3                      ret
+   304 000001A3 7507                    jne LJ10
+   305                                 
+   306 000001A5 B801000000              mov EAX,1
    307                                 
-   308                                 LJ10:
-   309                                 LJ9:
-   310                                 
+   308 000001AA 89EC                    mov ESP,EBP
+   309 000001AC 5D                      pop EBP
+   310 000001AD C3                      ret
    311                                 
-   312 000001AD B800000000              mov EAX,0
-   313                                 
-   314 000001B2 89EC                    mov ESP,EBP
-   315 000001B4 5D                      pop EBP
-   316 000001B5 C3                      ret
+   312                                 LJ10:
+   313                                 LJ9:
+   314                                 
+   315                                 
+   316 000001AE B800000000              mov EAX,0
    317                                 
-   318                                 
-   319                                 
-   320                                 
-   321                                 ISASLA:
-   322 000001B6 55                      push EBP
-   323 000001B7 89E5                    mov EBP,ESP
+   318 000001B3 89EC                    mov ESP,EBP
+   319 000001B5 5D                      pop EBP
+   320 000001B6 C3                      ret
+   321                                 
+   322                                 
+   323                                 
    324                                 
-   325                                 
-   326                                 
-   327                                 
+   325                                 ISAAST:
+   326 000001B7 55                      push EBP
+   327 000001B8 89E5                    mov EBP,ESP
    328                                 
    329                                 
-   330 000001B9 8B5D08                  mov EBX,[EBP+8]
-   331 000001BC 8B03                    mov EAX,[EBX]
-   332 000001BE C1E002                  sal EAX,2
-   333 000001C1 05[00000000]            add EAX,TOKENS
-   334 000001C6 8B00                    mov EAX,[EAX]
-   335 000001C8 C1F81C                  sar EAX,28
-   336 000001CB 83E007                  and EAX,7
-   337 000001CE A3[00000000]            mov [LKIND],EAX
-   338                                 
-   339                                 
-   340                                 
-   341 000001D3 8B5D08                  mov EBX,[EBP+8]
-   342 000001D6 8B03                    mov EAX,[EBX]
-   343 000001D8 83C002                  add EAX,2
-   344 000001DB C1E002                  sal EAX,2
-   345 000001DE 05[00000000]            add EAX,TOKENS
-   346 000001E3 8B00                    mov EAX,[EAX]
-   347 000001E5 25FF000000              and EAX,255
-   348 000001EA A3[00000000]            mov [OP],EAX
-   349                                 
-   350                                 
-   351 000001EF A1[00000000]            mov EAX,[LKIND]
-   352 000001F4 83E804                  sub EAX,4
-   353 000001F7 7511                    jne LJ11
+   330                                 
+   331                                 
+   332                                 
+   333                                 
+   334 000001BA 8B5D08                  mov EBX,[EBP+8]
+   335 000001BD 8B03                    mov EAX,[EBX]
+   336 000001BF C1E002                  sal EAX,2
+   337 000001C2 05[00000000]            add EAX,TOKENS
+   338 000001C7 8B00                    mov EAX,[EAX]
+   339 000001C9 C1F81C                  sar EAX,28
+   340 000001CC 83E007                  and EAX,7
+   341 000001CF A3[00000000]            mov [LKIND],EAX
+   342                                 
+   343                                 
+   344                                 
+   345 000001D4 8B5D08                  mov EBX,[EBP+8]
+   346 000001D7 8B03                    mov EAX,[EBX]
+   347 000001D9 83C002                  add EAX,2
+   348 000001DC C1E002                  sal EAX,2
+   349 000001DF 05[00000000]            add EAX,TOKENS
+   350 000001E4 8B00                    mov EAX,[EAX]
+   351 000001E6 25FF000000              and EAX,255
+   352 000001EB A3[00000000]            mov [OP],EAX
+   353                                 
    354                                 
-   355 000001F9 A1[00000000]            mov EAX,[OP]
-   356 000001FE 83E836                  sub EAX,54
-   357                                 
-   358 00000201 7507                    jne LJ12
-   359                                 
-   360 00000203 B801000000              mov EAX,1
+   355 000001F0 A1[00000000]            mov EAX,[LKIND]
+   356 000001F5 83E804                  sub EAX,4
+   357 000001F8 7511                    jne LJ11
+   358                                 
+   359 000001FA A1[00000000]            mov EAX,[OP]
+   360 000001FF 83E835                  sub EAX,53
    361                                 
-   362 00000208 89EC                    mov ESP,EBP
-   363 0000020A 5D                      pop EBP
-   364 0000020B C3                      ret
+   362 00000202 7507                    jne LJ12
+   363                                 
+   364 00000204 B801000000              mov EAX,1
    365                                 
-   366                                 LJ12:
-   367                                 LJ11:
-   368                                 
+   366 00000209 89EC                    mov ESP,EBP
+   367 0000020B 5D                      pop EBP
+   368 0000020C C3                      ret
    369                                 
-   370 0000020C B800000000              mov EAX,0
-   371                                 
-   372 00000211 89EC                    mov ESP,EBP
-   373 00000213 5D                      pop EBP
-   374 00000214 C3                      ret
+   370                                 LJ12:
+   371                                 LJ11:
+   372                                 
+   373                                 
+   374 0000020D B800000000              mov EAX,0
    375                                 
-   376                                 
-   377                                 
-   378                                 
-   379                                 ISALP:
-   380 00000215 55                      push EBP
-   381 00000216 89E5                    mov EBP,ESP
+   376 00000212 89EC                    mov ESP,EBP
+   377 00000214 5D                      pop EBP
+   378 00000215 C3                      ret
+   379                                 
+   380                                 
+   381                                 
    382                                 
-   383                                 
-   384                                 
-   385                                 
+   383                                 ISASLA:
+   384 00000216 55                      push EBP
+   385 00000217 89E5                    mov EBP,ESP
    386                                 
    387                                 
-   388 00000218 8B5D08                  mov EBX,[EBP+8]
-   389 0000021B 8B03                    mov EAX,[EBX]
-   390 0000021D C1E002                  sal EAX,2
-   391 00000220 05[00000000]            add EAX,TOKENS
-   392 00000225 8B00                    mov EAX,[EAX]
-   393 00000227 C1F81C                  sar EAX,28
-   394 0000022A 83E007                  and EAX,7
-   395 0000022D A3[00000000]            mov [LKIND],EAX
-   396                                 
-   397                                 
-   398                                 
-   399 00000232 8B5D08                  mov EBX,[EBP+8]
-   400 00000235 8B03                    mov EAX,[EBX]
-   401 00000237 83C002                  add EAX,2
-   402 0000023A C1E002                  sal EAX,2
-   403 0000023D 05[00000000]            add EAX,TOKENS
-   404 00000242 8B00                    mov EAX,[EAX]
-   405 00000244 25FF000000              and EAX,255
-   406 00000249 A3[00000000]            mov [OP],EAX
-   407                                 
-   408                                 
-   409 0000024E A1[00000000]            mov EAX,[LKIND]
-   410 00000253 83E804                  sub EAX,4
-   411 00000256 7511                    jne LJ13
+   388                                 
+   389                                 
+   390                                 
+   391                                 
+   392 00000219 8B5D08                  mov EBX,[EBP+8]
+   393 0000021C 8B03                    mov EAX,[EBX]
+   394 0000021E C1E002                  sal EAX,2
+   395 00000221 05[00000000]            add EAX,TOKENS
+   396 00000226 8B00                    mov EAX,[EAX]
+   397 00000228 C1F81C                  sar EAX,28
+   398 0000022B 83E007                  and EAX,7
+   399 0000022E A3[00000000]            mov [LKIND],EAX
+   400                                 
+   401                                 
+   402                                 
+   403 00000233 8B5D08                  mov EBX,[EBP+8]
+   404 00000236 8B03                    mov EAX,[EBX]
+   405 00000238 83C002                  add EAX,2
+   406 0000023B C1E002                  sal EAX,2
+   407 0000023E 05[00000000]            add EAX,TOKENS
+   408 00000243 8B00                    mov EAX,[EAX]
+   409 00000245 25FF000000              and EAX,255
+   410 0000024A A3[00000000]            mov [OP],EAX
+   411                                 
    412                                 
-   413 00000258 A1[00000000]            mov EAX,[OP]
-   414 0000025D 83E840                  sub EAX,64
-   415                                 
-   416 00000260 7507                    jne LJ14
-   417                                 
-   418 00000262 B801000000              mov EAX,1
+   413 0000024F A1[00000000]            mov EAX,[LKIND]
+   414 00000254 83E804                  sub EAX,4
+   415 00000257 7511                    jne LJ13
+   416                                 
+   417 00000259 A1[00000000]            mov EAX,[OP]
+   418 0000025E 83E836                  sub EAX,54
    419                                 
-   420 00000267 89EC                    mov ESP,EBP
-   421 00000269 5D                      pop EBP
-   422 0000026A C3                      ret
+   420 00000261 7507                    jne LJ14
+   421                                 
+   422 00000263 B801000000              mov EAX,1
    423                                 
-   424                                 LJ14:
-   425                                 LJ13:
-   426                                 
+   424 00000268 89EC                    mov ESP,EBP
+   425 0000026A 5D                      pop EBP
+   426 0000026B C3                      ret
    427                                 
-   428 0000026B B800000000              mov EAX,0
-   429                                 
-   430 00000270 89EC                    mov ESP,EBP
-   431 00000272 5D                      pop EBP
-   432 00000273 C3                      ret
+   428                                 LJ14:
+   429                                 LJ13:
+   430                                 
+   431                                 
+   432 0000026C B800000000              mov EAX,0
    433                                 
-   434                                 
-   435                                 
-   436                                 
-   437                                 ISARP:
-   438 00000274 55                      push EBP
-   439 00000275 89E5                    mov EBP,ESP
+   434 00000271 89EC                    mov ESP,EBP
+   435 00000273 5D                      pop EBP
+   436 00000274 C3                      ret
+   437                                 
+   438                                 
+   439                                 
    440                                 
-   441                                 
-   442                                 
-   443                                 
+   441                                 ISALP:
+   442 00000275 55                      push EBP
+   443 00000276 89E5                    mov EBP,ESP
    444                                 
    445                                 
-   446 00000277 8B5D08                  mov EBX,[EBP+8]
-   447 0000027A 8B03                    mov EAX,[EBX]
-   448 0000027C C1E002                  sal EAX,2
-   449 0000027F 05[00000000]            add EAX,TOKENS
-   450 00000284 8B00                    mov EAX,[EAX]
-   451 00000286 C1F81C                  sar EAX,28
-   452 00000289 83E007                  and EAX,7
-   453 0000028C A3[00000000]            mov [LKIND],EAX
-   454                                 
-   455                                 
-   456                                 
-   457 00000291 8B5D08                  mov EBX,[EBP+8]
-   458 00000294 8B03                    mov EAX,[EBX]
-   459 00000296 83C002                  add EAX,2
-   460 00000299 C1E002                  sal EAX,2
-   461 0000029C 05[00000000]            add EAX,TOKENS
-   462 000002A1 8B00                    mov EAX,[EAX]
-   463 000002A3 25FF000000              and EAX,255
-   464 000002A8 A3[00000000]            mov [OP],EAX
-   465                                 
-   466                                 
-   467 000002AD A1[00000000]            mov EAX,[LKIND]
-   468 000002B2 83E804                  sub EAX,4
-   469 000002B5 7511                    jne LJ15
+   446                                 
+   447                                 
+   448                                 
+   449                                 
+   450 00000278 8B5D08                  mov EBX,[EBP+8]
+   451 0000027B 8B03                    mov EAX,[EBX]
+   452 0000027D C1E002                  sal EAX,2
+   453 00000280 05[00000000]            add EAX,TOKENS
+   454 00000285 8B00                    mov EAX,[EAX]
+   455 00000287 C1F81C                  sar EAX,28
+   456 0000028A 83E007                  and EAX,7
+   457 0000028D A3[00000000]            mov [LKIND],EAX
+   458                                 
+   459                                 
+   460                                 
+   461 00000292 8B5D08                  mov EBX,[EBP+8]
+   462 00000295 8B03                    mov EAX,[EBX]
+   463 00000297 83C002                  add EAX,2
+   464 0000029A C1E002                  sal EAX,2
+   465 0000029D 05[00000000]            add EAX,TOKENS
+   466 000002A2 8B00                    mov EAX,[EAX]
+   467 000002A4 25FF000000              and EAX,255
+   468 000002A9 A3[00000000]            mov [OP],EAX
+   469                                 
    470                                 
-   471 000002B7 A1[00000000]            mov EAX,[OP]
-   472 000002BC 83E841                  sub EAX,65
-   473                                 
-   474 000002BF 7507                    jne LJ16
-   475                                 
-   476 000002C1 B801000000              mov EAX,1
+   471 000002AE A1[00000000]            mov EAX,[LKIND]
+   472 000002B3 83E804                  sub EAX,4
+   473 000002B6 7511                    jne LJ15
+   474                                 
+   475 000002B8 A1[00000000]            mov EAX,[OP]
+   476 000002BD 83E840                  sub EAX,64
    477                                 
-   478 000002C6 89EC                    mov ESP,EBP
-   479 000002C8 5D                      pop EBP
-   480 000002C9 C3                      ret
+   478 000002C0 7507                    jne LJ16
+   479                                 
+   480 000002C2 B801000000              mov EAX,1
    481                                 
-   482                                 LJ16:
-   483                                 LJ15:
-   484                                 
+   482 000002C7 89EC                    mov ESP,EBP
+   483 000002C9 5D                      pop EBP
+   484 000002CA C3                      ret
    485                                 
-   486 000002CA B800000000              mov EAX,0
-   487                                 
-   488 000002CF 89EC                    mov ESP,EBP
-   489 000002D1 5D                      pop EBP
-   490 000002D2 C3                      ret
+   486                                 LJ16:
+   487                                 LJ15:
+   488                                 
+   489                                 
+   490 000002CB B800000000              mov EAX,0
    491                                 
-   492                                 
-   493                                 
-   494                                 
-   495                                 ISASEMI:
-   496 000002D3 55                      push EBP
-   497 000002D4 89E5                    mov EBP,ESP
+   492 000002D0 89EC                    mov ESP,EBP
+   493 000002D2 5D                      pop EBP
+   494 000002D3 C3                      ret
+   495                                 
+   496                                 
+   497                                 
    498                                 
-   499                                 
-   500                                 
-   501                                 
+   499                                 ISARP:
+   500 000002D4 55                      push EBP
+   501 000002D5 89E5                    mov EBP,ESP
    502                                 
    503                                 
-   504 000002D6 8B5D08                  mov EBX,[EBP+8]
-   505 000002D9 8B03                    mov EAX,[EBX]
-   506 000002DB C1E002                  sal EAX,2
-   507 000002DE 05[00000000]            add EAX,TOKENS
-   508 000002E3 8B00                    mov EAX,[EAX]
-   509 000002E5 C1F81C                  sar EAX,28
-   510 000002E8 83E007                  and EAX,7
-   511 000002EB A3[00000000]            mov [LKIND],EAX
-   512                                 
-   513                                 
-   514                                 
-   515 000002F0 8B5D08                  mov EBX,[EBP+8]
-   516 000002F3 8B03                    mov EAX,[EBX]
-   517 000002F5 83C002                  add EAX,2
-   518 000002F8 C1E002                  sal EAX,2
-   519 000002FB 05[00000000]            add EAX,TOKENS
-   520 00000300 8B00                    mov EAX,[EAX]
-   521 00000302 25FF000000              and EAX,255
-   522 00000307 A3[00000000]            mov [OP],EAX
-   523                                 
-   524                                 
-   525 0000030C A1[00000000]            mov EAX,[LKIND]
-   526 00000311 83E804                  sub EAX,4
-   527 00000314 7511                    jne LJ17
+   504                                 
+   505                                 
+   506                                 
+   507                                 
+   508 000002D7 8B5D08                  mov EBX,[EBP+8]
+   509 000002DA 8B03                    mov EAX,[EBX]
+   510 000002DC C1E002                  sal EAX,2
+   511 000002DF 05[00000000]            add EAX,TOKENS
+   512 000002E4 8B00                    mov EAX,[EAX]
+   513 000002E6 C1F81C                  sar EAX,28
+   514 000002E9 83E007                  and EAX,7
+   515 000002EC A3[00000000]            mov [LKIND],EAX
+   516                                 
+   517                                 
+   518                                 
+   519 000002F1 8B5D08                  mov EBX,[EBP+8]
+   520 000002F4 8B03                    mov EAX,[EBX]
+   521 000002F6 83C002                  add EAX,2
+   522 000002F9 C1E002                  sal EAX,2
+   523 000002FC 05[00000000]            add EAX,TOKENS
+   524 00000301 8B00                    mov EAX,[EAX]
+   525 00000303 25FF000000              and EAX,255
+   526 00000308 A3[00000000]            mov [OP],EAX
+   527                                 
    528                                 
-   529 00000316 A1[00000000]            mov EAX,[OP]
-   530 0000031B 83E83F                  sub EAX,63
-   531                                 
-   532 0000031E 7507                    jne LJ18
-   533                                 
-   534 00000320 B801000000              mov EAX,1
+   529 0000030D A1[00000000]            mov EAX,[LKIND]
+   530 00000312 83E804                  sub EAX,4
+   531 00000315 7511                    jne LJ17
+   532                                 
+   533 00000317 A1[00000000]            mov EAX,[OP]
+   534 0000031C 83E841                  sub EAX,65
    535                                 
-   536 00000325 89EC                    mov ESP,EBP
-   537 00000327 5D                      pop EBP
-   538 00000328 C3                      ret
+   536 0000031F 7507                    jne LJ18
+   537                                 
+   538 00000321 B801000000              mov EAX,1
    539                                 
-   540                                 LJ18:
-   541                                 LJ17:
-   542                                 
+   540 00000326 89EC                    mov ESP,EBP
+   541 00000328 5D                      pop EBP
+   542 00000329 C3                      ret
    543                                 
-   544 00000329 B800000000              mov EAX,0
-   545                                 
-   546 0000032E 89EC                    mov ESP,EBP
-   547 00000330 5D                      pop EBP
-   548 00000331 C3                      ret
+   544                                 LJ18:
+   545                                 LJ17:
+   546                                 
+   547                                 
+   548 0000032A B800000000              mov EAX,0
    549                                 
-   550                                 
-   551                                 
-   552                                 
-   553                                 ISAEQU:
-   554 00000332 55                      push EBP
-   555 00000333 89E5                    mov EBP,ESP
+   550 0000032F 89EC                    mov ESP,EBP
+   551 00000331 5D                      pop EBP
+   552 00000332 C3                      ret
+   553                                 
+   554                                 
+   555                                 
    556                                 
-   557                                 
-   558                                 
-   559                                 
+   557                                 ISASEMI:
+   558 00000333 55                      push EBP
+   559 00000334 89E5                    mov EBP,ESP
    560                                 
    561                                 
-   562 00000335 8B5D08                  mov EBX,[EBP+8]
-   563 00000338 8B03                    mov EAX,[EBX]
-   564 0000033A C1E002                  sal EAX,2
-   565 0000033D 05[00000000]            add EAX,TOKENS
-   566 00000342 8B00                    mov EAX,[EAX]
-   567 00000344 C1F81C                  sar EAX,28
-   568 00000347 83E007                  and EAX,7
-   569 0000034A A3[00000000]            mov [LKIND],EAX
-   570                                 
-   571                                 
-   572                                 
-   573 0000034F 8B5D08                  mov EBX,[EBP+8]
-   574 00000352 8B03                    mov EAX,[EBX]
-   575 00000354 83C002                  add EAX,2
-   576 00000357 C1E002                  sal EAX,2
-   577 0000035A 05[00000000]            add EAX,TOKENS
-   578 0000035F 8B00                    mov EAX,[EAX]
-   579 00000361 25FF000000              and EAX,255
-   580 00000366 A3[00000000]            mov [OP],EAX
-   581                                 
-   582                                 
-   583 0000036B A1[00000000]            mov EAX,[LKIND]
-   584 00000370 83E804                  sub EAX,4
-   585 00000373 7511                    jne LJ19
+   562                                 
+   563                                 
+   564                                 
+   565                                 
+   566 00000336 8B5D08                  mov EBX,[EBP+8]
+   567 00000339 8B03                    mov EAX,[EBX]
+   568 0000033B C1E002                  sal EAX,2
+   569 0000033E 05[00000000]            add EAX,TOKENS
+   570 00000343 8B00                    mov EAX,[EAX]
+   571 00000345 C1F81C                  sar EAX,28
+   572 00000348 83E007                  and EAX,7
+   573 0000034B A3[00000000]            mov [LKIND],EAX
+   574                                 
+   575                                 
+   576                                 
+   577 00000350 8B5D08                  mov EBX,[EBP+8]
+   578 00000353 8B03                    mov EAX,[EBX]
+   579 00000355 83C002                  add EAX,2
+   580 00000358 C1E002                  sal EAX,2
+   581 0000035B 05[00000000]            add EAX,TOKENS
+   582 00000360 8B00                    mov EAX,[EAX]
+   583 00000362 25FF000000              and EAX,255
+   584 00000367 A3[00000000]            mov [OP],EAX
+   585                                 
    586                                 
-   587 00000375 A1[00000000]            mov EAX,[OP]
-   588 0000037A 83E843                  sub EAX,67
-   589                                 
-   590 0000037D 7507                    jne LJ20
-   591                                 
-   592 0000037F B801000000              mov EAX,1
+   587 0000036C A1[00000000]            mov EAX,[LKIND]
+   588 00000371 83E804                  sub EAX,4
+   589 00000374 7511                    jne LJ19
+   590                                 
+   591 00000376 A1[00000000]            mov EAX,[OP]
+   592 0000037B 83E83F                  sub EAX,63
    593                                 
-   594 00000384 89EC                    mov ESP,EBP
-   595 00000386 5D                      pop EBP
-   596 00000387 C3                      ret
+   594 0000037E 7507                    jne LJ20
+   595                                 
+   596 00000380 B801000000              mov EAX,1
    597                                 
-   598                                 LJ20:
-   599                                 LJ19:
-   600                                 
+   598 00000385 89EC                    mov ESP,EBP
+   599 00000387 5D                      pop EBP
+   600 00000388 C3                      ret
    601                                 
-   602 00000388 B800000000              mov EAX,0
-   603                                 
-   604 0000038D 89EC                    mov ESP,EBP
-   605 0000038F 5D                      pop EBP
-   606 00000390 C3                      ret
+   602                                 LJ20:
+   603                                 LJ19:
+   604                                 
+   605                                 
+   606 00000389 B800000000              mov EAX,0
    607                                 
-   608                                 
-   609                                 
-   610                                  end
+   608 0000038E 89EC                    mov ESP,EBP
+   609 00000390 5D                      pop EBP
+   610 00000391 C3                      ret
+   611                                 
+   612                                 
+   613                                 
+   614                                 
+   615                                 ISAEQU:
+   616 00000392 55                      push EBP
+   617 00000393 89E5                    mov EBP,ESP
+   618                                 
+   619                                 
+   620                                 
+   621                                 
+   622                                 
+   623                                 
+   624 00000395 8B5D08                  mov EBX,[EBP+8]
+   625 00000398 8B03                    mov EAX,[EBX]
+   626 0000039A C1E002                  sal EAX,2
+   627 0000039D 05[00000000]            add EAX,TOKENS
+   628 000003A2 8B00                    mov EAX,[EAX]
+   629 000003A4 C1F81C                  sar EAX,28
+   630 000003A7 83E007                  and EAX,7
+   631 000003AA A3[00000000]            mov [LKIND],EAX
+   632                                 
+   633                                 
+   634                                 
+   635 000003AF 8B5D08                  mov EBX,[EBP+8]
+   636 000003B2 8B03                    mov EAX,[EBX]
+   637 000003B4 83C002                  add EAX,2
+   638 000003B7 C1E002                  sal EAX,2
+   639 000003BA 05[00000000]            add EAX,TOKENS
+   640 000003BF 8B00                    mov EAX,[EAX]
+   641 000003C1 25FF000000              and EAX,255
+   642 000003C6 A3[00000000]            mov [OP],EAX
+   643                                 
+   644                                 
+   645 000003CB A1[00000000]            mov EAX,[LKIND]
+   646 000003D0 83E804                  sub EAX,4
+   647 000003D3 7511                    jne LJ21
+   648                                 
+   649 000003D5 A1[00000000]            mov EAX,[OP]
+   650 000003DA 83E843                  sub EAX,67
+   651                                 
+   652 000003DD 7507                    jne LJ22
+   653                                 
+   654 000003DF B801000000              mov EAX,1
+   655                                 
+   656 000003E4 89EC                    mov ESP,EBP
+   657 000003E6 5D                      pop EBP
+   658 000003E7 C3                      ret
+   659                                 
+   660                                 LJ22:
+   661                                 LJ21:
+   662                                 
+   663                                 
+   664 000003E8 B800000000              mov EAX,0
+   665                                 
+   666 000003ED 89EC                    mov ESP,EBP
+   667 000003EF 5D                      pop EBP
+   668 000003F0 C3                      ret
+   669                                 
+   670                                 
+   671                                 
+   672                                  end

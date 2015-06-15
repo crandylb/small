@@ -1,0 +1,156 @@
+** error.s1 -- Error message handler module for Small compiler, CRB, Apr 22, 2015
+** 04/23/2015 CRB Add RETURN statement
+** 04/27/2015 CRB Access anchor for token at error position detected 
+** 05/08/2015 CRB Adjust error pointer by -1
+*
+*BEGIN ERROR;
+ BEGIN
+*
+*  ENT ERROR;
+ ENT  ERROR
+*  ENT ERRCNT;
+ ENT  ERRCNT
+*
+*  EXT PROC WRITE,IFORM,CAT2,CAT3;
+ EXT P WRITE
+ EXT  IFORM
+ EXT  CAT2
+ EXT  CAT3
+*  EXT OUTCH;                    * output channel
+ EXT  OUTCH
+*  EXT TOKENS;
+ EXT  TOKENS
+*
+*  DCL ERRCNT=0;                 * error count
+ SECT DATA
+ LABEL ERRCNT
+ CONST  0
+*  MSG ERRPTR='----------------------------------------------------------------';
+ SECT DATA
+ LABEL ERRPTR
+ CONST  64
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+ CONST  45
+*  MSG PTR='^';                  * error pointer
+ SECT DATA
+ LABEL PTR
+ CONST  1
+ CONST  94
+*  DCL TMP(128);
+ SECT DATA
+ LABEL TMP
+ SPACE  129
+*
+*  PROC ERROR(IT,ERRMSG);
+ SECT CODE
+ SUBR P ERROR
+ NPARS  2
+ PAR  IT
+ PAR  ERRMSG
+ PEND
+*    TMP=0;
+*.GEN =TMP,=0,.BNST,
+ L  =0
+ ST  TMP
+*    * set length of pointer line
+*    ERRPTR=(TOKENS(IT) AND 255)-1;  * extract anchor for error token
+*.GEN =ERRPTR,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=255,.BCAND,=1,.BN-,.BNST,
+ L D IT
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ AND  =255
+ -  =1
+ ST  ERRPTR
+*     CALL CAT2(TMP,ERRPTR);      * copy to TMP
+ SCALL  CAT2
+ NARGS  2
+ ARG  TMP
+ ARG  ERRPTR
+ CEND
+*    CALL CAT2(TMP,PTR);         * append pointer ^ char
+ SCALL  CAT2
+ NARGS  2
+ ARG  TMP
+ ARG  PTR
+ CEND
+*    CALL CAT2(TMP,ERRMSG);      * append error message
+ ARGT D ERRMSG
+ SCALL  CAT2
+ NARGS  2
+ ARG  TMP
+ ARG D ERRMSG
+ CEND
+*    CALL WRITE(OUTCH,TMP);      * print
+ SCALL P WRITE
+ NARGS  2
+ ARG  OUTCH
+ ARG  TMP
+ CEND
+*    RETURN;
+ RETN  ERROR,2
+*  ENDPROC
+*END
+ END

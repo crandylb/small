@@ -7,16 +7,27 @@
 ** 03/15/2015 CRB Add LABB
 ** 03/16/2015 CRB Add LABO
 ** 03/20/2015 CRB Advance IT after semicolon
+** 04/23/2015 CRB Add symbolic operands and error messages
+** 05/03/2015 CRB Fix logical structure error
+** 05/06/2015 CRB Add error messages
+** 05/22/2015 CRB Add another error message
+** 05/31/2015 CRB Use ISASET instead of ISASYM
 *
 *BEGIN EVAL;
  BEGIN
 *
 *  ENT EVAL;
  ENT  EVAL
+*  EXT ERRCNT;                   * global error counter
+ EXT  ERRCNT
 *  EXT TOKENS;
  EXT  TOKENS
+*  EXT MASKV;
+ EXT  MASKV
 *  EXT PROC ISAINT;
  EXT P ISAINT
+*  EXT PROC ISASET;
+ EXT P ISASET
 *  EXT PROC ISAPLU;
  EXT P ISAPLU
 *  EXT PROC ISAMIN;
@@ -31,6 +42,10 @@
  EXT P ISARP
 *  EXT PROC ISASEMI;
  EXT P ISASEMI
+*  EXT PROC GETS;
+ EXT P GETS
+*  EXT PROC ERROR;
+ EXT P ERROR
 *
 *  SET PLUS=43;                  * ASCII +
 *  SET MINUS=45;                 * ASCII -
@@ -57,15 +72,133 @@
  SECT DATA
  LABEL PCOUNT
  SPACE  1
-*  SET STKSIZ=30;                * stack size
-*  DCL STK(STKSIZ);              * push down stack
+*  DCL VAL,TAG;
  SECT DATA
- LABEL STK
- SPACE  31
+ LABEL VAL
+ SPACE  1
+ LABEL TAG
+ SPACE  1
+*  MSG ERROPD=' Operand expected';
+ SECT DATA
+ LABEL ERROPD
+ CONST  17
+ CONST  32
+ CONST  79
+ CONST  112
+ CONST  101
+ CONST  114
+ CONST  97
+ CONST  110
+ CONST  100
+ CONST  32
+ CONST  101
+ CONST  120
+ CONST  112
+ CONST  101
+ CONST  99
+ CONST  116
+ CONST  101
+ CONST  100
+*  MSG ERROPR=' Operator expected';
+ SECT DATA
+ LABEL ERROPR
+ CONST  18
+ CONST  32
+ CONST  79
+ CONST  112
+ CONST  101
+ CONST  114
+ CONST  97
+ CONST  116
+ CONST  111
+ CONST  114
+ CONST  32
+ CONST  101
+ CONST  120
+ CONST  112
+ CONST  101
+ CONST  99
+ CONST  116
+ CONST  101
+ CONST  100
+*  MSG ERRMRP=' Missing right paren'; 
+ SECT DATA
+ LABEL ERRMRP
+ CONST  20
+ CONST  32
+ CONST  77
+ CONST  105
+ CONST  115
+ CONST  115
+ CONST  105
+ CONST  110
+ CONST  103
+ CONST  32
+ CONST  114
+ CONST  105
+ CONST  103
+ CONST  104
+ CONST  116
+ CONST  32
+ CONST  112
+ CONST  97
+ CONST  114
+ CONST  101
+ CONST  110
+*  MSG ERREXP=' Extra right paren';
+ SECT DATA
+ LABEL ERREXP
+ CONST  18
+ CONST  32
+ CONST  69
+ CONST  120
+ CONST  116
+ CONST  114
+ CONST  97
+ CONST  32
+ CONST  114
+ CONST  105
+ CONST  103
+ CONST  104
+ CONST  116
+ CONST  32
+ CONST  112
+ CONST  97
+ CONST  114
+ CONST  101
+ CONST  110
+*  MSG ERRMTR=' Missing terminator';
+ SECT DATA
+ LABEL ERRMTR
+ CONST  19
+ CONST  32
+ CONST  77
+ CONST  105
+ CONST  115
+ CONST  115
+ CONST  105
+ CONST  110
+ CONST  103
+ CONST  32
+ CONST  116
+ CONST  101
+ CONST  114
+ CONST  109
+ CONST  105
+ CONST  110
+ CONST  97
+ CONST  116
+ CONST  111
+ CONST  114
+*  SET STKSIZ=4*30;              * stack size
 *  DCL STP=0;                    * stack pointer
  SECT DATA
  LABEL STP
  CONST  0
+*  DCL STK(STKSIZ);              * push down stack
+ SECT DATA
+ LABEL STK
+ SPACE  121
 *
 ** evaluate infix expression starting at IT in TOKENS array
 *  PROC EVAL(IT);
@@ -101,7 +234,7 @@
 *.GEN =EXPR,=0,.BNST,
  L  =0
  ST  EXPR
-** process unary '+' or '-'
+** process unary plus or minus
 *    IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;
 *.GEN (IT),.UFISAPLU,=0,.BN-,
  ARGT D IT
@@ -142,7 +275,7 @@
 *LABEL LABB;
  SECT CODE
  LABEL LABB
-*    IF ISALP(IT); THEN 
+*    IF ISALP(IT); THEN          * left parenthesis
 *.GEN (IT),.UFISALP,=0,.BN-,
  ARGT D IT
  SCALL P ISALP
@@ -161,7 +294,7 @@
  L  PCOUNT
  +  =1
  ST  PCOUNT
-*      STK(STP)=AOP; STP=STP+1;
+*      STK(STP)=AOP; STP=STP+1;  * push context
 *.GEN =STK,STP,=2,.BNSHL,.BC+,AOP,.BNST,
  L  STP
  SHL  =2
@@ -211,10 +344,10 @@
  ST  STP
 *      GO TO LABA;
  J  LABA
-*      ELSE 
- J  LJ8
+*      ENDIF
  LABEL LJ7
-*        IF ISAINT(IT); THEN 
+** process operand [needs rewrite]
+*    IF ISAINT(IT); THEN 
 *.GEN (IT),.UFISAINT,=0,.BN-,
  ARGT D IT
  SCALL P ISAINT
@@ -222,8 +355,8 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ10
-*          NUMB=TOKENS(IT+1);    * get value of integer
+ JEQ  LJ9
+*        NUMB=TOKENS(IT+1);      * get value of integer operand
 *.GEN =NUMB,=TOKENS,IT,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
  L D IT
  +  =1
@@ -231,50 +364,130 @@
  +  =TOKENS
  L  *.AC
  ST  NUMB
-*          IT=IT+4;
+*        IT=IT+4;
 *.GEN =IT,IT,=4,.BC+,.BNST,
  L D IT
  +  =4
  ST D IT
-*          REPEAT 
- LABEL LJ11
-*LABEL LABO;
+*      ELSE IF ISASET(IT); THEN 
+ J  LJ10
+ LABEL LJ9
+*.GEN (IT),.UFISASET,=0,.BN-,
+ ARGT D IT
+ SCALL P ISASET
+ NARGS  1
+ ARG D IT
+ CEND
+ -  =0
+ JEQ  LJ12
+*        NUMB=TOKENS(IT+1);      * get value of symbolic operand
+*.GEN =NUMB,=TOKENS,IT,=1,.BC+,=2,.BNSHL,.BC+,.UA,.BNST,
+ L D IT
+ +  =1
+ SHL  =2
+ +  =TOKENS
+ L  *.AC
+ ST  NUMB
+*        IT=IT+4;
+*.GEN =IT,IT,=4,.BC+,.BNST,
+ L D IT
+ +  =4
+ ST D IT
+*        CALL GETS(NUMB,VAL,TAG);
+ SCALL P GETS
+ NARGS  3
+ ARG  NUMB
+ ARG  VAL
+ ARG  TAG
+ CEND
+*        NUMB=VAL AND MASKV;
+*.GEN =NUMB,VAL,MASKV,.BCAND,.BNST,
+ L  VAL
+ AND  MASKV
+ ST  NUMB
+*      ELSE                      * operand expected error
+ J  LJ14
+ LABEL LJ12
+*        ERRCNT=ERRCNT+1;        * bump error count
+*.GEN =ERRCNT,ERRCNT,=1,.BC+,.BNST,
+ L  ERRCNT
+ +  =1
+ ST  ERRCNT
+*        CALL ERROR(IT,ERROPD);
+ ARGT D IT
+ SCALL P ERROR
+ NARGS  2
+ ARG D IT
+ ARG  ERROPD
+ CEND
+*        GO TO LABP;
+ J  LABP
+*      ENDIF ENDIF
+ LABEL LJ14
+ LABEL LJ10
+*
+*LABEL LABO;                     * operator process loop
  SECT CODE
  LABEL LABO
-*            IF MOP EQ STAR; THEN TERM=TERM*NUMB;
+*    REPEAT 
+ LABEL LJ16
+*      IF IT/4 GE TOKENS; THEN   * check for end of tokens list
+*.GEN IT,=4,.BN/,TOKENS,.BN-,
+ L D IT
+ /  =4
+ -  TOKENS
+ JLT  LJ18
+*        ERRCNT=ERRCNT+1;
+*.GEN =ERRCNT,ERRCNT,=1,.BC+,.BNST,
+ L  ERRCNT
+ +  =1
+ ST  ERRCNT
+*        CALL ERROR(IT,ERRMTR);  * missing terminator
+ ARGT D IT
+ SCALL P ERROR
+ NARGS  2
+ ARG D IT
+ ARG  ERRMTR
+ CEND
+*        GO TO LABP;             * error exit
+ J  LABP
+*        ENDIF
+ LABEL LJ18
+*      IF MOP EQ STAR; THEN TERM=TERM*NUMB;              * do multiply
 *.GEN MOP,STAR,.BN-,
  L  MOP
  - 42 STAR
- JNE  LJ13
+ JNE  LJ20
 *.GEN =TERM,TERM,NUMB,.BC*,.BNST,
  L  TERM
  *  NUMB
  ST  TERM
-*              ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;
- J  LJ14
- LABEL LJ13
+*        ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;      * do divide
+ J  LJ21
+ LABEL LJ20
 *.GEN MOP,SLASH,.BN-,
  L  MOP
  - 47 SLASH
- JNE  LJ15
+ JNE  LJ22
 *.GEN =TERM,TERM,NUMB,.BN/,.BNST,
  L  TERM
  /  NUMB
  ST  TERM
-*              ELSE TERM=NUMB;
- J  LJ16
- LABEL LJ15
+*        ELSE TERM=NUMB;
+ J  LJ23
+ LABEL LJ22
 *.GEN =TERM,NUMB,.BNST,
  L  NUMB
  ST  TERM
-*              ENDIF ENDIF
- LABEL LJ16
- LABEL LJ14
-*            MOP=0;
+*        ENDIF ENDIF
+ LABEL LJ23
+ LABEL LJ21
+*      MOP=0;
 *.GEN =MOP,=0,.BNST,
  L  =0
  ST  MOP
-*            IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;
+** process multiplicative operator
+*      IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;
 *.GEN (IT),.UFISAAST,=0,.BN-,
  ARGT D IT
  SCALL P ISAAST
@@ -282,7 +495,7 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ18
+ JEQ  LJ25
 *.GEN =MOP,STAR,.BNST,
  L 42 STAR
  ST  MOP
@@ -291,9 +504,9 @@
  +  =4
  ST D IT
  J  LABB
-*              ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;
- J  LJ19
- LABEL LJ18
+*        ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;
+ J  LJ26
+ LABEL LJ25
 *.GEN (IT),.UFISASLA,=0,.BN-,
  ARGT D IT
  SCALL P ISASLA
@@ -301,7 +514,7 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ21
+ JEQ  LJ28
 *.GEN =MOP,SLASH,.BNST,
  L 47 SLASH
  ST  MOP
@@ -310,43 +523,44 @@
  +  =4
  ST D IT
  J  LABB
-*              ENDIF ENDIF
- LABEL LJ21
- LABEL LJ19
-*            IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;
+*        ENDIF ENDIF
+ LABEL LJ28
+ LABEL LJ26
+*      IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;              * do add
 *.GEN AOP,PLUS,.BN-,
  L  AOP
  - 43 PLUS
- JNE  LJ22
+ JNE  LJ29
 *.GEN =EXPR,EXPR,TERM,.BC+,.BNST,
  L  EXPR
  +  TERM
  ST  EXPR
-*              ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;
- J  LJ23
- LABEL LJ22
+*        ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;      * do subtract
+ J  LJ30
+ LABEL LJ29
 *.GEN AOP,MINUS,.BN-,
  L  AOP
  - 45 MINUS
- JNE  LJ24
+ JNE  LJ31
 *.GEN =EXPR,EXPR,TERM,.BN-,.BNST,
  L  EXPR
  -  TERM
  ST  EXPR
-*              ELSE EXPR=TERM;
- J  LJ25
- LABEL LJ24
+*        ELSE EXPR=TERM;
+ J  LJ32
+ LABEL LJ31
 *.GEN =EXPR,TERM,.BNST,
  L  TERM
  ST  EXPR
-*              ENDIF ENDIF
- LABEL LJ25
- LABEL LJ23
-*            AOP=0;
+*        ENDIF ENDIF
+ LABEL LJ32
+ LABEL LJ30
+*      AOP=0;
 *.GEN =AOP,=0,.BNST,
  L  =0
  ST  AOP
-*            IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;
+** process additive operator
+*      IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;
 *.GEN (IT),.UFISAPLU,=0,.BN-,
  ARGT D IT
  SCALL P ISAPLU
@@ -354,7 +568,7 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ27
+ JEQ  LJ34
 *.GEN =AOP,PLUS,.BNST,
  L 43 PLUS
  ST  AOP
@@ -363,9 +577,9 @@
  +  =4
  ST D IT
  J  LABB
-*              ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;
- J  LJ28
- LABEL LJ27
+*        ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;
+ J  LJ35
+ LABEL LJ34
 *.GEN (IT),.UFISAMIN,=0,.BN-,
  ARGT D IT
  SCALL P ISAMIN
@@ -373,7 +587,7 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ30
+ JEQ  LJ37
 *.GEN =AOP,MINUS,.BNST,
  L 45 MINUS
  ST  AOP
@@ -382,10 +596,10 @@
  +  =4
  ST D IT
  J  LABB
-*              ENDIF ENDIF
- LABEL LJ30
- LABEL LJ28
-*            IF ISARP(IT); THEN 
+*        ENDIF ENDIF
+ LABEL LJ37
+ LABEL LJ35
+*      IF ISARP(IT); THEN        * right parenthesis
 *.GEN (IT),.UFISARP,=0,.BN-,
  ARGT D IT
  SCALL P ISARP
@@ -393,22 +607,27 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ32
-*              IT=IT+4;
+ JEQ  LJ39
+*        IT=IT+4;
 *.GEN =IT,IT,=4,.BC+,.BNST,
  L D IT
  +  =4
  ST D IT
-*              PCOUNT=PCOUNT-1;
+*        PCOUNT=PCOUNT-1;
 *.GEN =PCOUNT,PCOUNT,=1,.BN-,.BNST,
  L  PCOUNT
  -  =1
  ST  PCOUNT
-*              NUMB=EXPR;
+*        NUMB=EXPR;              * promote result and pop context
 *.GEN =NUMB,EXPR,.BNST,
  L  EXPR
  ST  NUMB
-*              STP=STP-1; TERM=STK(STP);
+*        IF PCOUNT GE 0; THEN    * stack pointer valid
+*.GEN PCOUNT,=0,.BN-,
+ L  PCOUNT
+ -  =0
+ JLT  LJ40
+*          STP=STP-1; TERM=STK(STP);
 *.GEN =STP,STP,=1,.BN-,.BNST,
  L  STP
  -  =1
@@ -419,7 +638,7 @@
  +  =STK
  L  *.AC
  ST  TERM
-*              STP=STP-1; EXPR=STK(STP);
+*          STP=STP-1; EXPR=STK(STP);
 *.GEN =STP,STP,=1,.BN-,.BNST,
  L  STP
  -  =1
@@ -430,7 +649,7 @@
  +  =STK
  L  *.AC
  ST  EXPR
-*              STP=STP-1; MOP=STK(STP);
+*          STP=STP-1; MOP=STK(STP);
 *.GEN =STP,STP,=1,.BN-,.BNST,
  L  STP
  -  =1
@@ -441,7 +660,7 @@
  +  =STK
  L  *.AC
  ST  MOP
-*              STP=STP-1; AOP=STK(STP);
+*          STP=STP-1; AOP=STK(STP);
 *.GEN =STP,STP,=1,.BN-,.BNST,
  L  STP
  -  =1
@@ -452,20 +671,14 @@
  +  =STK
  L  *.AC
  ST  AOP
-*              GO TO LABO;
+*          ENDIF
+ LABEL LJ40
+*        GO TO LABO;             * continue operator loop
  J  LABO
-*              ENDIF
- LABEL LJ32
-*            ELSE 
- J  LJ33
- LABEL LJ12
-*              RETURN EXPR;
-*.GEN EXPR,
- L  EXPR
- RETN  EVAL,1
-*            ENDIF
- LABEL LJ33
-*          UNTIL ISASEMI(IT);
+*        ENDIF
+ LABEL LJ39
+*
+*      UNTIL ISASEMI(IT);        * end of expression
 *.GEN (IT),.UFISASEMI,=0,.BN-,
  ARGT D IT
  SCALL P ISASEMI
@@ -473,20 +686,61 @@
  ARG D IT
  CEND
  -  =0
- JEQ  LJ11
- LABEL LJ10
-*        IT=IT+4;
+ JEQ  LJ16
+ LABEL LJ17
+*
+*    IT=IT+4;
 *.GEN =IT,IT,=4,.BC+,.BNST,
  L D IT
  +  =4
  ST D IT
-*        RETURN EXPR;
+*    IF PCOUNT; THEN ERRCNT=ERRCNT+1;
+*.GEN PCOUNT,=0,.BN-,
+ L  PCOUNT
+ -  =0
+ JEQ  LJ42
+*.GEN =ERRCNT,ERRCNT,=1,.BC+,.BNST,
+ L  ERRCNT
+ +  =1
+ ST  ERRCNT
+*      IF PCOUNT GT 0; THEN      * check for balanced parens
+*.GEN PCOUNT,=0,.BN-,
+ L  PCOUNT
+ -  =0
+ JLE  LJ43
+*        CALL ERROR(IT,ERRMRP);  * missing right paren
+ ARGT D IT
+ SCALL P ERROR
+ NARGS  2
+ ARG D IT
+ ARG  ERRMRP
+ CEND
+*        GO TO LABP;
+ J  LABP
+*      ELSE 
+ J  LJ45
+ LABEL LJ43
+*        CALL ERROR(IT,ERREXP);  * extra right paren
+ ARGT D IT
+ SCALL P ERROR
+ NARGS  2
+ ARG D IT
+ ARG  ERREXP
+ CEND
+*        GO TO LABP;
+ J  LABP
+*      ENDIF ENDIF
+ LABEL LJ45
+ LABEL LJ42
+*    RETURN EXPR;                * return expression value
 *.GEN EXPR,
  L  EXPR
  RETN  EVAL,1
-*      ENDIF
- LABEL LJ8
-*    RETURN 0;                   * error return, need a flag or summat
+*
+*LABEL LABP;
+ SECT CODE
+ LABEL LABP
+*    RETURN 0;                   * error return
 *.GEN =0,
  L  =0
  RETN  EVAL,1

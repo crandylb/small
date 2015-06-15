@@ -7,97 +7,142 @@
 7       * 03/15/2015 CRB Add LABB                                               
 8       * 03/16/2015 CRB Add LABO                                               
 9       * 03/20/2015 CRB Advance IT after semicolon                             
-10                                                                              
-11      BEGIN EVAL;                                                             
-12                                                                              
-13        ENT EVAL;                                                             
-14        EXT TOKENS;                                                           
-15        EXT PROC ISAINT;                                                      
-16        EXT PROC ISAPLU;                                                      
-17        EXT PROC ISAMIN;                                                      
-18        EXT PROC ISAAST;                                                      
-19        EXT PROC ISASLA;                                                      
-20        EXT PROC ISALP;                                                       
-21        EXT PROC ISARP;                                                       
-22        EXT PROC ISASEMI;                                                     
-23                                                                              
-24        SET PLUS=43;                  * ASCII +                               
-25        SET MINUS=45;                 * ASCII -                               
-26        SET STAR=42;                  * ASCII *                               
-27        SET SLASH=47;                 * ASCII /                               
-28        SET LPAREN=40;                * ASCII left parenthesis                
-29        SET RPAREN=41;                * ASCII right parenthesis               
-30                                                                              
-31        DCL AOP,MOP;                  * add operator, mult operator           
-32        DCL NUMB,TERM=1,EXPR=0;                                               
-33        DCL PCOUNT;                   * parenthesis level count               
-34        SET STKSIZ=30;                * stack size                            
-35        DCL STK(STKSIZ);              * push down stack                       
-36        DCL STP=0;                    * stack pointer                         
-37                                                                              
-38      * evaluate infix expression starting at IT in TOKENS array              
-39        PROC EVAL(IT);                                                        
-40   1      PCOUNT=0;                                                           
-41   1      STP=0;                                                              
-42   1  LABEL LABA;                                                             
-43   1      AOP=0;                                                              
-44   1      MOP=0;                                                              
-45   1      TERM=1;                                                             
-46   1      EXPR=0;                                                             
-47   1  * process unary '+' or '-'                                              
-48   1      IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;                              
-49   2        ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4;                      
-50   3        ENDIF ENDIF                                                       
-51   1  LABEL LABB;                                                             
-52   1      IF ISALP(IT); THEN                                                  
-53   2        IT=IT+4;                                                          
-54   2        PCOUNT=PCOUNT+1;                                                  
-55   2        STK(STP)=AOP; STP=STP+1;                                          
-56   2        STK(STP)=MOP; STP=STP+1;                                          
-57   2        STK(STP)=EXPR; STP=STP+1;                                         
-58   2        STK(STP)=TERM; STP=STP+1;                                         
-59   2        GO TO LABA;                                                       
-60   2        ELSE                                                              
-61   2          IF ISAINT(IT); THEN                                             
-62   3            NUMB=TOKENS(IT+1);    * get value of integer                  
-63   3            IT=IT+4;                                                      
-64   3            REPEAT                                                        
-65   4  LABEL LABO;                                                             
-66   4              IF MOP EQ STAR; THEN TERM=TERM*NUMB;                        
-67   5                ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;                
-68   6                ELSE TERM=NUMB;                                           
-69   6                ENDIF ENDIF                                               
-70   4              MOP=0;                                                      
-71   4              IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;          
-72   5                ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;  
-73   6                ENDIF ENDIF                                               
-74   4              IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;                        
-75   5                ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;                
-76   6                ELSE EXPR=TERM;                                           
-77   6                ENDIF ENDIF                                               
-78   4              AOP=0;                                                      
-79   4              IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;          
-80   5                ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;  
-81   6                ENDIF ENDIF                                               
-82   4              IF ISARP(IT); THEN                                          
-83   5                IT=IT+4;                                                  
-84   5                PCOUNT=PCOUNT-1;                                          
-85   5                NUMB=EXPR;                                                
-86   5                STP=STP-1; TERM=STK(STP);                                 
-87   5                STP=STP-1; EXPR=STK(STP);                                 
-88   5                STP=STP-1; MOP=STK(STP);                                  
-89   5                STP=STP-1; AOP=STK(STP);                                  
-90   5                GO TO LABO;                                               
-91   5                ENDIF                                                     
-92   4              ELSE                                                        
-93   4                RETURN EXPR;                                              
-94   4              ENDIF                                                       
-95   3            UNTIL ISASEMI(IT);                                            
-96   2          IT=IT+4;                                                        
-97   2          RETURN EXPR;                                                    
-98   2        ENDIF                                                             
-99   1      RETURN 0;                   * error return, need a flag or summat   
-100  1    ENDPROC                                                               
-101  0                                                                          
-102  0  END                                                                     
+10      * 04/23/2015 CRB Add symbolic operands and error messages               
+11      * 05/03/2015 CRB Fix logical structure error                            
+12      * 05/06/2015 CRB Add error messages                                     
+13      * 05/22/2015 CRB Add another error message                              
+14      * 05/31/2015 CRB Use ISASET instead of ISASYM                           
+15                                                                              
+16      BEGIN EVAL;                                                             
+17                                                                              
+18        ENT EVAL;                                                             
+19        EXT ERRCNT;                   * global error counter                  
+20        EXT TOKENS;                                                           
+21        EXT MASKV;                                                            
+22        EXT PROC ISAINT;                                                      
+23        EXT PROC ISASET;                                                      
+24        EXT PROC ISAPLU;                                                      
+25        EXT PROC ISAMIN;                                                      
+26        EXT PROC ISAAST;                                                      
+27        EXT PROC ISASLA;                                                      
+28        EXT PROC ISALP;                                                       
+29        EXT PROC ISARP;                                                       
+30        EXT PROC ISASEMI;                                                     
+31        EXT PROC GETS;                                                        
+32        EXT PROC ERROR;                                                       
+33                                                                              
+34        SET PLUS=43;                  * ASCII +                               
+35        SET MINUS=45;                 * ASCII -                               
+36        SET STAR=42;                  * ASCII *                               
+37        SET SLASH=47;                 * ASCII /                               
+38        SET LPAREN=40;                * ASCII left parenthesis                
+39        SET RPAREN=41;                * ASCII right parenthesis               
+40                                                                              
+41        DCL AOP,MOP;                  * add operator, mult operator           
+42        DCL NUMB,TERM=1,EXPR=0;                                               
+43        DCL PCOUNT;                   * parenthesis level count               
+44        DCL VAL,TAG;                                                          
+45        MSG ERROPD=' Operand expected';                                       
+46        MSG ERROPR=' Operator expected';                                      
+47        MSG ERRMRP=' Missing right paren';                                    
+48        MSG ERREXP=' Extra right paren';                                      
+49        MSG ERRMTR=' Missing terminator';                                     
+50        SET STKSIZ=4*30;              * stack size                            
+51        DCL STP=0;                    * stack pointer                         
+52        DCL STK(STKSIZ);              * push down stack                       
+53                                                                              
+54      * evaluate infix expression starting at IT in TOKENS array              
+55        PROC EVAL(IT);                                                        
+56   1      PCOUNT=0;                                                           
+57   1      STP=0;                                                              
+58   1  LABEL LABA;                                                             
+59   1      AOP=0;                                                              
+60   1      MOP=0;                                                              
+61   1      TERM=1;                                                             
+62   1      EXPR=0;                                                             
+63   1  * process unary plus or minus                                           
+64   1      IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4;                              
+65   2        ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4;                      
+66   3        ENDIF ENDIF                                                       
+67   1  LABEL LABB;                                                             
+68   1      IF ISALP(IT); THEN          * left parenthesis                      
+69   2        IT=IT+4;                                                          
+70   2        PCOUNT=PCOUNT+1;                                                  
+71   2        STK(STP)=AOP; STP=STP+1;  * push context                          
+72   2        STK(STP)=MOP; STP=STP+1;                                          
+73   2        STK(STP)=EXPR; STP=STP+1;                                         
+74   2        STK(STP)=TERM; STP=STP+1;                                         
+75   2        GO TO LABA;                                                       
+76   2        ENDIF                                                             
+77   1  * process operand [needs rewrite]                                       
+78   1      IF ISAINT(IT); THEN                                                 
+79   2          NUMB=TOKENS(IT+1);      * get value of integer operand          
+80   2          IT=IT+4;                                                        
+81   2        ELSE IF ISASET(IT); THEN                                          
+82   3          NUMB=TOKENS(IT+1);      * get value of symbolic operand         
+83   3          IT=IT+4;                                                        
+84   3          CALL GETS(NUMB,VAL,TAG);                                        
+85   3          NUMB=VAL AND MASKV;                                             
+86   3        ELSE                      * operand expected error                
+87   3          ERRCNT=ERRCNT+1;        * bump error count                      
+88   3          CALL ERROR(IT,ERROPD);                                          
+89   3          GO TO LABP;                                                     
+90   3        ENDIF ENDIF                                                       
+91   1                                                                          
+92   1  LABEL LABO;                     * operator process loop                 
+93   1      REPEAT                                                              
+94   2        IF IT/4 GE TOKENS; THEN   * check for end of tokens list          
+95   3          ERRCNT=ERRCNT+1;                                                
+96   3          CALL ERROR(IT,ERRMTR);  * missing terminator                    
+97   3          GO TO LABP;             * error exit                            
+98   3          ENDIF                                                           
+99   2        IF MOP EQ STAR; THEN TERM=TERM*NUMB;              * do multiply   
+100  3          ELSE IF MOP EQ SLASH; THEN TERM=TERM/NUMB;      * do divide     
+101  4          ELSE TERM=NUMB;                                                 
+102  4          ENDIF ENDIF                                                     
+103  2        MOP=0;                                                            
+104  2  * process multiplicative operator                                       
+105  2        IF ISAAST(IT); THEN MOP=STAR; IT=IT+4; GO TO LABB;                
+106  3          ELSE IF ISASLA(IT); THEN MOP=SLASH; IT=IT+4; GO TO LABB;        
+107  4          ENDIF ENDIF                                                     
+108  2        IF AOP EQ PLUS; THEN EXPR=EXPR+TERM;              * do add        
+109  3          ELSE IF AOP EQ MINUS; THEN EXPR=EXPR-TERM;      * do subtract   
+110  4          ELSE EXPR=TERM;                                                 
+111  4          ENDIF ENDIF                                                     
+112  2        AOP=0;                                                            
+113  2  * process additive operator                                             
+114  2        IF ISAPLU(IT); THEN AOP=PLUS; IT=IT+4; GO TO LABB;                
+115  3          ELSE IF ISAMIN(IT); THEN AOP=MINUS; IT=IT+4; GO TO LABB;        
+116  4          ENDIF ENDIF                                                     
+117  2        IF ISARP(IT); THEN        * right parenthesis                     
+118  3          IT=IT+4;                                                        
+119  3          PCOUNT=PCOUNT-1;                                                
+120  3          NUMB=EXPR;              * promote result and pop context        
+121  3          IF PCOUNT GE 0; THEN    * stack pointer valid                   
+122  4            STP=STP-1; TERM=STK(STP);                                     
+123  4            STP=STP-1; EXPR=STK(STP);                                     
+124  4            STP=STP-1; MOP=STK(STP);                                      
+125  4            STP=STP-1; AOP=STK(STP);                                      
+126  4            ENDIF                                                         
+127  3          GO TO LABO;             * continue operator loop                
+128  3          ENDIF                                                           
+129  2                                                                          
+130  2        UNTIL ISASEMI(IT);        * end of expression                     
+131  1                                                                          
+132  1      IT=IT+4;                                                            
+133  1      IF PCOUNT; THEN ERRCNT=ERRCNT+1;                                    
+134  2        IF PCOUNT GT 0; THEN      * check for balanced parens             
+135  3          CALL ERROR(IT,ERRMRP);  * missing right paren                   
+136  3          GO TO LABP;                                                     
+137  3        ELSE                                                              
+138  3          CALL ERROR(IT,ERREXP);  * extra right paren                     
+139  3          GO TO LABP;                                                     
+140  3        ENDIF ENDIF                                                       
+141  1      RETURN EXPR;                * return expression value               
+142  1                                                                          
+143  1  LABEL LABP;                                                             
+144  1      RETURN 0;                   * error return                          
+145  1    ENDPROC                                                               
+146  0                                                                          
+147  0  END                                                                     
  NO ERRORS DETECTED

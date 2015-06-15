@@ -2,6 +2,7 @@
 ;* 09/29/2014 CRB Add ISASEMI, ISAEQU
 ;* 03/06/2015 CRB Add ENTRY for ISASEMI, ISAEQU
 ;* 03/15/2015 CRB Correct mask for OP
+;* 05/30/2015 CRB Add ISASET(IT)
 ;
 ;* Each function returns True (1) or False (0)
 ;
@@ -10,9 +11,10 @@
  extern exit
 ;  EXT TOKENS;                       * access tokens array in scan
  extern  TOKENS
-;  ENT ISAINT,ISASYM;
+;  ENT ISAINT,ISASYM,ISASET;
  global  ISAINT
  global  ISASYM
+ global  ISASET
 ;  ENT ISAPLU,ISAMIN,ISAAST,ISASLA;  * arithmetic operators
  global  ISAPLU
  global  ISAMIN
@@ -141,6 +143,66 @@ LJ3:
  ret
 ;  ENDPROC
 ;
+;* token is a SET statement symbolic constant
+;  PROC ISASET(IT);                  * is a symbol
+; SUBR  ISASET
+ISASET:
+ push EBP
+ mov  EBP,ESP
+; NPARS  1
+; PAR  IT
+; PEND
+;    LKIND=TOKENS(IT) SHR 28 AND 7;
+;.GEN =LKIND,=TOKENS,IT,=2,.BNSHL,.BC+,.UA,=28,.BNSHR,=7,.BCAND,.BNST,
+; L D IT
+ mov EBX,[EBP+8] ; IT
+ mov EAX,[EBX]
+ sal EAX,2
+ add EAX,TOKENS
+ mov EAX,[EAX]
+ sar EAX,28
+ and EAX,7
+ mov [LKIND],EAX
+;    TTYPE=TOKENS(IT+3) SHR 8 AND 255;
+;.GEN =TTYPE,=TOKENS,IT,=3,.BC+,=2,.BNSHL,.BC+,.UA,=8,.BNSHR,=255,.BCAND,.BNST,
+; L D IT
+ mov EBX,[EBP+8] ; IT
+ mov EAX,[EBX]
+ add EAX,3
+ sal EAX,2
+ add EAX,TOKENS
+ mov EAX,[EAX]
+ sar EAX,8
+ and EAX,255
+ mov [TTYPE],EAX
+;    IF LKIND EQ 1; THEN IF TTYPE EQ 9;
+;.GEN LKIND,=1,.BN-,
+ mov EAX,[LKIND]
+ dec EAX
+ jne LJ5
+;.GEN TTYPE,=9,.BN-,
+ mov EAX,[TTYPE]
+ sub EAX,9
+;      THEN RETURN 1;
+ jne LJ6
+;.GEN =1,
+ mov EAX,1
+; RETN  ISASET,1
+ mov ESP,EBP
+ pop EBP
+ ret
+;    ENDIF ENDIF
+LJ6:
+LJ5:
+;    RETURN 0;
+;.GEN =0,
+ mov EAX,0
+; RETN  ISASET,1
+ mov ESP,EBP
+ pop EBP
+ ret
+;  ENDPROC
+;
 ;  PROC ISAPLU(IT);                  * is a plus sign
 ; SUBR  ISAPLU
 ISAPLU:
@@ -175,12 +237,12 @@ ISAPLU:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ5
+ jne LJ7
 ;.GEN OP,=50,.BN-,
  mov EAX,[OP]
  sub EAX,50
 ;      THEN RETURN 1;
- jne LJ6
+ jne LJ8
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISAPLU,1
@@ -188,8 +250,8 @@ ISAPLU:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ6:
-LJ5:
+LJ8:
+LJ7:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -233,12 +295,12 @@ ISAMIN:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ7
+ jne LJ9
 ;.GEN OP,=51,.BN-,
  mov EAX,[OP]
  sub EAX,51
 ;      THEN RETURN 1;
- jne LJ8
+ jne LJ10
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISAMIN,1
@@ -246,8 +308,8 @@ ISAMIN:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ8:
-LJ7:
+LJ10:
+LJ9:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -291,12 +353,12 @@ ISAAST:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ9
+ jne LJ11
 ;.GEN OP,=53,.BN-,
  mov EAX,[OP]
  sub EAX,53
 ;      THEN RETURN 1;
- jne LJ10
+ jne LJ12
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISAAST,1
@@ -304,8 +366,8 @@ ISAAST:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ10:
-LJ9:
+LJ12:
+LJ11:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -349,12 +411,12 @@ ISASLA:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ11
+ jne LJ13
 ;.GEN OP,=54,.BN-,
  mov EAX,[OP]
  sub EAX,54
 ;      THEN RETURN 1;
- jne LJ12
+ jne LJ14
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISASLA,1
@@ -362,8 +424,8 @@ ISASLA:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ12:
-LJ11:
+LJ14:
+LJ13:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -407,12 +469,12 @@ ISALP:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ13
+ jne LJ15
 ;.GEN OP,=64,.BN-,
  mov EAX,[OP]
  sub EAX,64
 ;      THEN RETURN 1;
- jne LJ14
+ jne LJ16
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISALP,1
@@ -420,8 +482,8 @@ ISALP:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ14:
-LJ13:
+LJ16:
+LJ15:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -465,12 +527,12 @@ ISARP:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ15
+ jne LJ17
 ;.GEN OP,=65,.BN-,
  mov EAX,[OP]
  sub EAX,65
 ;      THEN RETURN 1;
- jne LJ16
+ jne LJ18
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISARP,1
@@ -478,8 +540,8 @@ ISARP:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ16:
-LJ15:
+LJ18:
+LJ17:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -523,12 +585,12 @@ ISASEMI:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ17
+ jne LJ19
 ;.GEN OP,=63,.BN-,
  mov EAX,[OP]
  sub EAX,63
 ;      THEN RETURN 1;
- jne LJ18
+ jne LJ20
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISASEMI,1
@@ -536,8 +598,8 @@ ISASEMI:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ18:
-LJ17:
+LJ20:
+LJ19:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0
@@ -581,12 +643,12 @@ ISAEQU:
 ;.GEN LKIND,=4,.BN-,
  mov EAX,[LKIND]
  sub EAX,4
- jne LJ19
+ jne LJ21
 ;.GEN OP,=67,.BN-,
  mov EAX,[OP]
  sub EAX,67
 ;      THEN RETURN 1;
- jne LJ20
+ jne LJ22
 ;.GEN =1,
  mov EAX,1
 ; RETN  ISAEQU,1
@@ -594,8 +656,8 @@ ISAEQU:
  pop EBP
  ret
 ;    ENDIF ENDIF
-LJ20:
-LJ19:
+LJ22:
+LJ21:
 ;    RETURN 0;
 ;.GEN =0,
  mov EAX,0

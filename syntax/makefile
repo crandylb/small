@@ -4,6 +4,8 @@
 # 03/06/2015 CRB Add testeval executable
 # 03/09/2015 CRB Use ../scan/scan.o
 # 03/23/2015 CRB Use local patched scan module
+# 04/22/2015 CRB Add error handler module
+# 05/13/2015 CRB Add evaltest
 
 LIBS=-L../lib -L../libsc -lsc -ls1 
 
@@ -25,6 +27,15 @@ eval.asm:	eval.mill ../mill2yasm.s2m
 eval.o:	eval.asm
 	yasm eval.asm -w -g stabs -l eval.lst -f elf32 -o eval.o
 
+error.mill:	error.s1 ../small.s2m
+	stg2 ../small.s2m <error.s1 - error.mill error.lss
+
+error.asm:	error.mill ../mill2yasm.s2m
+	stg2 ../mill2yasm.s2m <error.mill - error.asm
+
+error.o:	error.asm
+	yasm error.asm -w -g stabs -l error.lst -f elf32 -o error.o
+
 scan.mill:	../scan/scan.s1 ../small.s2m scan4eval.diff
 	cp ../scan/scan.s1 .
 	patch -u scan.s1 scan4eval.diff
@@ -45,11 +56,13 @@ testeval.asm:	testeval.mill ../mill2yasm.s2m
 testeval.o:	testeval.asm
 	yasm testeval.asm -w -g stabs -l testeval.lst -f elf32 -o testeval.o
 
-testeval:	testeval.o eval.o isamod.o scan.o ../lib/libs1.a ../libsc/libsc.a
-	gcc -m32 testeval.o eval.o isamod.o scan.o $(LIBS)-o testeval
+testeval:	testeval.o eval.o isamod.o scan.o error.o ../lib/libs1.a ../libsc/libsc.a
+	gcc -m32 testeval.o eval.o isamod.o scan.o error.o $(LIBS)-o testeval
 
 test:	testeval
 	./testeval - ../symacc/initable.dat
 
+evaltest:	testeval
+	./testeval - initable.dat
 clean:
 	rm *.mill *.lss *.asm *.o *.lst testeval
