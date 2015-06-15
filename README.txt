@@ -16,6 +16,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 12/06/2014 CRB Fix two obo bugs in testlex: lex.s1, testlex.s1
 02/28/2015 CRB Many updates and additions for testscan
 03/01/2015 CRB Corrected some typos
+06/15/2015 CRB Update syntax directory
 
 This directory contains files presenting my language Small and development of
 a compiler written in Small.
@@ -42,6 +43,7 @@ lib              a library for Small programs
 libsc            a library of modules for the Small compiler
 libsrc		 source files for lib and libsc
 symacc           symbol table access module
+syntax           update adds error messages and symbolic values
 runoff	         paper and listings for 1981 Small Runoff 
 SmallPocketGuide.odt A brief summary of Small and Mill for handy
 		 reference
@@ -209,6 +211,17 @@ lexical kind returned from the lexical scanner. Token kind is useful for
 parsing.
 
 Update 02/28/2015 Updates for testscan.
+
+syntax Update 06/15/2015
+Contains modules to support syntax scan for Small compiler.
+eval    An integer expression evaluator for the SET statement. Supports add,
+subrtact, multiply, and divide, with precedence, paraentheses, and unary plus
+or minus signs.
+isamod  Contains short true/false functions to identify syntactic elements in
+a list exctracted from the input by scan using symacc and lex.
+error   A module to handle error messages. Tries to identify the point of
+error detection using an arror printed under the input line.
+See the README in the syntax directory for further details.
 
 runoff
 This subdirectory contains the 1981 version of Small Runoff, the program used
