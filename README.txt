@@ -127,10 +127,10 @@ by the value of the case expression. Each case skips to the end of the case
 statement on completion.
 
 scan
-This directory tests a form of scan that skips comments and process all other
-input through lex, the lexical scanner (see testlex). The output file scan.out
-shows the result of processing the scan.s1 source file. See the makefile for
-an example of using the libs1.a library.
+This directory tests a form of scan that skips comments and processes all
+other input through lex, the lexical scanner (see testlex). The output file
+scan.out shows the result of processing the scan.s1 source file. See the
+makefile for an example of using the libs1.a library.
 
 Update 02/28/2015 Added comprehensive testscan test program and numerous
 updates to scan, lex, and symacc.
@@ -215,12 +215,12 @@ Update 02/28/2015 Updates for testscan.
 syntax Update 06/15/2015
 Contains modules to support syntax scan for Small compiler.
 eval    An integer expression evaluator for the SET statement. Supports add,
-subrtact, multiply, and divide, with precedence, paraentheses, and unary plus
+subrtact, multiply, and divide, with precedence, parentheses, and unary plus
 or minus signs.
 isamod  Contains short true/false functions to identify syntactic elements in
-a list exctracted from the input by scan using symacc and lex.
+a list extracted from the input by scan using symacc and lex.
 error   A module to handle error messages. Tries to identify the point of
-error detection using an arror printed under the input line.
+error detection using an arrow printed under the input line.
 See the README in the syntax directory for further details.
 
 runoff
