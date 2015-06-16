@@ -1,5 +1,6 @@
 README.txt -- For syntax subdirectory, CRB, Apr 7, 2015
 06/10/2015 CRB Add ERROR module and messages, symbolic values
+06/16/2015 CRB Correct a typo
 
 Contents of this subdirectory:
 README.txt  this file
@@ -107,4 +108,4 @@ parenthesized subexpressions. It does not use recursion, but uses an internal
 stack for intermediate results. I first created this algorithm sometime in the
 sixties and used it in many forms and different languages. It does not use the
 usual computer science method, but instead uses straightforward brute force
-spaghetti code, code to show it is possible.
+spaghetti code, just to show it is possible.
