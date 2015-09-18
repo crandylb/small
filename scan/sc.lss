@@ -1,0 +1,32 @@
+1       * sc.s1 -- Main program for Small Compiler, CRB, Aug 5, 2015            
+2       * Adapted from testscan 03/03/2015                                      
+3       * 08/31/2015 CRB Fixing up for testlist                                 
+4       * 09/11/2015 CRB Adding TSTLFG to control SHOTOKS                       
+5                                                                               
+6         ENTRY SC;                                                             
+7         BEGIN SC;                                                             
+8         START SC;                                                             
+9                                                                               
+10        EXT PROC SCAN,INITSYM;                                                
+11        EXT PROC WRITE;                                                       
+12        EXT PROC SHOW;                                                        
+13        EXT OUTCH,COLLS;                                                      
+14                                                                              
+15        ENT LISTCH;                                                           
+16        ENT TSTFLG;                     * flag to control SHOTOKS in scan     
+17                                                                              
+18        DCL LISTCH=4;                   * listing channel                     
+19        DCL TSTFLG;                                                           
+20        MSG ERRSUM=' NO ERRORS DETECTED';                                     
+21        MSG NCOLLS='Collisions';                                              
+22                                                                              
+23      LABEL SC;                                                               
+24        TSTFLG=1;                       * turn on flag for SHOTOKS output     
+25        CALL INITSYM;                                                         
+26        CALL SCAN;                                                            
+27        CALL WRITE(LISTCH,ERRSUM);                                            
+28        CALL SHOW(NCOLLS,COLLS);                                              
+29        RETURN                                                                
+30                                                                              
+31      END                                                                     
+ NO ERRORS DETECTED

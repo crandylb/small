@@ -7,25 +7,28 @@
 7         ENTRY TESTSCAN;                                                       
 8         BEGIN TESTSCAN;                                                       
 9         START TESTSCAN;                                                       
-10                                                                              
-11        EXTERNAL PROC WRITE;                                                  
-12        EXT PROC SCAN,INITSYM,DMPLIST,SHOTOKS;                                
-13        EXT PROC SHOW;                                                        
-14        EXT OUTCH,COLLS;                                                      
-15                                                                              
-16        MSG GREET='Begin Small SCAN Test with INITSYM';                       
-17        MSG DONE='Scan Done';                                                 
-18        MSG NCOLLS='Collisions';                                              
-19                                                                              
-20      LABEL TESTSCAN;                                                         
-21        CALL WRITE(OUTCH,GREET);                                              
-22        CALL INITSYM;                                                         
-23        CALL DMPLIST;                                                         
-24        CALL SCAN;                                                            
-25        CALL WRITE(OUTCH,DONE);                                               
-26        CALL SHOTOKS;                                                         
-27        CALL SHOW(NCOLLS,COLLS);                                              
-28        RETURN                                                                
-29                                                                              
-30      END                                                                     
+10        ENT TSTFLG;                                                           
+11                                                                              
+12        EXTERNAL PROC WRITE;                                                  
+13        EXT PROC SCAN,INITSYM,DMPLIST,SHOTOKS;                                
+14        EXT PROC SHOW;                                                        
+15        EXT OUTCH,COLLS;                                                      
+16                                                                              
+17        DCL TSTFLG;                     * turn on flag for SHOTOKS output     
+18        MSG GREET='Begin Small SCAN Test with INITSYM';                       
+19        MSG DONE='Scan Done';                                                 
+20        MSG NCOLLS='Collisions';                                              
+21                                                                              
+22      LABEL TESTSCAN;                                                         
+23        TSTFLG=1;                                                             
+24        CALL WRITE(OUTCH,GREET);                                              
+25        CALL INITSYM;                                                         
+26        CALL DMPLIST;                                                         
+27        CALL SCAN;                                                            
+28        CALL WRITE(OUTCH,DONE);                                               
+29        CALL SHOTOKS;                                                         
+30        CALL SHOW(NCOLLS,COLLS);                                              
+31        RETURN                                                                
+32                                                                              
+33      END                                                                     
  NO ERRORS DETECTED

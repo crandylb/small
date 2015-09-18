@@ -1,0 +1,114 @@
+* * sc.s1 -- Main program for Small Compiler, CRB, Aug 5, 2015
+* * Adapted from testscan 03/03/2015
+* * 08/31/2015 CRB Fixing up for testlist
+* * 09/11/2015 CRB Adding TSTLFG to control SHOTOKS
+*  
+*   ENTRY SC;
+1  ENTRY             586 ENTRY
+1  SC                138 SC
+4  ;                3598 ;
+*   BEGIN SC;
+1  BEGIN            2024 BEGIN
+1  SC                138 SC
+4  ;                3598 ;
+*   START SC;
+1  START            5738 START
+1  SC                138 SC
+4  ;                3598 ;
+*  
+*   EXT PROC SCAN,INITSYM;
+1  EXT               200 EXT
+1  PROC             3770 PROC
+1  SCAN             4920 SCAN
+4  ,                2684 ,
+1  INITSYM          3874 INITSY
+4  ;                3598 ;
+*   EXT PROC WRITE;
+1  EXT               200 EXT
+1  PROC             3770 PROC
+1  WRITE            6622 WRITE
+4  ;                3598 ;
+*   EXT PROC SHOW;
+1  EXT               200 EXT
+1  PROC             3770 PROC
+1  SHOW             5576 SHOW
+4  ;                3598 ;
+*   EXT OUTCH,COLLS;
+1  EXT               200 EXT
+1  OUTCH            6198 OUTCH
+4  ,                2684 ,
+1  COLLS            3308 COLLS
+4  ;                3598 ;
+*  
+*   ENT LISTCH;
+1  ENT              7992 ENT
+1  LISTCH           6952 LISTCH
+4  ;                3598 ;
+*   ENT TSTFLG;                     * flag to control SHOTOKS in scan
+1  ENT              7992 ENT
+1  TSTFLG            188 TSTFLG
+4  ;                3598 ;
+*  
+*   DCL LISTCH=4;                   * listing channel
+1  DCL              2942 DCL
+1  LISTCH           6952 LISTCH
+4  =                3720 =
+2  4                   4 
+4  ;                3598 ;
+*   DCL TSTFLG;
+1  DCL              2942 DCL
+1  TSTFLG            188 TSTFLG
+4  ;                3598 ;
+*   MSG ERRSUM=' NO ERRORS DETECTED';
+1  MSG              3782 MSG
+1  ERRSUM           1640 ERRSUM
+4  =                3720 =
+3  ' NO ERRORS        39 
+4  ;                3598 ;
+*   MSG NCOLLS='Collisions';
+1  MSG              3782 MSG
+1  NCOLLS           1318 NCOLLS
+4  =                3720 =
+3  'Collisions        39 
+4  ;                3598 ;
+*  
+* LABEL SC;
+1  LABEL            7552 LABEL
+1  SC                138 SC
+4  ;                3598 ;
+*   TSTFLG=1;                       * turn on flag for SHOTOKS output
+1  TSTFLG            188 TSTFLG
+4  =                3720 =
+2  1                   1 
+4  ;                3598 ;
+*   CALL INITSYM;
+1  CALL              906 CALL
+1  INITSYM          3874 INITSY
+4  ;                3598 ;
+*   CALL SCAN;
+1  CALL              906 CALL
+1  SCAN             4920 SCAN
+4  ;                3598 ;
+*   CALL WRITE(LISTCH,ERRSUM);
+1  CALL              906 CALL
+1  WRITE            6622 WRITE
+4  (                2440 (
+1  LISTCH           6952 LISTCH
+4  ,                2684 ,
+1  ERRSUM           1640 ERRSUM
+4  )                2500 )
+4  ;                3598 ;
+*   CALL SHOW(NCOLLS,COLLS);
+1  CALL              906 CALL
+1  SHOW             5576 SHOW
+4  (                2440 (
+1  NCOLLS           1318 NCOLLS
+4  ,                2684 ,
+1  COLLS            3308 COLLS
+4  )                2500 )
+4  ;                3598 ;
+*   RETURN
+1  RETURN            552 RETURN
+*  
+* END
+1  END              6964 END

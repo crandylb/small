@@ -9,6 +9,7 @@
 # 02/04/2015 CRB show module moved to libs1
 # 02/09/2015 CRB Now using libsc for small compiler
 # 02/24/2015 CRB Final cleanup
+# 08/31/2015 CRB Update testscan and add make testlist
 
 LIBS=-L../lib -L../libsc -lsc -ls1 
 
@@ -30,6 +31,15 @@ scan.asm:	scan.mill ../mill2yasm.s2m
 scan.o:	scan.asm
 	yasm scan.asm -w -g stabs -l scan.lst -f elf32 -o scan.o
 
+sc.mill:	sc.s1 ../small.s2m
+	stg2 ../small.s2m <sc.s1 - sc.mill sc.lss
+
+sc.asm:	sc.mill ../mill2yasm.s2m
+	stg2 ../mill2yasm.s2m <sc.mill - sc.asm
+
+sc.o:	sc.asm
+	yasm sc.asm -w -g stabs -l sc.lst -f elf32 -o sc.o
+
 shotoks.mill:	shotoks.s1 ../small.s2m
 	stg2 ../small.s2m <shotoks.s1 - shotoks.mill shotoks.lss
 
@@ -39,11 +49,26 @@ shotoks.asm:	shotoks.mill ../mill2yasm.s2m
 shotoks.o:	shotoks.asm
 	yasm shotoks.asm -w -g stabs -l shotoks.lst -f elf32 -o shotoks.o
 
-testscan:	testscan.o ../lib/libs1.a ../libsc/libsc.a
-	gcc -m32 testscan.o $(LIBS)-o testscan
+show.mill:	show.s1 ../small.s2m
+	stg2 ../small.s2m <show.s1 - show.mill show.lss
+
+show.asm:	show.mill ../mill2yasm.s2m
+	stg2 ../mill2yasm.s2m <show.mill - show.asm
+
+show.o:	show.asm
+	yasm show.asm -w -g stabs -l show.lst -f elf32 -o show.o
+
+testscan:	testscan.o scan.o ../lib/libs1.a ../libsc/libsc.a
+	gcc -m32 testscan.o scan.o $(LIBS)-o testscan
+
+sc:	sc.o scan.o show.o ../lib/libs1.a ../libsc/libsc.a
+	gcc -m32 sc.o scan.o show.o $(LIBS)-o sc
 
 test:	testscan
 	./testscan scantest.txt ../symacc/initable.dat
 
+testlist:	sc
+	./sc sc.s1 ../symacc/initable.dat sc.ch3 sc.ch4
+
 clean:
-	rm *.mill *.lss *.asm *.o *.lst testscan
+	rm *.mill *.lss *.asm *.o *.lst testscan sc

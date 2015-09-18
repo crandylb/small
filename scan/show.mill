@@ -1,0 +1,72 @@
+** show.s1 -- Utility to show a name and value, CRB, Dec 30, 2014
+** 08/31/2015 CRB Change output to listing channel
+*
+*BEGIN SHOW;
+ BEGIN
+*
+*  ENT SHOW;
+ ENT  SHOW
+*  EXT PROC IFORM, CAT2, WRITE;
+ EXT P IFORM
+ EXT   CAT2
+ EXT   WRITE
+*  EXT LISTCH;                    * output channel number
+ EXT  LISTCH
+*  DCL BUFFER(31);
+ SECT DATA
+ LABEL BUFFER
+ SPACE  32
+*
+*PROC SHOW(NAME,VAL);
+ SECT CODE
+ SUBR P SHOW
+ NPARS  2
+ PAR  NAME
+ PAR  VAL
+ PEND
+*  BUFFER=10;                    * initialize buffer for iform
+*.GEN =BUFFER,=10,.BNST,
+ L  =10
+ ST  BUFFER
+*  CALL IFORM(VAL,BUFFER);       * format value into buffer
+ ARGT D VAL
+ SCALL P IFORM
+ NARGS  2
+ ARG D VAL
+ ARG  BUFFER
+ CEND
+*  BUFFER=BUFFER+1;              * bump the character count
+*.GEN =BUFFER,BUFFER,=1,.BC+,.BNST,
+ L  BUFFER
+ +  =1
+ ST  BUFFER
+*  BUFFER(BUFFER)=' ';           * append a space to buffer
+*.GEN =BUFFER,BUFFER,=2,.BNSHL,.BC+,=32,.BNST,
+ L  BUFFER
+ SHL  =2
+ +  =BUFFER
+ ST  T1Z
+ L  =32
+ ST  *T1Z
+*  CALL CAT2(BUFFER,NAME);       * concatenate name into buffer
+ ARGT D NAME
+ SCALL  CAT2
+ NARGS  2
+ ARG  BUFFER
+ ARG D NAME
+ CEND
+*  CALL WRITE(LISTCH,BUFFER);    * write the buffer out
+ SCALL  WRITE
+ NARGS  2
+ ARG  LISTCH
+ ARG  BUFFER
+ CEND
+*  RETURN;
+ RETN  SHOW,2
+*ENDPROC
+ SECT DATA
+ LABEL T1Z
+ SPACE  2
+ SECT CODE
+*END
+ END

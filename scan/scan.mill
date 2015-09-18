@@ -7,6 +7,9 @@
 ** 12/31/2014 CRB Handle LKIND=0 at end-of-line
 ** 01/06/2015 CRB Change TOKNUM to TINDEX, more comments
 ** 02/02/2015 CRB Change way TOKENS are counted
+** 08/04/2015 CRB Add LISTNG for source listing output
+** 09/04/2015 CRB Cleanup for listing output
+** 09/11/2015 CRB Adding TSTFLG to control SHOTOKS
 *
 *  BEGIN SCAN;
  BEGIN
@@ -14,8 +17,6 @@
  ENT  SCAN
 *  ENTRY TOKENS;                   * make TOKENS global for parsing
  ENT  TOKENS
-*  ENT SHOTOKS;
- ENT  SHOTOKS
 *
 *  EXT PROC SHOTOKS;               * used only for testing
  EXT P SHOTOKS
@@ -25,10 +26,15 @@
  EXT  IFORM
 *  EXT PROC LEX;
  EXT P LEX
+*  EXT PROC CAT2,CAT3;
+ EXT P CAT2
+ EXT  CAT3
 *  EXT BUFF;                       * use BUFF in initsym
  EXT  BUFF
 *  EXT MASKV;
  EXT  MASKV
+*  EXT TSTFLG;
+ EXT  TSTFLG
 *  ENT OUTCH;
  ENT  OUTCH
 *
@@ -79,6 +85,12 @@
  SECT DATA
  LABEL TINDEX
  SPACE  1
+*  MSG COMMNT='* ';                * prefix for comment in mill output
+ SECT DATA
+ LABEL COMMNT
+ CONST  2
+ CONST  42
+ CONST  32
 *
 *PROC SCAN;                        * frontend scanner for Small
  SECT CODE
@@ -107,20 +119,46 @@
  ARG  BUFF
  CEND
  ST  STATUS
-*    IF STATUS EQ EOF; 
+*    IF STATUS EQ EOF;             * end of source input file
 *.GEN STATUS,EOF,.BN-,
  L  STATUS
  -  EOF
 *      THEN RETURN;
  JNE  LJ4
  RETN  SCAN,0
-*      ENDIF
+*      ENDIF 
  LABEL LJ4
-*    CALL WRITE(OUTCH,BUFF);
+*    LINCNT=LINCNT+1;              * bump line count
+*.GEN =LINCNT,LINCNT,=1,.BC+,.BNST,
+ L  LINCNT
+ +  =1
+ ST  LINCNT
+*    LISTLN=0;                     * initialize listing line buffer
+*.GEN =LISTLN,=0,.BNST,
+ L  =0
+ ST  LISTLN
+*    CALL CAT2(LISTLN,COMMNT);     * insert coment prefix
+ SCALL P CAT2
+ NARGS  2
+ ARG  LISTLN
+ ARG  COMMNT
+ CEND
+*    CALL CAT2(LISTLN,BUFF);       * append source line
+ SCALL P CAT2
+ NARGS  2
+ ARG  LISTLN
+ ARG  BUFF
+ CEND
+*    CALL WRITE(OUTCH,LISTLN);     * output to mill as comment
  SCALL  WRITE
  NARGS  2
  ARG  OUTCH
- ARG  BUFF
+ ARG  LISTLN
+ CEND
+**    LEVEL=1;                      * test level
+*    CALL LISTNG;                  * source listing output
+ SCALL  LISTNG
+ NARGS  0
  CEND
 *    ICHAR=1;
 *.GEN =ICHAR,=1,.BNST,
@@ -131,11 +169,11 @@
  L  =1
  ST  TINDEX
 *    DO WHILE ICHAR LE BUFF;       * until end of line
- LABEL LJ6
+ LABEL LJ8
 *.GEN ICHAR,BUFF,.BN-,
  L  ICHAR
  -  BUFF
- JGT  LJ7
+ JGT  LJ9
 *      LKIND=LEX(ICHAR,LEXEME);    * call LEX, get LKIND and LEXEME
 *.GEN =LKIND,(ICHAR,LEXEME),.UFLEX,.BNST,
  SCALL P LEX
@@ -147,14 +185,14 @@
 *LABEL LEX1;                       * debugging hack
  SECT CODE
  LABEL LEX1
-*      IF LKIND EQ 0;
+*      IF LKIND EQ 0;              * end of line if null token
 *.GEN LKIND,=0,.BN-,
  L  LKIND
  -  =0
 *        THEN GO TO CONTIN; ENDIF 
- JNE  LJ9
+ JNE  LJ11
  J  CONTIN
- LABEL LJ9
+ LABEL LJ11
 *      FIRSTC=BUFF(LEXEME AND 255); * extract anchor for 1st char of token
 *.GEN =FIRSTC,=BUFF,LEXEME,=255,.BCAND,=2,.BNSHL,.BC+,.UA,.BNST,
  L  LEXEME
@@ -167,40 +205,40 @@
 *.GEN MODE,=0,.BN-,
  L  MODE
  -  =0
- JEQ  LJ10
+ JEQ  LJ12
 *        IF FIRSTC EQ STAR;        * if MODE 1 and * skip to next
 *.GEN FIRSTC,STAR,.BN-,
  L  FIRSTC
  -  STAR
-*          THEN GO TO CONTIN;      * input line to ignore comment
- JNE  LJ11
+*          THEN GO TO CONTIN;      * if comment ignore rest of line
+ JNE  LJ13
  J  CONTIN
 *          ELSE MODE=0;            * comments not allowed in MODE 0
- J  LJ12
- LABEL LJ11
+ J  LJ14
+ LABEL LJ13
 *.GEN =MODE,=0,.BNST,
  L  =0
  ST  MODE
 *        ENDIF ENDIF
+ LABEL LJ14
  LABEL LJ12
- LABEL LJ10
 *      IF MODE EQ 0; THEN 
 *.GEN MODE,=0,.BN-,
  L  MODE
  -  =0
- JNE  LJ13
+ JNE  LJ15
 *        IF FIRSTC EQ SEMICO;      * revert to mode 1 on semicolon
 *.GEN FIRSTC,SEMICO,.BN-,
  L  FIRSTC
  -  SEMICO
 *           THEN MODE=1;
- JNE  LJ14
+ JNE  LJ16
 *.GEN =MODE,=1,.BNST,
  L  =1
  ST  MODE
 *        ENDIF ENDIF
- LABEL LJ14
- LABEL LJ13
+ LABEL LJ16
+ LABEL LJ15
 *
 *      TOKENS(TINDEX)=LEXEME;      * save current token
 *.GEN =TOKENS,TINDEX,=2,.BNSHL,.BC+,LEXEME,.BNST,
@@ -215,19 +253,19 @@
  L  LKIND
  -  =1
  -  =0
- JX  15
+ JX  17
  JC  LK1
  JC  LK2
  JC  LK3
  JC  LK4
 *LABEL LK1; GO TO LK4;             * symbol in TABLE
  SECT CODE
- J  LJ15
+ J  LJ17
  LABEL LK1
  J  LK4
 *LABEL LK2; TOKENS(TINDEX+1)=LEXEME(1); * integer value
  SECT CODE
- J  LJ15
+ J  LJ17
  LABEL LK2
 *.GEN =TOKENS,TINDEX,=1,.BC+,=2,.BNSHL,.BC+,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
  L  TINDEX
@@ -242,11 +280,11 @@
  ST  *T1Z1
 *LABEL LK3;                        * quote string
  SECT CODE
- J  LJ15
+ J  LJ17
  LABEL LK3
 *LABEL LK4;                        * single character token
  SECT CODE
- J  LJ15
+ J  LJ17
  LABEL LK4
 *        TOKENS(TINDEX+1)=LEXEME(1);
 *.GEN =TOKENS,TINDEX,=1,.BC+,=2,.BNSHL,.BC+,=LEXEME,=1,=2,.BNSHL,.BC+,.UA,.BNST,
@@ -285,7 +323,7 @@
  L  *.AC
  ST  *T1Z1
 *      ENDCASE 
- LABEL LJ15
+ LABEL LJ17
 *
 *      TINDEX=TINDEX+4;            * bump token index
 *.GEN =TINDEX,TINDEX,=4,.BC+,.BNST,
@@ -298,16 +336,23 @@
  +  =1
  ST  TOKENS
 *      ENDDO
- J  LJ6
- LABEL LJ7
+ J  LJ8
+ LABEL LJ9
 *
 *LABEL CONTIN;
  SECT CODE
  LABEL CONTIN
-*    CALL SHOTOKS;                 * used only for testing
+*    IF TSTFLG; THEN               * use flag to control output
+*.GEN TSTFLG,=0,.BN-,
+ L  TSTFLG
+ -  =0
+ JEQ  LJ18
+*      CALL SHOTOKS;               * used only for testing
  SCALL P SHOTOKS
  NARGS  0
  CEND
+*      ENDIF
+ LABEL LJ18
 *    ENDDO
  J  LJ1
  LABEL LJ2
@@ -322,6 +367,118 @@
  LABEL T1Z1
  SPACE  1
  SECT CODE
+*
+** Format print line for source listing output
+*  DCL LISTCH=4;                   * listing channel
+ SECT DATA
+ LABEL LISTCH
+ CONST  4
+*  DCL LINCNT=0;                   * source line count
+ SECT DATA
+ LABEL LINCNT
+ CONST  0
+*  DCL LEVEL=0;                    * structure level number
+ SECT DATA
+ LABEL LEVEL
+ CONST  0
+*  DCL LINSUB=3*256+8;             * substring for line number
+ SECT DATA
+ LABEL LINSUB
+ CONST  776
+*  DCL LEVSUB=3*256+8;             * substring for level number
+ SECT DATA
+ LABEL LEVSUB
+ CONST  776
+*  DCL TMP(12);                    * temp buffer for number conversion
+ SECT DATA
+ LABEL TMP
+ SPACE  13
+*  DCL LISTLN(127);                * buffer for source listing line
+ SECT DATA
+ LABEL LISTLN
+ SPACE  128
+*  MSG SPACES='  ';                * two spaces
+ SECT DATA
+ LABEL SPACES
+ CONST  2
+ CONST  32
+ CONST  32
+*
+*PROC LISTNG;
+ SECT CODE
+ SUBR P LISTNG
+ NPARS  0
+ PEND
+*  LISTLN=0;                       * initialize listing buffer
+*.GEN =LISTLN,=0,.BNST,
+ L  =0
+ ST  LISTLN
+*  TMP=10;                         * initialize temp conversion buffer
+*.GEN =TMP,=10,.BNST,
+ L  =10
+ ST  TMP
+*  CALL IFORM(LINCNT,TMP);         * convert line number to string
+ SCALL  IFORM
+ NARGS  2
+ ARG  LINCNT
+ ARG  TMP
+ CEND
+*  CALL CAT3(LISTLN,LINSUB,TMP);   * copy line number to listing line
+ SCALL  CAT3
+ NARGS  3
+ ARG  LISTLN
+ ARG  LINSUB
+ ARG  TMP
+ CEND
+*  IF LEVEL; THEN 
+*.GEN LEVEL,=0,.BN-,
+ L  LEVEL
+ -  =0
+ JEQ  LJ21
+*    CALL IFORM(LEVEL,TMP);        * convert level number to string
+ SCALL  IFORM
+ NARGS  2
+ ARG  LEVEL
+ ARG  TMP
+ CEND
+*    CALL CAT3(LISTLN,LEVSUB,TMP); * copy level number to output
+ SCALL  CAT3
+ NARGS  3
+ ARG  LISTLN
+ ARG  LEVSUB
+ ARG  TMP
+ CEND
+*    ELSE CALL CAT2(LISTLN,SPACES);
+ J  LJ24
+ LABEL LJ21
+ SCALL P CAT2
+ NARGS  2
+ ARG  LISTLN
+ ARG  SPACES
+ CEND
+*    ENDIF
+ LABEL LJ24
+*  CALL CAT2(LISTLN,SPACES);       * copy spaces to output
+ SCALL P CAT2
+ NARGS  2
+ ARG  LISTLN
+ ARG  SPACES
+ CEND
+*  CALL CAT2(LISTLN,BUFF);         * copy input line to output
+ SCALL P CAT2
+ NARGS  2
+ ARG  LISTLN
+ ARG  BUFF
+ CEND
+*  CALL WRITE(LISTCH,LISTLN);      * print the listing line
+ SCALL  WRITE
+ NARGS  2
+ ARG  LISTCH
+ ARG  LISTLN
+ CEND
+*  RETURN
+ RETN  LISTNG,0
+*ENDPROC
 *
 *END
  END

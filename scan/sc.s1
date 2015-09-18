@@ -1,0 +1,31 @@
+* sc.s1 -- Main program for Small Compiler, CRB, Aug 5, 2015
+* Adapted from testscan 03/03/2015
+* 08/31/2015 CRB Fixing up for testlist
+* 09/11/2015 CRB Adding TSTLFG to control SHOTOKS
+
+  ENTRY SC;
+  BEGIN SC;
+  START SC;
+
+  EXT PROC SCAN,INITSYM;
+  EXT PROC WRITE;
+  EXT PROC SHOW;
+  EXT OUTCH,COLLS;
+
+  ENT LISTCH;
+  ENT TSTFLG;                     * flag to control SHOTOKS in scan
+
+  DCL LISTCH=4;                   * listing channel
+  DCL TSTFLG;
+  MSG ERRSUM=' NO ERRORS DETECTED';
+  MSG NCOLLS='Collisions';
+
+LABEL SC;
+  TSTFLG=1;                       * turn on flag for SHOTOKS output
+  CALL INITSYM;
+  CALL SCAN;
+  CALL WRITE(LISTCH,ERRSUM);
+  CALL SHOW(NCOLLS,COLLS);
+  RETURN
+
+END

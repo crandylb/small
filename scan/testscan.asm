@@ -16,6 +16,8 @@ progr:
  push EBP
  mov  EBP,ESP
  jmp TESTSCAN
+;  ENT TSTFLG;
+ global  TSTFLG
 ;
 ;  EXTERNAL PROC WRITE;
  extern WRITE
@@ -30,8 +32,11 @@ progr:
  extern  OUTCH
  extern  COLLS
 ;
-;  MSG GREET='Begin Small SCAN Test with INITSYM';
+;  DCL TSTFLG;                     * turn on flag for SHOTOKS output
  section .data
+TSTFLG:
+ times 1 dd 0
+;  MSG GREET='Begin Small SCAN Test with INITSYM';
 GREET:
  dd  34
  dd  66
@@ -97,6 +102,10 @@ NCOLLS:
 ;LABEL TESTSCAN;
  section .text
 TESTSCAN:
+;  TSTFLG=1;
+;.GEN =TSTFLG,=1,.BNST,
+ mov EAX,1
+ mov [TSTFLG],EAX
 ;  CALL WRITE(OUTCH,GREET);
 ; NARGS  2
  push OUTCH

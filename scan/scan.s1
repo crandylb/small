@@ -7,17 +7,21 @@
 * 12/31/2014 CRB Handle LKIND=0 at end-of-line
 * 01/06/2015 CRB Change TOKNUM to TINDEX, more comments
 * 02/02/2015 CRB Change way TOKENS are counted
+* 08/04/2015 CRB Add LISTNG for source listing output
+* 09/04/2015 CRB Cleanup for listing output
+* 09/11/2015 CRB Adding TSTFLG to control SHOTOKS
 
   BEGIN SCAN;
   ENTRY SCAN;
   ENTRY TOKENS;                   * make TOKENS global for parsing
-  ENT SHOTOKS;
 
   EXT PROC SHOTOKS;               * used only for testing
   EXT PROC READ,WRITE,IFORM;
   EXT PROC LEX;
+  EXT PROC CAT2,CAT3;
   EXT BUFF;                       * use BUFF in initsym
   EXT MASKV;
+  EXT TSTFLG;
   ENT OUTCH;
 
   SET MAXTOK=127;                 * maximum number of tokens in a line
@@ -31,27 +35,34 @@
   DCL FIRSTC;                     * first character of current token
   DCL TOKENS(MAXTOK*4);           * array of tokens in current line
   DCL TINDEX;                     * current token index
+  MSG COMMNT='* ';                * prefix for comment in mill output
 
 PROC SCAN;                        * frontend scanner for Small
   DO WHILE 1;
     TOKENS=0;                     * reinitialize to zero for each loop
     MODE=1;                       * MODE 1 allows comments
     STATUS=READ(INCH,BUFF);
-    IF STATUS EQ EOF; 
+    IF STATUS EQ EOF;             * end of source input file
       THEN RETURN;
-      ENDIF
-    CALL WRITE(OUTCH,BUFF);
+      ENDIF 
+    LINCNT=LINCNT+1;              * bump line count
+    LISTLN=0;                     * initialize listing line buffer
+    CALL CAT2(LISTLN,COMMNT);     * insert coment prefix
+    CALL CAT2(LISTLN,BUFF);       * append source line
+    CALL WRITE(OUTCH,LISTLN);     * output to mill as comment
+*    LEVEL=1;                      * test level
+    CALL LISTNG;                  * source listing output
     ICHAR=1;
     TINDEX=1;
     DO WHILE ICHAR LE BUFF;       * until end of line
       LKIND=LEX(ICHAR,LEXEME);    * call LEX, get LKIND and LEXEME
 LABEL LEX1;                       * debugging hack
-      IF LKIND EQ 0;
+      IF LKIND EQ 0;              * end of line if null token
         THEN GO TO CONTIN; ENDIF 
       FIRSTC=BUFF(LEXEME AND 255); * extract anchor for 1st char of token
       IF MODE; THEN 
         IF FIRSTC EQ STAR;        * if MODE 1 and * skip to next
-          THEN GO TO CONTIN;      * input line to ignore comment
+          THEN GO TO CONTIN;      * if comment ignore rest of line
           ELSE MODE=0;            * comments not allowed in MODE 0
         ENDIF ENDIF
       IF MODE EQ 0; THEN 
@@ -75,8 +86,36 @@ LABEL LK4;                        * single character token
       ENDDO
 
 LABEL CONTIN;
-    CALL SHOTOKS;                 * used only for testing
+    IF TSTFLG; THEN               * use flag to control output
+      CALL SHOTOKS;               * used only for testing
+      ENDIF
     ENDDO
+  RETURN
+ENDPROC
+
+* Format print line for source listing output
+  DCL LISTCH=4;                   * listing channel
+  DCL LINCNT=0;                   * source line count
+  DCL LEVEL=0;                    * structure level number
+  DCL LINSUB=3*256+8;             * substring for line number
+  DCL LEVSUB=3*256+8;             * substring for level number
+  DCL TMP(12);                    * temp buffer for number conversion
+  DCL LISTLN(127);                * buffer for source listing line
+  MSG SPACES='  ';                * two spaces
+
+PROC LISTNG;
+  LISTLN=0;                       * initialize listing buffer
+  TMP=10;                         * initialize temp conversion buffer
+  CALL IFORM(LINCNT,TMP);         * convert line number to string
+  CALL CAT3(LISTLN,LINSUB,TMP);   * copy line number to listing line
+  IF LEVEL; THEN 
+    CALL IFORM(LEVEL,TMP);        * convert level number to string
+    CALL CAT3(LISTLN,LEVSUB,TMP); * copy level number to output
+    ELSE CALL CAT2(LISTLN,SPACES);
+    ENDIF
+  CALL CAT2(LISTLN,SPACES);       * copy spaces to output
+  CALL CAT2(LISTLN,BUFF);         * copy input line to output
+  CALL WRITE(LISTCH,LISTLN);      * print the listing line
   RETURN
 ENDPROC
 
