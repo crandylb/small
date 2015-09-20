@@ -17,6 +17,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 02/28/2015 CRB Many updates and additions for testscan
 03/01/2015 CRB Corrected some typos
 06/15/2015 CRB Update syntax directory
+09/19/2015 CRB Updates to scan directory for sc and listing output
 
 This directory contains files presenting my language Small and development of
 a compiler written in Small.
@@ -134,6 +135,13 @@ makefile for an example of using the libs1.a library.
 
 Update 02/28/2015 Added comprehensive testscan test program and numerous
 updates to scan, lex, and symacc.
+
+Update 09/19/2015 Added sc, a module to becme the main program for the Small
+compiler, initially to produce a listing output on channel 4. Modified
+makefile to add testlist which builds an sc executable to test the listing
+output. The test uses sc.s1 as the test input file. Also modified show to put
+its output on channel 4 instead of 3, and added a TSTFLG to control output
+from shotoks: 1 turns it on, 0 turns it off.
 
 lib
 This directory contains libs1.a, a library for Small programs. The library
