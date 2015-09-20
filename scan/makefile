@@ -10,6 +10,7 @@
 # 02/09/2015 CRB Now using libsc for small compiler
 # 02/24/2015 CRB Final cleanup
 # 08/31/2015 CRB Update testscan and add make testlist
+# 09/20/2015 CRB Use updated show.o in lib
 
 LIBS=-L../lib -L../libsc -lsc -ls1 
 
@@ -61,8 +62,8 @@ show.o:	show.asm
 testscan:	testscan.o scan.o ../lib/libs1.a ../libsc/libsc.a
 	gcc -m32 testscan.o scan.o $(LIBS)-o testscan
 
-sc:	sc.o scan.o show.o ../lib/libs1.a ../libsc/libsc.a
-	gcc -m32 sc.o scan.o show.o $(LIBS)-o sc
+sc:	sc.o scan.o ../lib/libs1.a ../libsc/libsc.a
+	gcc -m32 sc.o scan.o $(LIBS)-o sc
 
 test:	testscan
 	./testscan scantest.txt ../symacc/initable.dat
