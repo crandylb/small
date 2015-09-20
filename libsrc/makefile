@@ -5,9 +5,10 @@
 # 02/23/2015 CRB Add shotoks
 # 02/24/2015 CRB Add initsym
 # 02/25/2015 CRB Update lib and libsc
+# 09/19/2015 CRB Add show.o to lib
 
 lib:	show.o cat2.o cat3.o iform.o iread.o
-	cp -a cat2.o cat3.o iform.o iread.o ../lib
+	cp -a show.o cat2.o cat3.o iform.o iread.o ../lib
 
 libsc:	scan.o shotoks.o lex.o symacc.o initsym.o
 	cp -a scan.o shotoks.o lex.o symacc.o initsym.o ../libsc

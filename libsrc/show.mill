@@ -1,4 +1,5 @@
 ** show.s1 -- Utility to show a name and value, CRB, Dec 30, 2014
+** 08/31/2015 CRB Change output to listing channel
 *
 *BEGIN SHOW;
  BEGIN
@@ -9,8 +10,8 @@
  EXT P IFORM
  EXT   CAT2
  EXT   WRITE
-*  EXT OUTCH;                    * output channel number
- EXT  OUTCH
+*  EXT LISTCH;                    * output channel number
+ EXT  LISTCH
 *  DCL BUFFER(31);
  SECT DATA
  LABEL BUFFER
@@ -54,10 +55,10 @@
  ARG  BUFFER
  ARG D NAME
  CEND
-*  CALL WRITE(OUTCH,BUFFER);     * write the buffer out
+*  CALL WRITE(LISTCH,BUFFER);    * write the buffer out
  SCALL  WRITE
  NARGS  2
- ARG  OUTCH
+ ARG  LISTCH
  ARG  BUFFER
  CEND
 *  RETURN;

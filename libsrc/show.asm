@@ -1,4 +1,5 @@
 ;* show.s1 -- Utility to show a name and value, CRB, Dec 30, 2014
+;* 08/31/2015 CRB Change output to listing channel
 ;
 ;BEGIN SHOW;
  global progr
@@ -10,8 +11,8 @@
  extern IFORM
  extern   CAT2
  extern   WRITE
-;  EXT OUTCH;                    * output channel number
- extern  OUTCH
+;  EXT LISTCH;                    * output channel number
+ extern  LISTCH
 ;  DCL BUFFER(31);
  section .data
 BUFFER:
@@ -64,9 +65,9 @@ SHOW:
  push EBX
  call CAT2
  add  ESP,4*2
-;  CALL WRITE(OUTCH,BUFFER);     * write the buffer out
+;  CALL WRITE(LISTCH,BUFFER);    * write the buffer out
 ; NARGS  2
- push OUTCH
+ push LISTCH
  push BUFFER
  call WRITE
  add  ESP,4*2
