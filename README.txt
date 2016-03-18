@@ -18,6 +18,7 @@ README.txt -- small directory contains language Small, CRB, Jan 6, 2014
 03/01/2015 CRB Corrected some typos
 06/15/2015 CRB Update syntax directory
 09/19/2015 CRB Updates to scan directory for sc and listing output
+03/18/2016 CRB Adding tag 0.0.1 for stable compiler infrastructure
 
 This directory contains files presenting my language Small and development of
 a compiler written in Small.
